@@ -17,7 +17,7 @@ The UNOBot uses the prefix `/u.` for commands.
 Command | Alias | Arguments | Description | Example
 ------- | ----- | --------- | ----------- | -------
 `/u.help` | `/u.h` | None | Prints help info
-`/u.rules` | `/u.r` | None | https://www.unorules.com/
+`/u.rules` | `/u.r` | None | [UNO Rules](https://github.com/VTiS15/UNOBot#game-rule)
 `/u.guide` | `/u.g` | (`start/play/commands/settings/options`) | Gives you a guide on using bot | `/u.g start`
 `/u.startgame` | `/u.start`, `/u.sg` | (@user mentions), (game settings) | Starts a game | `/u.sg @VTiS @Dong Flip`
 `/u.endgame` | `/u.stop`, `/u.end`, `/u.eg` | None | Ends the ongoing game in the server
