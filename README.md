@@ -1,6 +1,6 @@
 # UNOBot
 ![UNOBot](https://user-images.githubusercontent.com/73805050/130341782-78d30da7-0313-44f5-889c-06ab7eb8de9a.png)\
-Improved from [Exium's work](https://top.gg/bot/565305035592957954), this is a bot that incorporates the popular card game, **UNO**,  into your Discord server, because public bots suck.\
+Improved from [Exium's work](https://top.gg/bot/565305035592957954), this is a Python bot that incorporates the popular card game, **UNO**,  into your Discord server, because public bots suck.\
 It allows Discord servers to play the game completely within text-channels. Challenge your friends and climb the leaderboard!
 
 # Usage and Commands
