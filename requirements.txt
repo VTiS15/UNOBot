@@ -1,0 +1,5 @@
+discord~=1.0.1
+Pillow~=8.2.0
+DateTime~=4.3
+numpy~=1.21.2
+scipy~=1.7.1
