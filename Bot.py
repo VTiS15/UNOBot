@@ -528,8 +528,9 @@ async def game_setup(ctx, d):
             if games[str(guild.id)]['settings']['StackCards'] \
                     and (any('+2' in card for card in games[str(guild.id)][cplayer]['cards'])
                          or any('+4' in card for card in games[str(guild.id)][cplayer]['cards'])):
+                stack[str(guild.id)] = 2
+                
                 for channel in category.text_channels:
-                    stack[str(guild.id)] = 2
                     await channel.send(embed=discord.Embed(description='**' + guild.get_member(
                         int(cplayer)).name + ' can choose to stack cards or draw 2 cards.**', color=discord.Color.red()))
 
