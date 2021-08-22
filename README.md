@@ -17,7 +17,7 @@ The UNOBot uses the prefix `/u.` for commands.
 Command | Alias | Arguments | Description | Example
 ------- | ----- | --------- | ----------- | -------
 `/u.help` | `/u.h` | None | Prints help info
-`/u.rules` | `/u.r` | None | [UNO Rules](#Game Rules)
+`/u.rules` | `/u.r` | None | [UNO Rules](Rules)
 `/u.guide` | `/u.g` | (`start/play/commands/settings/options`) | Gives you a guide on using bot | `/u.g start`
 `/u.startgame` | `/u.start`, `/u.sg` | (@user mentions), (game settings) | Starts a game | `/u.sg @VTiS @Dong Flip`
 `/u.endgame` | `/u.stop`, `/u.end`, `/u.eg` | None | Ends the ongoing game in the server
@@ -28,7 +28,7 @@ Command | Alias | Arguments | Description | Example
 `/u.leaderboard` | `/u.lb` | None | Gives you a leaderboard only from the current Discord server
 `/u.globalleaderboard` | `/u.global-leaderboard`, `/u.global_leaderboard`, `/u.gleaderboard`, `/u.g-lb`, `/u.g_lb` | None | Gives you a global leaderboard from all Discord servers
 `/u.settings` | `/u.setting`, `/u.stng`, `/u.stngs`, `/u.sett`, `/u.set` | Variable arguments | Change the settings for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u.set commands allowalerts off`, `/u.set dgs Flip on`, `/u.set dgs StartingCards 15`, `/u.set reset`
-# Game Rule📃
+# [Game Rule📃](#Rules)
 ## <img align="right" src="https://user-images.githubusercontent.com/73805050/130345109-413d6558-77d6-42cf-962c-1cb9eaad750e.png" width="100" height="69.2"> Original UNO!
 ### Setup
 Each player is dealt 7 cards. A top card is randomly chosen to let the game begin. The top card cannot be a Wild or a Wild Draw 4.
