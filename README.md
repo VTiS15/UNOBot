@@ -63,4 +63,4 @@ The Discard Pile is flipped first, then the Draw Pile, and finally everyone's ha
 Play a Skip Everyone card by entering `[color]skip`, just like what you'd enter for a normal skip.\
 Play a Wild Draw Color Card by entering `[color]+color`.
 # Similar Project
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It's a public bot and frequent lags, bugs, and downtime are the crux of the matter. It's what pushed me to create this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It's a public bot and the frequent lags, bugs, and downtime are the crux of the matter. It's what pushed me to create this bot.
