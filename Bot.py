@@ -3141,13 +3141,7 @@ async def guide(ctx, arg=None):
 
 @client.command(aliases=[chr(173) + 'rules', 'r'])
 async def rules(ctx):
-    UNOPNG = discord.File('images/uno!.png', filename='uno.png')
-
-    message = discord.Embed(title='UNO Rules', color=discord.Color.red(),
-                            description='UNOBot is based off of rules from **https://www.unorules.com/**. This may change with the different game settings that can be enabled.')
-    message.set_thumbnail(url='attachment://uno.png')
-
-    await ctx.send(file=UNOPNG, embed=message)
+    await ctx.send("https://github.com/VTiS15/UNOBot#game-rule")
 
 
 @client.command(aliases=[chr(173) + 'stats'])
