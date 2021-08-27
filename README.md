@@ -2,7 +2,7 @@
 Improved from [Exium's work](https://top.gg/bot/565305035592957954), this is a Python bot that incorporates the popular card game, **UNO**, into your Discord server, because public bots suck.\
 It allows Discord servers to play the game completely within text channels. Challenge your friends and climb the leaderboard!
 
-# Features
+# Features💡
 * Play UNO! with your friends completely within text channels on Discord!
 * Various optional game rules, including **StackCards** and **7-0**
 * Two fun game modes - Original **UNO!** and **UNO FLIP!**
