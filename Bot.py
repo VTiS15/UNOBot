@@ -202,21 +202,21 @@ async def initialize():
     try:
         s3_resource.Object('unobot-bucket', 'dgs.json').load()
     except ClientError:
-        s3_client.upload_file('empty.json', 'unobot-bucket', 'dgs.json')
+        s3_client.put_object(Bucket='unobot-bucket', Key='dgs.json', Body=b'{}')
     dgs_file = s3_resource.Object('unobot-bucket', 'dgs.json')
     dgs = json.loads(dgs_file.get()['Body'].read().decode('utf-8'))
 
     try:
         s3_resource.Object('unobot-bucket', 'users.json').load()
     except ClientError:
-        s3_client.upload_file('empty.json', 'unobot-bucket', 'users.json')
+        s3_client.put_object(Bucket='unobot-bucket', Key='users.json', Body=b'{}')
     users_file = s3_resource.Object('unobot-bucket', 'users.json')
     user_stuff = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
     try:
         s3_resource.Object('unobot-bucket', 'commands.json').load()
     except ClientError:
-        s3_client.upload_file('empty.json', 'unobot-bucket', 'commands.json')
+        s3_client.put_object(Bucket='unobot-bucket', Key='commands.json', Body=b'{}')
     commands_file = s3_resource.Object('unobot-bucket', 'commands.json')
     commands = json.loads(commands_file.get()['Body'].read().decode('utf-8'))
 
