@@ -493,6 +493,11 @@ async def game_setup(ctx, d):
 
     if flip:
         games[str(guild.id)]['dark'] = False
+        
+    try:
+        del stack[str(guild.id)]
+    except KeyError:
+        pass
 
     print(
         '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(ctx.guild) + '.')
@@ -522,6 +527,8 @@ async def game_setup(ctx, d):
         if '+1' in games[str(guild.id)]['current'][0]:
             if games[str(guild.id)]['settings']['StackCards'] and any(
                     '+2' in card for card in games[str(guild.id)][cplayer]['cards']):
+                stack[str(guild.id)] = 1
+                
                 for channel in category.text_channels:
                     await channel.send(embed=discord.Embed(description='**' + guild.get_member(
                         int(cplayer)).name + ' can choose to stack cards or draw 1 card.**', color=discord.Color.red()))
@@ -534,11 +541,6 @@ async def game_setup(ctx, d):
 
         else:
             await display_cards(guild.get_member(int(cplayer)))
-
-    try:
-        del stack[str(guild.id)]
-    except KeyError:
-        pass
 
 
 async def game_shutdown(d, winner: discord.Member = None, guild=None):
