@@ -38,7 +38,7 @@ The UNOBot uses the prefix `/u.` for commands.
 | `/u.globalleaderboard` | `/u.global-leaderboard`, `/u.global_leaderboard`, `/u.gleaderboard`, `/u.g-lb`, `/u.g_lb` | None | Gives you a global leaderboard from all Discord servers |
 | `/u.settings` | `/u.setting`, `/u.stng`, `/u.stngs`, `/u.sett`, `/u.set` | Variable arguments | Change the settings for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u.set commands allowalerts off`, `/u.set dgs Flip on`, `/u.set dgs StartingCards 15`, `/u.set reset` |
 
-# <a name="rule">Game Rule📃</a>
+# <a name="rule">Game Rules📃</a>
 ## <img align="right" src="https://user-images.githubusercontent.com/73805050/130345109-413d6558-77d6-42cf-962c-1cb9eaad750e.png" width="100" height="69.2"> Original UNO!
 ### Setup
 Each player is dealt 7 cards. A top card is randomly chosen to let the game begin. The top card cannot be a Wild or a Wild Draw 4.
