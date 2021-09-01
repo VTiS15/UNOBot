@@ -23,8 +23,8 @@ After 30 seconds, if there are enough (>1) players, a text channel for every pla
 If you want to view command usage, read an in-depth guide on using the bot, or read the rules of UNO, type `/u.help` in your Discord server.
 ## Command Usage
 The UNOBot uses the prefix `/u.` for commands.
-Command | Alias | Arguments | Description | Example
-------- | ----- | --------- | ----------- | -------
+| Command | Alias | Arguments | Description | Example |
+| ------- | ----- | --------- | ----------- | ------- |
 `/u.help` | `/u.h` | None | Prints help info
 `/u.rules` | `/u.r` | None | [UNO Rules](#rule)
 `/u.guide` | `/u.g` | (`start/play/commands/settings/options`) | Gives you a guide on using bot | `/u.g start`
