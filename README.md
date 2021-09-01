@@ -11,7 +11,7 @@ It allows Discord servers to play the game completely within text channels. Chal
 * Highly customizable player options, game and command settings
 * Friendly UI
 
-# Usage and Command🛠️
+# Usage and Commands🛠️
 Type the following `/u.` command to start a game of UNO.
 ```
 /u.startgame
