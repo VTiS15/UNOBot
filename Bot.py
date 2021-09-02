@@ -586,10 +586,8 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
 
         users_file.put(Body=json.dumps(users).encode('utf-8'))
 
-    await asyncio.gather(
-        discord.utils.get(guild.categories, name='UNO-GAME').delete(),
-        *[asyncio.create_task(x.delete()) for x in guild.text_channels if x.category.name == 'UNO-GAME']
-    )
+    for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
+        await channel.delete()
 
     del games[str(guild.id)]
     ending.remove(str(guild.id))
