@@ -588,6 +588,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
 
     for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
         await channel.delete()
+    await discord.utils.get(guild.categories, name='UNO-GAME').delete()
 
     del games[str(guild.id)]
     ending.remove(str(guild.id))
