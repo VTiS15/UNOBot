@@ -4,6 +4,7 @@ import json
 import boto3
 from os import getenv
 from botocore.exceptions import ClientError
+from discord import Option
 from scipy.stats import rankdata
 from copy import deepcopy
 from discord.ext import commands
@@ -15,7 +16,7 @@ from random import sample, choice
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
 
-prefix = '/u.'
+prefix = '/u-'
 intents = discord.Intents.default()
 intents.members, intents.messages, intents.reactions = True, True, True
 client = commands.Bot(command_prefix=prefix, intents=intents)
@@ -193,16 +194,19 @@ s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
 s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 
+try:
+    s3_resource.Object('unobot-bucket', 'dgs.json').load()
+except ClientError:
+    s3_client.put_object(Bucket='unobot-bucket', Key='dgs.json', Body=b'{}')
+dgs = json.loads(s3_resource.Object('unobot-bucket', 'dgs.json').get()['Body'].read().decode('utf-8'))
+guild_ids = [int(x) for x in dgs.keys()]
+
 
 def main():
     client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
-    try:
-        s3_resource.Object('unobot-bucket', 'dgs.json').load()
-    except ClientError:
-        s3_client.put_object(Bucket='unobot-bucket', Key='dgs.json', Body=b'{}')
     dgs_file = s3_resource.Object('unobot-bucket', 'dgs.json')
     dgs = json.loads(dgs_file.get()['Body'].read().decode('utf-8'))
 
@@ -221,6 +225,7 @@ async def initialize():
     commands = json.loads(commands_file.get()['Body'].read().decode('utf-8'))
 
     if client.guilds:
+
         if not dgs:
             for guild in client.guilds:
                 dgs[str(guild.id)] = default_dgs
@@ -352,12 +357,9 @@ async def cmd_info(ctx, cmd):
 
 async def game_setup(ctx, d):
     guild = ctx.guild
-    player_ids = list(d.keys())
+    player_ids = list(d['players'].keys())
 
-    player_ids.remove('settings')
-    player_ids.remove('seconds')
-
-    flip = games[str(guild.id)]['settings']['Flip']
+    flip = d['settings']['Flip']
 
     category = await guild.create_category('UNO-GAME')
 
@@ -368,8 +370,9 @@ async def game_setup(ctx, d):
             guild.me: discord.PermissionOverwrite(read_messages=True),
             player: discord.PermissionOverwrite(read_messages=True)
         }
-        channel = await category.create_text_channel(player.name.replace(' ', '-').replace('.', '') + '-UNO-Channel',
-                                                     overwrites=overwrites)
+        channel = await category.create_text_channel(
+            sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
+            overwrites=overwrites)
 
         await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
                                                                     'Strategize, play your cards, unleash your wrath by drawing the feces out of people, and have fun with the game of UNO right here!\n\n'
@@ -391,44 +394,43 @@ async def game_setup(ctx, d):
 
     order = sample(player_ids, len(player_ids))
     ordered_dict = OrderedDict()
-    ordered_dict['settings'], ordered_dict['seconds'] = d['settings'], d['seconds']
     for x in order:
-        ordered_dict[x] = d[x]
+        ordered_dict[x] = d['players'][x]
 
-    games[str(guild.id)] = dict(ordered_dict)
-    if games[str(guild.id)]['settings']['Flip']:
-        games[str(guild.id)]['cards'] = flip_cards
+    d['players'] = dict(ordered_dict)
+    if d['settings']['Flip']:
+        d['cards'] = flip_cards
     else:
-        games[str(guild.id)]['cards'] = cards
+        d['cards'] = cards
 
     for id in player_ids:
-        while len(games[str(guild.id)]['cards']) <= games[str(guild.id)]['settings']['StartingCards']:
+        while len(d['cards']) <= d['settings']['StartingCards']:
             if flip:
-                games[str(guild.id)]['cards'] += flip_cards
+                d['cards'] += flip_cards
             else:
-                games[str(guild.id)]['cards'] += cards
+                d['cards'] += cards
 
-        hand = sample(games[str(guild.id)]['cards'], games[str(guild.id)]['settings']['StartingCards'])
-        games[str(guild.id)][id]['cards'] = hand
-        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if card not in hand]
+        hand = sample(d['cards'], d['settings']['StartingCards'])
+        d['players'][id]['cards'] = hand
+        d['cards'] = [card for card in d['cards'] if card not in hand]
 
         m = discord.Embed(title='Your cards:', color=discord.Color.red())
 
         image = Image.new('RGBA', (
-            len(games[str(guild.id)][id]['cards']) * (
+            len(d['players'][id]['cards']) * (
                 round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
             round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
                           (255, 0, 0, 0))
 
         if not flip:
-            for i in range(len(games[str(guild.id)][id]['cards'])):
-                card = Image.open('images/' + games[str(guild.id)][id]['cards'][i] + '.png')
+            for i in range(len(d['players'][id]['cards'])):
+                card = Image.open('images/' + d['players'][id]['cards'][i] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                        round(card.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
                 image.paste(refined, (i * refined.size[0], 0))
         else:
-            for i in range(len(games[str(guild.id)][id]['cards'])):
-                card = Image.open('images/' + games[str(guild.id)][id]['cards'][i][0] + '.png')
+            for i in range(len(d['players'][id]['cards'])):
+                card = Image.open('images/' + d['players'][id]['cards'][i][0] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                        round(card.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
                 image.paste(refined, (i * refined.size[0], 0))
@@ -441,26 +443,27 @@ async def game_setup(ctx, d):
         m.set_image(url='attachment://image.png')
 
         await discord.utils.get(guild.text_channels,
-                                name=guild.get_member(int(id)).name.lower().replace(' ', '-').replace('.',
-                                                                                                      '') + '-uno-channel').send(
+                                name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                         guild.get_member(int(id)).name.lower().replace(' ',
+                                                                                        '-')) + '-uno-channel').send(
             file=file, embed=m)
 
     if flip:
         c = choice(
-            [card for card in games[str(guild.id)]['cards'] if
+            [card for card in d['cards'] if
              card[0] != 'wild' and card[0] != '+2' and 'flip' not in card[0] and card[1] != 'darkwild' and card[
                  1] != '+color'])
-        games[str(guild.id)]['current'] = c
-        games[str(guild.id)]['current_opposite'] = c
+        d['current'] = c
+        d['current_opposite'] = c
 
     else:
-        games[str(guild.id)]['current'] = choice(
-            [card for card in games[str(guild.id)]['cards'] if card != 'wild' and card != '+4'])
+        d['current'] = choice(
+            [card for card in d['cards'] if card != 'wild' and card != '+4'])
 
-    if games[str(guild.id)]['settings']['Flip']:
-        color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
+    if d['settings']['Flip']:
+        color = search(r'red|blue|green|yellow', d['current'][0]).group(0)
     else:
-        color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
+        color = search(r'red|blue|green|yellow', d['current']).group(0)
 
     if color == 'red':
         message = discord.Embed(title='Top card:', color=discord.Color.red())
@@ -472,9 +475,9 @@ async def game_setup(ctx, d):
         message = discord.Embed(title='Top card:', color=discord.Color.from_rgb(255, 255, 0))
 
     if flip:
-        image = Image.open('images/' + games[str(guild.id)]['current'][0] + '.png')
+        image = Image.open('images/' + d['current'][0] + '.png')
     else:
-        image = Image.open('images/' + games[str(guild.id)]['current'] + '.png')
+        image = Image.open('images/' + d['current'] + '.png')
     refined = image.resize((round(image.size[0] / 6.0123456790123456790123456790123),
                             round(image.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
 
@@ -487,11 +490,11 @@ async def game_setup(ctx, d):
         message.set_image(url='attachment://topcard.png')
         await channel.send(file=file, embed=message)
 
-    games[str(guild.id)]['player'] = int(order[0])
+    d['player'] = int(order[0])
     cplayer = order[0]
 
     if flip:
-        games[str(guild.id)]['dark'] = False
+        d['dark'] = False
 
     try:
         del stack[str(guild.id)]
@@ -499,13 +502,13 @@ async def game_setup(ctx, d):
         pass
 
     print(
-        '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(ctx.guild) + '.')
+        '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(guild) + '.')
 
-    if not games[str(guild.id)]['settings']['Flip']:
-        if '+2' in games[str(guild.id)]['current']:
-            if games[str(guild.id)]['settings']['StackCards'] \
-                    and (any('+2' in card for card in games[str(guild.id)][cplayer]['cards'])
-                         or any('+4' in card for card in games[str(guild.id)][cplayer]['cards'])):
+    if not d['settings']['Flip']:
+        if '+2' in d['current']:
+            if d['settings']['StackCards'] \
+                    and (any('+2' in card for card in d[cplayer]['cards'])
+                         or any('+4' in card for card in d[cplayer]['cards'])):
                 stack[str(guild.id)] = 2
 
                 await asyncio.gather(
@@ -524,9 +527,9 @@ async def game_setup(ctx, d):
             await display_cards(guild.get_member(int(cplayer)))
 
     else:
-        if '+1' in games[str(guild.id)]['current'][0]:
-            if games[str(guild.id)]['settings']['StackCards'] and any(
-                    '+2' in card for card in games[str(guild.id)][cplayer]['cards']):
+        if '+1' in d['current'][0]:
+            if d['settings']['StackCards'] and any(
+                    '+2' in card for card in d[cplayer]['cards']):
                 stack[str(guild.id)] = 1
 
                 await asyncio.gather(
@@ -546,33 +549,7 @@ async def game_setup(ctx, d):
 
 
 async def game_shutdown(d, winner: discord.Member = None, guild=None):
-    player_ids = list(d.keys())
-    player_ids.remove('settings')
-    player_ids.remove('seconds')
-    try:
-        player_ids.remove('cards')
-    except ValueError:
-        pass
-    try:
-        player_ids.remove('current')
-    except ValueError:
-        pass
-    try:
-        player_ids.remove('current_opposite')
-    except ValueError:
-        pass
-    try:
-        player_ids.remove('player')
-    except ValueError:
-        pass
-    try:
-        player_ids.remove('creator')
-    except ValueError:
-        pass
-    try:
-        player_ids.remove('dark')
-    except ValueError:
-        pass
+    player_ids = list(d['players'].keys())
 
     if winner and not guild:
         guild = winner.guild
@@ -609,9 +586,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
         current_color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
         c = choice(games[str(guild.id)]['cards'])
 
-        games[str(guild.id)][str(player.id)]['cards'].append(c)
+        games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
         games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                         card not in games[str(guild.id)][str(player.id)]['cards']]
+                                         card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
         if not games[str(guild.id)]['cards']:
             games[str(guild.id)]['cards'] += cards
@@ -622,9 +599,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
         while not color or color.group(0) != current_color:
             c = choice(games[str(guild.id)]['cards'])
 
-            games[str(guild.id)][str(player.id)]['cards'].append(c)
+            games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
             games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                             card not in games[str(guild.id)][str(player.id)]['cards']]
+                                             card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
             if not games[str(guild.id)]['cards']:
                 games[str(guild.id)]['cards'] += cards
@@ -639,9 +616,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
 
             for i in range(number):
                 c = choice(games[str(guild.id)]['cards'])
-                games[str(guild.id)][str(player.id)]['cards'].append(c)
+                games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
                 games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in games[str(guild.id)][str(player.id)]['cards']]
+                                                 card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
                 if not games[str(guild.id)]['cards']:
                     if not games[str(guild.id)]['settings']['Flip']:
@@ -655,9 +632,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
             draw = []
             c = choice(games[str(guild.id)]['cards'])
 
-            games[str(guild.id)][str(player.id)]['cards'].append(c)
+            games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
             games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                             card not in games[str(guild.id)][str(player.id)]['cards']]
+                                             card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
             if not games[str(guild.id)]['cards']:
                 games[str(guild.id)]['cards'] += cards
@@ -674,9 +651,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                 while color != current_color and value != current_value or not any(x in c for x in ('+4', 'wild')):
                     c = choice(games[str(guild.id)]['cards'])
 
-                    games[str(guild.id)][str(player.id)]['cards'].append(c)
+                    games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
                     games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                     card not in games[str(guild.id)][str(player.id)]['cards']]
+                                                     card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
                     if not games[str(guild.id)]['cards']:
                         games[str(guild.id)]['cards'] += cards
@@ -698,9 +675,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                             x in c[0] for x in ('+2', 'wild')):
                         c = choice(games[str(guild.id)]['cards'])
 
-                        games[str(guild.id)][str(player.id)]['cards'].append(c)
+                        games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
                         games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in games[str(guild.id)][str(player.id)]['cards']]
+                                                         card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
                         if not games[str(guild.id)]['cards']:
                             games[str(guild.id)]['cards'] += cards
@@ -721,9 +698,9 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                             x in c[1] for x in ('+color', 'wild')):
                         c = choice(games[str(guild.id)]['cards'])
 
-                        games[str(guild.id)][str(player.id)]['cards'].append(c)
+                        games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
                         games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in games[str(guild.id)][str(player.id)]['cards']]
+                                                         card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
 
                         if not games[str(guild.id)]['cards']:
                             games[str(guild.id)]['cards'] += cards
@@ -812,24 +789,26 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
     if len(draw) == 1:
         await asyncio.gather(
             discord.utils.get(guild.channels,
-                            name=player.name.lower().replace(' ', '-').replace('.', '') + '-uno-channel',
-                            type=discord.ChannelType.text).send(file=file, embed=message),
+                              name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                       player.name.lower().replace(' ', '-')) + '-uno-channel',
+                              type=discord.ChannelType.text).send(file=file, embed=message),
             *[asyncio.create_task(x.send(
-            embed=discord.Embed(description='**' + player.name + '** drew a card.',
-                                color=discord.Color.red()))) for x in guild.text_channels if
-            x.category.name == 'UNO-GAME' and x.name != player.name.lower().replace(' ', '-').replace('.',
-                                                                                                      '') + '-uno-channel']
+                embed=discord.Embed(description='**' + player.name + '** drew a card.',
+                                    color=discord.Color.red()))) for x in guild.text_channels if
+                x.category.name == 'UNO-GAME' and x.name != sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                                                player.name.lower().replace(' ', '-')) + '-uno-channel']
         )
     else:
         await asyncio.gather(
             discord.utils.get(guild.channels,
-                              name=player.name.lower().replace(' ', '-').replace('.', '') + '-uno-channel',
+                              name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                       player.name.lower().replace(' ', '-')) + '-uno-channel',
                               type=discord.ChannelType.text).send(file=file, embed=message),
             *[asyncio.create_task(x.send(
-            embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
-                                color=discord.Color.red()))) for x in guild.text_channels if
-            x.category.name == 'UNO-GAME' and x.name != player.name.lower().replace(' ', '-').replace('.',
-                                                                                                      '') + '-uno-channel']
+                embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
+                                    color=discord.Color.red()))) for x in guild.text_channels if
+                x.category.name == 'UNO-GAME' and x.name != sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                                                player.name.lower().replace(' ', '-')) + '-uno-channel']
         )
 
 
@@ -838,7 +817,8 @@ async def display_cards(player: discord.Member):
 
     if str(guild.id) not in ending:
         async def send_cards(channel):
-            if channel.name == player.name.lower().replace(' ', '-').replace('.', '') + '-uno-channel':
+            if channel.name == sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                   player.name.lower().replace(' ', '-')) + '-uno-channel':
                 if not games[str(guild.id)]['settings']['Flip']:
                     color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
 
@@ -864,13 +844,13 @@ async def display_cards(player: discord.Member):
                                                 color=discord.Color.from_rgb(255, 255, 0))
 
                     image = Image.new('RGBA', (
-                        len(games[str(guild.id)][str(player.id)]['cards']) * (
+                        len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
                             round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
                         round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
                                       (255, 0, 0, 0))
 
-                    for i in range(len(games[str(guild.id)][str(player.id)]['cards'])):
-                        card = Image.open('images/' + games[str(guild.id)][str(player.id)]['cards'][i] + '.png')
+                    for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
+                        card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i] + '.png')
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                                round(card.size[1] / 6.0123456790123456790123456790123)),
                                               Image.ANTIALIAS)
@@ -936,16 +916,16 @@ async def display_cards(player: discord.Member):
                                                     color=discord.Color.from_rgb(102, 51, 153))
 
                     image = Image.new('RGBA', (
-                        len(games[str(guild.id)][str(player.id)]['cards']) * (
+                        len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
                             round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
                         round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
                                       (255, 0, 0, 0))
 
-                    for i in range(len(games[str(guild.id)][str(player.id)]['cards'])):
+                    for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
                         if not games[str(guild.id)]['dark']:
-                            card = Image.open('images/' + games[str(guild.id)][str(player.id)]['cards'][i][0] + '.png')
+                            card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i][0] + '.png')
                         else:
-                            card = Image.open('images/' + games[str(guild.id)][str(player.id)]['cards'][i][1] + '.png')
+                            card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i][1] + '.png')
 
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                                round(card.size[1] / 6.0123456790123456790123456790123)),
@@ -1037,17 +1017,17 @@ async def display_cards(player: discord.Member):
                                                     color=discord.Color.from_rgb(102, 51, 153))
 
                 image = Image.new('RGBA', (
-                    len(games[str(guild.id)][str(player.id)]['cards']) * (
+                    len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
                         round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
                     round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
                                   (255, 0, 0, 0))
 
-                for i in range(len(games[str(guild.id)][str(player.id)]['cards'])):
+                for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
                     if games[str(guild.id)]['settings']['Flip']:
                         if not games[str(guild.id)]['dark']:
-                            card = Image.open('images/' + games[str(guild.id)][str(player.id)]['cards'][i][1] + '.png')
+                            card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i][1] + '.png')
                         else:
-                            card = Image.open('images/' + games[str(guild.id)][str(player.id)]['cards'][i][0] + '.png')
+                            card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i][0] + '.png')
                     else:
                         card = Image.open('images/back.png')
 
@@ -1075,33 +1055,7 @@ async def display_cards(player: discord.Member):
             message.set_thumbnail(url='attachment://thumbnail.png')
 
             n = None
-            p = list(games[str(guild.id)].keys())
-            p.remove('settings')
-            p.remove('seconds')
-            try:
-                p.remove('cards')
-            except ValueError:
-                pass
-            try:
-                p.remove('current')
-            except ValueError:
-                pass
-            try:
-                p.remove('current_opposite')
-            except ValueError:
-                pass
-            try:
-                p.remove('player')
-            except ValueError:
-                pass
-            try:
-                p.remove('creator')
-            except ValueError:
-                pass
-            try:
-                p.remove('dark')
-            except ValueError:
-                pass
+            p = list(games[str(guild.id)]['players'].keys())
 
             temp = iter(p)
             for key in temp:
@@ -1113,7 +1067,8 @@ async def display_cards(player: discord.Member):
 
             await channel.send(files=[thumbnail, file], embed=message)
 
-        await asyncio.gather(*[asyncio.create_task(send_cards(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+        await asyncio.gather(
+            *[asyncio.create_task(send_cards(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
         games[str(guild.id)]['player'] = player.id
 
@@ -1128,11 +1083,11 @@ async def play_card(card, player: discord.Member):
 
     if not games[str(guild.id)]['settings']['Flip']:
         if '+4' in card:
-            games[str(guild.id)][str(player.id)]['cards'].remove('+4')
+            games[str(guild.id)]['players'][str(player.id)]['cards'].remove('+4')
         elif 'wild' in card:
-            games[str(guild.id)][str(player.id)]['cards'].remove('wild')
+            games[str(guild.id)]['players'][str(player.id)]['cards'].remove('wild')
         else:
-            games[str(guild.id)][str(player.id)]['cards'].remove(card)
+            games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
         if '+4' in games[str(guild.id)]['current']:
             games[str(guild.id)]['cards'].append('+4')
@@ -1155,9 +1110,9 @@ async def play_card(card, player: discord.Member):
                 c = (card[0], 'darkwild')
 
         if c:
-            games[str(guild.id)][str(player.id)]['cards'].remove(c)
+            games[str(guild.id)]['players'][str(player.id)]['cards'].remove(c)
         else:
-            games[str(guild.id)][str(player.id)]['cards'].remove(card)
+            games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
         if not games[str(guild.id)]['dark']:
             if '+2' in games[str(guild.id)]['current'][0]:
@@ -1233,15 +1188,17 @@ async def play_card(card, player: discord.Member):
 
         await channel.send(file=file, embed=message)
 
-    await asyncio.gather(*[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+    await asyncio.gather(
+        *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
-    if not games[str(guild.id)][str(player.id)]['cards']:
+    if not games[str(guild.id)]['players'][str(player.id)]['cards']:
         ending.append(str(guild.id))
 
         message = discord.Embed(title=player.name + ' Won! 🎉 🥳', color=discord.Color.red())
-        message.set_image(url=player.avatar_url)
+        message.set_image(url=player.display_avatar)
 
-        await asyncio.gather(*[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+        await asyncio.gather(
+            *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
         await asyncio.sleep(10)
 
@@ -1251,6 +1208,7 @@ async def play_card(card, player: discord.Member):
 @client.event
 async def on_ready():
     await initialize()
+
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot is ready.')
 
 
@@ -1358,35 +1316,9 @@ async def on_message(message):
                 message.guild.id) not in ending and message.channel.name != 'spectator-uno-channel':
 
             try:
-                p = list(games[str(message.guild.id)].keys())
-                p.remove('settings')
-                p.remove('seconds')
-                try:
-                    p.remove('cards')
-                except ValueError:
-                    return
-                try:
-                    p.remove('current')
-                except ValueError:
-                    return
-                try:
-                    p.remove('current_opposite')
-                except ValueError:
-                    pass
-                try:
-                    p.remove('player')
-                except ValueError:
-                    return
-                try:
-                    p.remove('creator')
-                except ValueError:
-                    return
-                try:
-                    p.remove('dark')
-                except ValueError:
-                    pass
-
                 n = None
+                p = list(games[str(message.guild.id)]['players'].keys())
+
                 temp = iter(p)
                 for key in temp:
                     if key == str(message.author.id):
@@ -1472,7 +1404,7 @@ async def on_message(message):
                     await asyncio.gather(*[asyncio.create_task(
                         x.send(embed=discord.Embed(title=message.author.name + ' says:', description=say,
                                                    color=discord.Color.red()))) for x in
-                                           message.channel.category.text_channels if x != message.channel])
+                        message.channel.category.text_channels if x != message.channel])
 
                     await message.add_reaction('\N{THUMBS UP SIGN}')
 
@@ -1488,8 +1420,9 @@ async def on_message(message):
 
                             if users[str(current_player.id)]['AllowAlerts']:
                                 await discord.utils.get(message.channel.category.text_channels,
-                                                        name=current_player.name.lower().replace(' ', '-').replace('.',
-                                                                                                                   '') + '-uno-channel').send(
+                                                        name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                                                 current_player.name.lower().replace(' ',
+                                                                                                     '-')) + '-uno-channel').send(
                                     embed=discord.Embed(
                                         description=':warning: **' + current_player.mention + '! ' + message.author.name + ' alerted you!**',
                                         color=discord.Color.red()))
@@ -1518,28 +1451,28 @@ async def on_message(message):
 
                     if not games[str(message.guild.id)]['settings']['Flip']:
                         image = Image.new('RGBA', (
-                            len(games[str(message.guild.id)][str(message.author.id)]['cards']) * (
+                            len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
                                 round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
                             round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
                                           (255, 0, 0, 0))
                     else:
                         image = Image.new('RGBA', (
-                            len(games[str(message.guild.id)][str(message.author.id)]['cards']) * (
+                            len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
                                 round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
                             round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123 * 2)),
                                           (255, 0, 0, 0))
 
-                    for i in range(len(games[str(message.guild.id)][str(message.author.id)]['cards'])):
+                    for i in range(len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards'])):
                         if not games[str(message.guild.id)]['settings']['Flip']:
                             card = Image.open(
-                                'images/' + games[str(message.guild.id)][str(message.author.id)]['cards'][i] + '.png')
+                                'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][i] + '.png')
                             refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                                    round(card.size[1] / 6.0123456790123456790123456790123)),
                                                   Image.ANTIALIAS)
                             image.paste(refined, (i * refined.size[0], 0))
                         else:
                             card = Image.open(
-                                'images/' + games[str(message.guild.id)][str(message.author.id)]['cards'][i][
+                                'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][i][
                                     0] + '.png')
                             refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                                    round(card.size[1] / 6.0123456790123456790123456790123)),
@@ -1547,7 +1480,7 @@ async def on_message(message):
                             image.paste(refined, (i * refined.size[0], 0))
 
                             card = Image.open(
-                                'images/' + games[str(message.guild.id)][str(message.author.id)]['cards'][
+                                'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
                                     i][1] + '.png')
                             refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                                    round(card.size[1] / 6.0123456790123456790123456790123)),
@@ -1599,38 +1532,12 @@ async def on_message(message):
                     try:
                         if value in [str(x) for x in range(10)]:
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + value in games[str(message.guild.id)][str(message.author.id)]['cards']:
+                                if color + value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == value) and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
                                         if games[str(message.guild.id)]['settings']['7-0']:
-                                            player_ids = list(games[str(message.guild.id)].keys())
-                                            player_ids.remove('settings')
-                                            player_ids.remove('seconds')
-                                            try:
-                                                player_ids.remove('cards')
-                                            except ValueError:
-                                                pass
-                                            try:
-                                                player_ids.remove('current')
-                                            except ValueError:
-                                                pass
-                                            try:
-                                                player_ids.remove('current_opposite')
-                                            except ValueError:
-                                                pass
-                                            try:
-                                                player_ids.remove('player')
-                                            except ValueError:
-                                                pass
-                                            try:
-                                                player_ids.remove('creator')
-                                            except ValueError:
-                                                pass
-                                            try:
-                                                player_ids.remove('dark')
-                                            except ValueError:
-                                                pass
+                                            player_ids = list(games[str(message.guild.id)]['players'].keys())
 
                                             if player:
                                                 if '#' not in player:
@@ -1651,10 +1558,10 @@ async def on_message(message):
 
                                                 await play_card(color + value, message.author)
 
-                                                games[str(message.guild.id)][str(player)]['cards'], \
-                                                games[str(message.guild.id)][str(message.author.id)]['cards'] = \
-                                                    games[str(message.guild.id)][str(message.author.id)]['cards'], \
-                                                    games[str(message.guild.id)][str(player)]['cards']
+                                                games[str(message.guild.id)]['players'][str(player)]['cards'], \
+                                                games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = \
+                                                    games[str(message.guild.id)]['players'][str(message.author.id)]['cards'], \
+                                                    games[str(message.guild.id)]['players'][str(player)]['cards']
 
                                                 await asyncio.gather(
                                                     *[asyncio.create_task(x.send(embed=discord.Embed(
@@ -1670,7 +1577,7 @@ async def on_message(message):
                                                 d = deepcopy(games[str(message.guild.id)])
 
                                                 for i in range(len(player_ids)):
-                                                    games[str(message.guild.id)][player_ids[(i + 1) % len(player_ids)]][
+                                                    games[str(message.guild.id)]['players'][player_ids[(i + 1) % len(player_ids)]][
                                                         'cards'] = d[player_ids[i]]['cards']
 
                                                 await asyncio.gather(
@@ -1704,38 +1611,12 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + value in [x[0] for x in
-                                                         games[str(message.guild.id)][str(message.author.id)]['cards']]:
+                                                         games[str(message.guild.id)]['players'][str(message.author.id)]['cards']]:
                                         if (current_color == color or current_value == value) and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
                                             if games[str(message.guild.id)]['settings']['7-0']:
-                                                player_ids = list(games[str(message.guild.id)].keys())
-                                                player_ids.remove('settings')
-                                                player_ids.remove('seconds')
-                                                try:
-                                                    player_ids.remove('cards')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('current')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('current_opposite')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('player')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('creator')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('dark')
-                                                except ValueError:
-                                                    pass
+                                                player_ids = list(games[str(message.guild.id)]['players'].keys())
 
                                                 if player:
                                                     if '#' not in player:
@@ -1754,14 +1635,14 @@ async def on_message(message):
                                                     else:
                                                         player = message.guild.get_member_named(player).id
 
-                                                    await play_card(choice([x for x in games[str(message.guild.id)][
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[0] == color + value]),
                                                                     message.author)
 
-                                                    games[str(message.guild.id)][str(player)]['cards'], \
-                                                    games[str(message.guild.id)][str(message.author.id)]['cards'] = \
-                                                        games[str(message.guild.id)][str(message.author.id)]['cards'], \
-                                                        games[str(message.guild.id)][str(player)]['cards']
+                                                    games[str(message.guild.id)]['players'][str(player)]['cards'], \
+                                                    games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = \
+                                                        games[str(message.guild.id)]['players'][str(message.author.id)]['cards'], \
+                                                        games[str(message.guild.id)]['players'][str(player)]['cards']
 
                                                     await asyncio.gather(
                                                         *[asyncio.create_task(x.send(embed=discord.Embed(
@@ -1773,14 +1654,14 @@ async def on_message(message):
                                                     await display_cards(n)
 
                                                 elif value == '0':
-                                                    await play_card(choice([x for x in games[str(message.guild.id)][
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[0] == color + value]),
                                                                     message.author)
 
                                                     d = deepcopy(games[str(message.guild.id)])
 
                                                     for i in range(len(player_ids)):
-                                                        games[str(message.guild.id)][
+                                                        games[str(message.guild.id)]['players'][
                                                             player_ids[(i + 1) % len(player_ids)]][
                                                             'cards'] = d[player_ids[i]]['cards']
 
@@ -1794,13 +1675,13 @@ async def on_message(message):
                                                     await display_cards(n)
 
                                                 else:
-                                                    await play_card(choice([x for x in games[str(message.guild.id)][
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[0] == color + value]),
                                                                     message.author)
                                                     await display_cards(n)
 
                                             else:
-                                                await play_card(choice([x for x in games[str(message.guild.id)][
+                                                await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                     str(message.author.id)]['cards'] if x[0] == color + value]),
                                                                 message.author)
                                                 await display_cards(n)
@@ -1819,38 +1700,12 @@ async def on_message(message):
 
                                 else:
                                     if color + value in [x[1] for x in
-                                                         games[str(message.guild.id)][str(message.author.id)]['cards']]:
+                                                         games[str(message.guild.id)]['players'][str(message.author.id)]['cards']]:
                                         if (current_color == color or current_value == value) and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
                                             if games[str(message.guild.id)]['settings']['7-0']:
-                                                player_ids = list(games[str(message.guild.id)].keys())
-                                                player_ids.remove('settings')
-                                                player_ids.remove('seconds')
-                                                try:
-                                                    player_ids.remove('cards')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('current')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('current_opposite')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('player')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('creator')
-                                                except ValueError:
-                                                    pass
-                                                try:
-                                                    player_ids.remove('dark')
-                                                except ValueError:
-                                                    pass
+                                                player_ids = list(games[str(message.guild.id)]['players'].keys())
 
                                                 if player:
                                                     if '#' not in player:
@@ -1869,14 +1724,14 @@ async def on_message(message):
                                                     else:
                                                         player = message.guild.get_member_named(player).id
 
-                                                    await play_card(choice([x for x in games[str(message.guild.id)][
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[1] == color + value]),
                                                                     message.author)
 
-                                                    games[str(message.guild.id)][str(player)]['cards'], \
-                                                    games[str(message.guild.id)][str(message.author.id)]['cards'] = \
-                                                        games[str(message.guild.id)][str(message.author.id)]['cards'], \
-                                                        games[str(message.guild.id)][str(player)]['cards']
+                                                    games[str(message.guild.id)]['players'][str(player)]['cards'], \
+                                                    games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = \
+                                                        games[str(message.guild.id)]['players'][str(message.author.id)]['cards'], \
+                                                        games[str(message.guild.id)]['players'][str(player)]['cards']
 
                                                     await asyncio.gather(
                                                         *[asyncio.create_task(x.send(embed=discord.Embed(
@@ -1888,14 +1743,14 @@ async def on_message(message):
                                                     await display_cards(n)
 
                                                 elif value == '0':
-                                                    await play_card(choice([x for x in games[str(message.guild.id)][
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[1] == color + value]),
                                                                     message.author)
 
                                                     d = deepcopy(games[str(message.guild.id)])
 
                                                     for i in range(len(player_ids)):
-                                                        games[str(message.guild.id)][
+                                                        games[str(message.guild.id)]['players'][
                                                             player_ids[(i + 1) % len(player_ids)]][
                                                             'cards'] = d[player_ids[i]]['cards']
 
@@ -1909,13 +1764,13 @@ async def on_message(message):
                                                     await display_cards(n)
 
                                                 else:
-                                                    await play_card(choice([x for x in games[str(message.guild.id)][
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[1] == color + value]),
                                                                     message.author)
                                                     await display_cards(n)
 
                                             else:
-                                                await play_card(choice([x for x in games[str(message.guild.id)][
+                                                await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                     str(message.author.id)]['cards'] if x[1] == color + value]),
                                                                 message.author)
                                                 await display_cards(n)
@@ -1933,7 +1788,7 @@ async def on_message(message):
                                                 color=discord.Color.red()))
 
                         elif search(r'[+d](raw)* *4', value) and not games[str(message.guild.id)]['settings']['Flip']:
-                            if '+4' in games[str(message.guild.id)][str(message.author.id)]['cards']:
+                            if '+4' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 await play_card(color + '+4', message.author)
 
                                 if str(message.guild.id) not in stack:
@@ -1942,7 +1797,7 @@ async def on_message(message):
                                     stack[str(message.guild.id)] += 4
 
                                 if games[str(message.guild.id)]['settings']['StackCards'] and any(
-                                        '+4' in card for card in games[str(message.guild.id)][str(n.id)]['cards']):
+                                        '+4' in card for card in games[str(message.guild.id)]['players'][str(n.id)]['cards']):
                                     await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                         description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                             stack[str(message.guild.id)]) + ' cards.**',
@@ -1970,7 +1825,7 @@ async def on_message(message):
 
                         elif value in ('reverse', 'r'):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + 'reverse' in games[str(message.guild.id)][str(message.author.id)]['cards']:
+                                if color + 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == 'reverse') and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
@@ -2007,12 +1862,12 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + 'reverse' in [x[0] for x in
-                                                             games[str(message.guild.id)][str(message.author.id)][
+                                                             games[str(message.guild.id)]['players'][str(message.author.id)][
                                                                  'cards']]:
                                         if (current_color == color or current_value == 'reverse') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
-                                            await play_card(choice([x for x in games[str(message.guild.id)][
+                                            await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[0] == color + 'reverse']),
                                                             message.author)
 
@@ -2047,12 +1902,12 @@ async def on_message(message):
 
                                 else:
                                     if color + 'reverse' in [x[1] for x in
-                                                             games[str(message.guild.id)][str(message.author.id)][
+                                                             games[str(message.guild.id)]['players'][str(message.author.id)][
                                                                  'cards']]:
                                         if (current_color == color or current_value == 'reverse') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
-                                            await play_card(choice([x for x in games[str(message.guild.id)][
+                                            await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[1] == color + 'reverse']),
                                                             message.author)
 
@@ -2086,71 +1941,23 @@ async def on_message(message):
                                         return
 
                             d = games[str(message.guild.id)]
-                            player_ids = list(d.keys())
-                            player_ids.remove('settings')
-                            player_ids.remove('seconds')
-                            try:
-                                player_ids.remove('cards')
-                            except ValueError:
-                                pass
-                            try:
-                                player_ids.remove('current')
-                            except ValueError:
-                                pass
-                            try:
-                                player_ids.remove('current_opposite')
-                            except ValueError:
-                                pass
-                            try:
-                                player_ids.remove('player')
-                            except ValueError:
-                                pass
-                            try:
-                                player_ids.remove('creator')
-                            except ValueError:
-                                pass
-                            try:
-                                player_ids.remove('dark')
-                            except ValueError:
-                                pass
+                            player_ids = list(d['players'].keys())
 
                             if len(player_ids) > 2:
                                 player_ids.reverse()
 
                                 ordered_dict = OrderedDict()
-                                ordered_dict['settings'], ordered_dict['seconds'], ordered_dict['cards'], ordered_dict[
-                                    'current'], ordered_dict['player'], ordered_dict['creator'] = d['settings'], d[
-                                    'seconds'], d['cards'], d['current'], d['player'], d['creator']
-                                if 'current_opposite' in d:
-                                    ordered_dict['current_opposite'] = d['current_opposite']
-                                if 'dark' in d:
-                                    ordered_dict['dark'] = d['dark']
                                 for x in player_ids:
                                     ordered_dict[x] = d[x]
 
-                                games[str(message.guild.id)] = dict(ordered_dict)
+                                d['players'] = dict(ordered_dict)
 
                                 await asyncio.gather(*[asyncio.create_task(x.send(
                                     embed=discord.Embed(description='**The player order is reversed.**',
                                                         color=discord.Color.red()))) for x in
                                     message.channel.category.text_channels])
 
-                                p = list(games[str(message.guild.id)].keys())
-                                p.remove('settings')
-                                p.remove('seconds')
-                                p.remove('cards')
-                                p.remove('current')
-                                p.remove('player')
-                                p.remove('creator')
-                                try:
-                                    p.remove('current_opposite')
-                                except ValueError:
-                                    pass
-                                try:
-                                    p.remove('dark')
-                                except ValueError:
-                                    pass
-
+                                p = list(d['players'].keys())
                                 m = None
                                 temp = iter(p)
                                 for key in temp:
@@ -2176,7 +1983,7 @@ async def on_message(message):
 
                         elif value in ('skip', 's'):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + 'skip' in games[str(message.guild.id)][str(message.author.id)]['cards']:
+                                if color + 'skip' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == 'skip') and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
@@ -2210,12 +2017,12 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + 'skip' in [x[0] for x in
-                                                          games[str(message.guild.id)][str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if (current_color == color or current_value == 'skip') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
-                                            await play_card(choice([x for x in games[str(message.guild.id)][
+                                            await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[0] == color + 'skip']),
                                                             message.author)
 
@@ -2246,12 +2053,12 @@ async def on_message(message):
 
                                 else:
                                     if color + 'skip' in [x[1] for x in
-                                                          games[str(message.guild.id)][str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if (current_color == color or current_value == 'skip') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
-                                            await play_card(choice([x for x in games[str(message.guild.id)][
+                                            await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[1] == color + 'skip']),
                                                             message.author)
 
@@ -2276,7 +2083,7 @@ async def on_message(message):
 
                         elif value in ('w', 'wild'):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if 'wild' in games[str(message.guild.id)][str(message.author.id)]['cards']:
+                                if 'wild' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if not ('+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
                                         await play_card(color + 'wild', message.author)
@@ -2295,12 +2102,12 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if any(x[0] == 'wild' for x in
-                                           games[str(message.guild.id)][str(message.author.id)]['cards']):
+                                           games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                         if color in ('red', 'blue', 'green', 'yellow'):
                                             if not ('+' in current_value and games[str(message.guild.id)]['settings'][
                                                 'StackCards'] and str(message.guild.id) in stack):
                                                 await play_card(
-                                                    (color + 'wild', choice([x for x in games[str(message.guild.id)][
+                                                    (color + 'wild', choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[0] == 'wild'])[1]),
                                                     message.author)
                                                 await display_cards(n)
@@ -2323,12 +2130,12 @@ async def on_message(message):
 
                                 else:
                                     if any(x[1] == 'darkwild' for x in
-                                           games[str(message.guild.id)][str(message.author.id)]['cards']):
+                                           games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                         if color in ('pink', 'teal', 'orange', 'purple'):
                                             if not ('+' in current_value and games[str(message.guild.id)]['settings'][
                                                 'StackCards'] and str(message.guild.id) in stack):
                                                 await play_card((
-                                                    choice([x for x in games[str(message.guild.id)][
+                                                    choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[1] == 'darkwild'])[
                                                         0], color + 'wild'),
                                                     message.author)
@@ -2352,7 +2159,7 @@ async def on_message(message):
 
                         elif search(r'[+d](raw)* *2', value):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + '+2' in games[str(message.guild.id)][str(message.author.id)]['cards']:
+                                if color + '+2' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == '+2') and not (
                                             current_value == '+4' and str(message.guild.id) in stack):
                                         await play_card(color + '+2', message.author)
@@ -2364,8 +2171,8 @@ async def on_message(message):
 
                                         if games[str(message.guild.id)]['settings']['StackCards'] and (
                                                 any('+2' in card for card in
-                                                    games[str(message.guild.id)][str(n.id)]['cards']) or any(
-                                            '+4' in card for card in games[str(message.guild.id)][str(n.id)]['cards'])):
+                                                    games[str(message.guild.id)]['players'][str(n.id)]['cards']) or any(
+                                            '+4' in card for card in games[str(message.guild.id)]['players'][str(n.id)]['cards'])):
                                             await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                                 description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                                     stack[str(message.guild.id)]) + ' cards.**',
@@ -2402,10 +2209,10 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if any(x[0] == '+2' for x in
-                                           games[str(message.guild.id)][str(message.author.id)]['cards']):
+                                           games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                         if color in ('red', 'blue', 'green', 'yellow'):
                                             await play_card(
-                                                (color + '+2', choice([x for x in games[str(message.guild.id)][
+                                                (color + '+2', choice([x for x in games[str(message.guild.id)]['players'][
                                                     str(message.author.id)]['cards'] if x[0] == '+2'])[
                                                     1]), message.author)
 
@@ -2416,7 +2223,7 @@ async def on_message(message):
 
                                             if games[str(message.guild.id)]['settings']['StackCards'] and any(
                                                     card[0] == '+2' for card in
-                                                    games[str(message.guild.id)][str(n.id)]['cards']):
+                                                    games[str(message.guild.id)]['players'][str(n.id)]['cards']):
                                                 await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                                     description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                                         stack[str(message.guild.id)]) + ' cards.**',
@@ -2459,10 +2266,10 @@ async def on_message(message):
                             if games[str(message.guild.id)]['settings']['Flip'] and not games[str(message.guild.id)][
                                 'dark']:
                                 if any(color + '+1' in card[0] for card in
-                                       games[str(message.guild.id)][str(message.author.id)]['cards']):
+                                       games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                     if (current_color == color or current_value == '+1') and not (
                                             current_value == '+2' and str(message.guild.id) in stack):
-                                        await play_card(choice([x for x in games[str(message.guild.id)][
+                                        await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                             str(message.author.id)]['cards'] if x[0] == color + '+1']), message.author)
 
                                         if str(message.guild.id) not in stack:
@@ -2472,9 +2279,9 @@ async def on_message(message):
 
                                         if games[str(message.guild.id)]['settings']['StackCards'] and (
                                                 any('+1' in card[0] for card in
-                                                    games[str(message.guild.id)][str(n.id)]['cards']) or any(
+                                                    games[str(message.guild.id)]['players'][str(n.id)]['cards']) or any(
                                             card[0] == '+2' for card in
-                                            games[str(message.guild.id)][str(n.id)]['cards'])):
+                                            games[str(message.guild.id)]['players'][str(n.id)]['cards'])):
                                             await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                                 description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                                     stack[str(message.guild.id)]) + ' cards.**',
@@ -2518,9 +2325,9 @@ async def on_message(message):
                             if games[str(message.guild.id)]['settings']['Flip'] and games[str(message.guild.id)][
                                 'dark']:
                                 if any(color + '+5' in card[1] for card in
-                                       games[str(message.guild.id)][str(message.author.id)]['cards']):
+                                       games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                     if current_color == color or current_value == '+5':
-                                        await play_card(choice([x for x in games[str(message.guild.id)][
+                                        await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                             str(message.author.id)]['cards'] if x[1] == color + '+5']), message.author)
 
                                         if str(message.guild.id) not in stack:
@@ -2530,7 +2337,7 @@ async def on_message(message):
 
                                         if games[str(message.guild.id)]['settings']['StackCards'] and any(
                                                 '+5' in card[1] for card in
-                                                games[str(message.guild.id)][str(n.id)]['cards']):
+                                                games[str(message.guild.id)]['players'][str(n.id)]['cards']):
                                             await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                                 description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                                     stack[str(message.guild.id)]) + ' cards.**',
@@ -2576,8 +2383,8 @@ async def on_message(message):
                                     '+' in current_value and games[str(message.guild.id)]['settings'][
                                 'StackCards'] and str(message.guild.id) in stack):
                                 if any('+color' in x[1] for x in
-                                       games[str(message.guild.id)][str(message.author.id)]['cards']):
-                                    await play_card((choice([x for x in games[str(message.guild.id)][
+                                       games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
+                                    await play_card((choice([x for x in games[str(message.guild.id)]['players'][
                                         str(message.author.id)]['cards'] if x[1] == '+color'])[
                                                          0], color + '+color'), message.author)
 
@@ -2606,10 +2413,10 @@ async def on_message(message):
                             if games[str(message.guild.id)]['settings']['Flip']:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + 'flip' in [x[0] for x in
-                                                          games[str(message.guild.id)][str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if color == current_color or current_value == 'flip':
-                                            c = choice([x for x in games[str(message.guild.id)][
+                                            c = choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[0] == color + 'flip'])
 
                                             await play_card(c, message.author)
@@ -2641,10 +2448,10 @@ async def on_message(message):
 
                                 else:
                                     if color + 'flip' in [x[1] for x in
-                                                          games[str(message.guild.id)][str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if color == current_color or current_value == 'flip':
-                                            c = choice([x for x in games[str(message.guild.id)][
+                                            c = choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[1] == color + 'flip'])
 
                                             await play_card(c, message.author)
@@ -2721,19 +2528,16 @@ async def on_raw_reaction_add(payload):
                 for g in client.guilds:
                     user_options[str(payload.user_id)].pop(str(g.id), None)
 
-                games[str(guild.id)][str(payload.user_id)] = user_options[str(payload.user_id)]
-                games[str(guild.id)][str(payload.user_id)]['cards'] = []
+                games[str(guild.id)]['players'][str(payload.user_id)] = user_options[str(payload.user_id)]
+                games[str(guild.id)]['players'][str(payload.user_id)]['cards'] = []
 
-                if len(games[str(guild.id)].keys()) + 1 > 2:
+                if len(games[str(guild.id)]['players'].keys()) > 0:
                     for field in message_dict['fields']:
                         if field['name'] == 'Players:':
                             value = ''
 
-                            for key in games[str(guild.id)]:
-                                if key in ('settings', 'seconds'):
-                                    continue
-                                else:
-                                    value += (':small_blue_diamond: ' + guild.get_member(int(key)).name + '\n')
+                            for key in games[str(guild.id)]['players']:
+                                value += (':small_blue_diamond: ' + guild.get_member(int(key)).name + '\n')
 
                             field['value'] = value
 
@@ -2752,10 +2556,8 @@ async def on_raw_reaction_add(payload):
 
                 games[str(guild.id)]['seconds'] = -2
 
-                if len(games[str(guild.id)].keys()) > 3:
-                    players = games[str(guild.id)]
-
-                    await game_setup(await client.get_context(message), players)
+                if len(games[str(guild.id)]['players'].keys()) > 1:
+                    await game_setup(await client.get_context(message), games[str(guild.id)])
 
                     games[str(guild.id)]['creator'] = payload.member.id
 
@@ -2830,7 +2632,7 @@ async def on_raw_reaction_remove(payload):
         message_dict = message.embeds[0].to_dict()
 
         if str(payload.emoji) == '✋':
-            del games[str(guild.id)][str(user.id)]
+            del games[str(guild.id)]['players'][str(user.id)]
 
             if len(games[str(guild.id)].keys()) >= 2:
                 for field in message_dict['fields']:
@@ -2839,12 +2641,8 @@ async def on_raw_reaction_remove(payload):
                             field['value'] = 'None'
                         else:
                             value = ''
-
-                            for key in games[str(guild.id)]:
-                                if key in ('settings', 'seconds'):
-                                    continue
-                                else:
-                                    value += (':small_blue_diamond: ' + guild.get_member(int(key)).name + '\n')
+                            for key in games[str(guild.id)]['players']:
+                                value += (':small_blue_diamond: ' + guild.get_member(int(key)).name + '\n')
 
                             field['value'] = value
 
@@ -2853,7 +2651,8 @@ async def on_raw_reaction_remove(payload):
             await message.edit(embed=discord.Embed.from_dict(message_dict))
 
 
-@client.command(aliases=[chr(173) + 'help', 'hp', 'h', '?'])
+
+@client.slash_command(name='u-help', description='Shows the command usage, an in-depth guide on using UNOBot and a link to the rules of UNO.', guild_ids=guild_ids)
 async def help(ctx):
     UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
 
@@ -2868,8 +2667,8 @@ async def help(ctx):
     await ctx.send(file=UNOBotPNG, embed=message)
 
 
-@client.command(aliases=[chr(173) + 'commands', 'cmds', 'cmd'])
-async def commands(ctx, command=None):
+@client.slash_command(name='u-cmds', description='Shows you how to use UNOBot\'s commands.', guild_ids=guild_ids)
+async def commands(ctx, command: Option(str, 'The command you want to learn', required=False, default='')):
     if not command:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
         message = discord.Embed(title='UNO Bot Commands', color=discord.Color.red())
@@ -3016,9 +2815,9 @@ async def commands(ctx, command=None):
             await ctx.send(embed=message)
 
 
-@client.command(aliases=[chr(173) + 'guide', 'g'])
-async def guide(ctx, arg=None):
-    if not arg:
+@client.slash_command(name='u-guide', description='Shows you how to use UNOBot in general.', guild_ids=guild_ids)
+async def guide(ctx, area: Option(str, 'The area you want a guide on', required=False, default='')):
+    if not area:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
         message = discord.Embed(title='UNOBot Guide', color=discord.Color.red())
         message.set_thumbnail(url='attachment://bot.png')
@@ -3039,7 +2838,7 @@ async def guide(ctx, arg=None):
         await ctx.send(file=UNOBotPNG, embed=message)
 
     else:
-        if arg == 'start':
+        if area == 'start':
             message = discord.Embed(title='How to Start a Game', color=discord.Color.red())
             message.add_field(name='Creating a game:',
                               value='• Start a game using `u!startgame`. (Use `u!startgame help` for more command info.)\n'
@@ -3055,7 +2854,7 @@ async def guide(ctx, arg=None):
 
             await ctx.send(embed=message)
 
-        elif arg == 'play':
+        elif area == 'play':
             message = discord.Embed(title='How to Play Your Cards', color=discord.Color.red())
             message.add_field(name='Reading Embeds:',
                               value='• Open the uno-channel with your username after you have started a game (using `u!startgame`).\n'
@@ -3075,7 +2874,7 @@ async def guide(ctx, arg=None):
 
             await ctx.send(embed=message)
 
-        elif arg == 'commands':
+        elif area == 'commands':
             message = discord.Embed(title='How to Change the Server\'s command settings', color=discord.Color.red())
             message.add_field(name='Turn commands on/off:',
                               value='• Use `u!settings commands <command> <on|off>` to toggle the command.\n'
@@ -3097,7 +2896,7 @@ async def guide(ctx, arg=None):
 
             await ctx.send(embed=message)
 
-        elif arg == 'settings':
+        elif area == 'settings':
             message = discord.Embed(title='How to Change the Server\'s Settings', color=discord.Color.red())
             message.add_field(name='Changing the prefix:',
                               value='• Use `u!settings prefix <new prefix>` to change the prefix.'
@@ -3115,7 +2914,7 @@ async def guide(ctx, arg=None):
 
             await ctx.send(embed=message)
 
-        elif arg == 'options':
+        elif area == 'options':
             message = discord.Embed(title='How to Change Your User Options', color=discord.Color.red(),
                                     description='User options only affect the user\'s experience, not the entire server\'s.\n' + chr(
                                         173))
@@ -3130,26 +2929,26 @@ async def guide(ctx, arg=None):
             await ctx.send(embed=message)
 
 
-@client.command(aliases=[chr(173) + 'rules', 'r'])
+@client.slash_command(name='u-rules', description='Gives you a link to the rules of UNO.', guild_ids=guild_ids)
 async def rules(ctx):
     await ctx.send("https://github.com/VTiS15/UNOBot#game-rule")
 
 
-@client.command(aliases=[chr(173) + 'stats'])
-async def stats(ctx, user: discord.User = None):
+@client.slash_command(name='u-stats', description='Gives you a user\'s or your (if no user is specified) UNO stats in the current Discord server.', guild_ids=guild_ids)
+async def stats(ctx, user: Option(discord.User, 'The user whose local stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if 'stats' not in cooldowns[str(ctx.guild.id)]:
         if commands[str(ctx.guild.id)]['stats']['Enabled']:
             if not user:
-                user = ctx.message.author
+                user = ctx.author
 
             if ((not commands[str(ctx.guild.id)]['stats']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['stats']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['stats']['Blacklist']) \
+                or user.id not in commands[str(ctx.guild.id)]['stats']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['stats']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['stats']['Whitelist'] and ctx.message.author.id in
-                         commands[str(ctx.guild.id)]['stats']['Whitelist']) or ctx.message.author == ctx.guild.owner:
+                         commands[str(ctx.guild.id)]['stats']['Whitelist'] and user.id in
+                         commands[str(ctx.guild.id)]['stats']['Whitelist']) or user == ctx.guild.owner:
 
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
@@ -3157,7 +2956,7 @@ async def stats(ctx, user: discord.User = None):
                 if users[str(user.id)][str(ctx.guild.id)]['Played'] > 0:
                     message = discord.Embed(title=user.name + '\'s Stats in ' + ctx.guild.name,
                                             color=discord.Color.red())
-                    message.set_thumbnail(url=user.avatar_url)
+                    message.set_thumbnail(url=user.display_avatar)
                     ranking = rank(False, False, user, ctx.guild)
                     message.add_field(name='Rank', value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
                                       inline=False)
@@ -3215,30 +3014,29 @@ async def stats(ctx, user: discord.User = None):
             commands[str(ctx.guild.id)]['stats']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(
-    aliases=[chr(173) + 'globalstats', 'gstats', chr(173) + 'global_stats', 'global_stats', 'g-stats', 'g_stats'])
-async def globalstats(ctx, user: discord.User = None):
+@client.slash_command(name='u-gstats', description='Gives you a user\'s or your (if no user is specified) global stats.', guild_ids=guild_ids)
+async def globalstats(ctx, user: Option(discord.User, 'The user whose global stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if 'globalstats' not in cooldowns[str(ctx.guild.id)]:
         if commands[str(ctx.guild.id)]['globalstats']['Enabled']:
             if not user:
-                user = ctx.message.author
+                user = ctx.author
 
             if ((not commands[str(ctx.guild.id)]['globalstats']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['globalstats']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['globalstats']['Blacklist']) \
+                or user.id not in commands[str(ctx.guild.id)]['globalstats']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['globalstats']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['globalstats']['Whitelist'] and ctx.message.author.id in
+                         commands[str(ctx.guild.id)]['globalstats']['Whitelist'] and user.id in
                          commands[str(ctx.guild.id)]['globalstats'][
-                             'Whitelist']) or ctx.message.author == ctx.guild.owner:
+                             'Whitelist']) or user == ctx.guild.owner:
 
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
 
                 if has_played(user):
                     message = discord.Embed(title=user.name + '\'s Global Stats', color=discord.Color.red())
-                    message.set_thumbnail(url=user.avatar_url)
+                    message.set_thumbnail(url=user.display_avatar)
                     ranking = rank(True, False, user)
                     message.add_field(name='Rank', value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
                                       inline=False)
@@ -3301,7 +3099,7 @@ async def globalstats(ctx, user: discord.User = None):
             commands[str(ctx.guild.id)]['globalstats']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'leaderboard', 'lb'])
+@client.slash_command(name='u-lb', description='Presents you with the UNO leaderboard in the current Discord server.', guild_ids=guild_ids)
 async def leaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3309,11 +3107,11 @@ async def leaderboard(ctx):
         if commands[str(ctx.guild.id)]['leaderboard']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['leaderboard']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['leaderboard']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['leaderboard']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['leaderboard']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['leaderboard']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['leaderboard']['Whitelist'] and ctx.message.author.id in
+                         commands[str(ctx.guild.id)]['leaderboard']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['leaderboard'][
-                             'Whitelist']) or ctx.message.author == ctx.guild.owner:
+                             'Whitelist']) or ctx.author == ctx.guild.owner:
                 message = discord.Embed(title=ctx.guild.name + '\'s Leaderboard', color=discord.Color.red(),
                                         description='The top UNO players in your Discord server.')
 
@@ -3386,8 +3184,7 @@ async def leaderboard(ctx):
             commands[str(ctx.guild.id)]['leaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'globalleaderboard', 'glb', 'g-lb', 'g_lb', 'gleaderboard', 'global-leaderboard',
-                         'global_leaderboard'])
+@client.slash_command(name='u-glb', description='Presents you with the global UNO leaderboard.', guild_ids=guild_ids)
 async def globalleaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3395,11 +3192,11 @@ async def globalleaderboard(ctx):
         if commands[str(ctx.guild.id)]['globalleaderboard']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['globalleaderboard']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['globalleaderboard']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['globalleaderboard']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['globalleaderboard']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['globalleaderboard']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['globalleaderboard']['Whitelist'] and ctx.message.author.id in
+                         commands[str(ctx.guild.id)]['globalleaderboard']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['globalleaderboard'][
-                             'Whitelist']) or ctx.message.author == ctx.guild.owner:
+                             'Whitelist']) or ctx.author == ctx.guild.owner:
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
 
@@ -3481,56 +3278,46 @@ async def globalleaderboard(ctx):
             commands[str(ctx.guild.id)]['globalleaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'allowalerts', 'alerts', 'alert', 'aa'])
-async def allowalerts(ctx, option=None):
+@client.slash_command(name='u-alerts', description='Turns your alerts on or off.', guild_ids=guild_ids)
+async def allowalerts(ctx, option: Option(str, 'on or off', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if 'allowalerts' not in cooldowns[str(ctx.guild.id)]:
         if commands[str(ctx.guild.id)]['allowalerts']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['allowalerts']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['allowalerts']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['allowalerts']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['allowalerts']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['allowalerts']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['allowalerts']['Whitelist'] and ctx.message.author.id in
+                         commands[str(ctx.guild.id)]['allowalerts']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['allowalerts'][
-                             'Whitelist']) or ctx.message.author == ctx.guild.owner:
-                if not option:
-                    message = discord.Embed(title=prefix + 'allowalerts', color=discord.Color.red())
-                    message.add_field(name='Description:', value='Allows alerts just for you', inline=False)
-                    message.add_field(name='Usage:', value='`' + prefix + 'allowalerts <on|off|view>`', inline=False)
-                    message.add_field(name='Example:', value='`' + prefix + 'aa on`', inline=False)
-                    message.add_field(name='Aliases:', value='allowalerts, alerts, alert, aa')
+                             'Whitelist']) or ctx.author == ctx.guild.owner:
+                users_file = s3_resource.Object('unobot-bucket', 'users.json')
+                users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
+
+                if option in ('view', 'list'):
+                    if users[str(ctx.author.id)]['AllowAlerts']:
+                        description = 'Enabled :white_check_mark:'
+                    else:
+                        description = 'Disabled :x:'
+
+                    message = discord.Embed(title=ctx.author.name + '\'s alerts', description=description,
+                                            color=discord.Color.red())
 
                     await ctx.send(embed=message)
 
-                else:
-                    users_file = s3_resource.Object('unobot-bucket', 'users.json')
-                    users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
+                elif option.lower() == 'on':
+                    users[str(ctx.author.id)]['AllowAlerts'] = True
 
-                    if option in ('view', 'list'):
-                        if users[str(ctx.message.author.id)]['AllowAlerts']:
-                            description = 'Enabled :white_check_mark:'
-                        else:
-                            description = 'Disabled :x:'
+                    users_file.put(Body=json.dumps(users).encode('utf-8'))
 
-                        message = discord.Embed(title=ctx.message.author.name + '\'s alerts', description=description,
-                                                color=discord.Color.red())
+                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
-                        await ctx.send(embed=message)
+                elif option.lower() == 'off':
+                    users[str(ctx.author.id)]['AllowAlerts'] = False
 
-                    elif option.lower() == 'on':
-                        users[str(ctx.message.author.id)]['AllowAlerts'] = True
+                    users_file.put(Body=json.dumps(users).encode('utf-8'))
 
-                        users_file.put(Body=json.dumps(users).encode('utf-8'))
-
-                        await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
-                    elif option.lower() == 'off':
-                        users[str(ctx.message.author.id)]['AllowAlerts'] = False
-
-                        users_file.put(Body=json.dumps(users).encode('utf-8'))
-
-                        await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
+                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                 if commands[str(ctx.guild.id)]['allowalerts']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('allowalerts')
@@ -3570,30 +3357,34 @@ async def allowalerts(ctx, option=None):
             commands[str(ctx.guild.id)]['options']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'settings', 'set', 'sett', 'stngs', 'setting', 'stng'])
-async def settings(ctx, setting=None, *, args=None):
+@client.slash_command(name='u-settings', description='Allows you to change the settings of UNOBot.', guild_ids=guild_ids)
+async def settings(ctx, setting: Option(str, 'The setting you wish to change'), *, args: Option(str, 'some arguments', required=False, default='')):
+
+    if not setting:
+        message = discord.Embed(title='UNOBot Settings', color=discord.Color.red(),
+                                description='Adjusts how UNOBot works for the entire server.')
+        message.add_field(name=':wrench: Command Customization:', value=prefix + '`settings commands`')
+        message.add_field(name=':game_die: Default Game Settings:', value=prefix + '`settings dgs`')
+        message.add_field(name=':arrows_counterclockwise: Reset UNOBot:', value=prefix + '`settings reset`',
+                          inline=False)
+        message.add_field(name='Aliases: ', value='set, sett, stngs, setting, stng')
+
+        await ctx.send(embed=message)
+
+        return
+
     commands_file = s3_resource.Object('unobot-bucket', 'commands.json')
     commands = json.loads(commands_file.get()['Body'].read().decode('utf-8'))
 
     if 'settings' not in cooldowns[str(ctx.guild.id)]:
         if ((not commands[str(ctx.guild.id)]['settings']['BlacklistEnabled'] or not
         commands[str(ctx.guild.id)]['settings']['Blacklist'])
-            or ctx.message.author.id not in commands[str(ctx.guild.id)]['settings']['Blacklist']) \
+            or ctx.author.id not in commands[str(ctx.guild.id)]['settings']['Blacklist']) \
                 and (not commands[str(ctx.guild.id)]['settings']['WhitelistEnabled'] or
-                     commands[str(ctx.guild.id)]['settings']['Whitelist'] and ctx.message.author.id in
-                     commands[str(ctx.guild.id)]['settings']['Whitelist']) or ctx.message.author == ctx.guild.owner:
-            if not setting:
-                message = discord.Embed(title='UNOBot Settings', color=discord.Color.red(),
-                                        description='Adjusts how UNOBot works for the entire server.')
-                message.add_field(name=':wrench: Command Customization:', value=prefix + '`settings commands`')
-                message.add_field(name=':game_die: Default Game Settings:', value=prefix + '`settings dgs`')
-                message.add_field(name=':arrows_counterclockwise: Reset UNOBot:', value=prefix + '`settings reset`',
-                                  inline=False)
-                message.add_field(name='Aliases: ', value='set, sett, stngs, setting, stng')
+                     commands[str(ctx.guild.id)]['settings']['Whitelist'] and ctx.author.id in
+                     commands[str(ctx.guild.id)]['settings']['Whitelist']) or ctx.author == ctx.guild.owner:
 
-                await ctx.send(embed=message)
-
-            elif setting == 'commands':
+            if setting == 'commands':
                 if not args:
                     message = discord.Embed(title=prefix + 'settings commands', color=discord.Color.red())
                     message.add_field(name=':level_slider: Toggle Command',
@@ -4026,9 +3817,9 @@ async def settings(ctx, setting=None, *, args=None):
                 def check(m):
                     return m.content == 'CONFIRM' and (
                             not commands[str(ctx.guild.id)]['settings']['WhitelistEnabled'] or (
-                            commands[str(ctx.guild.id)]['settings']['Whitelist'] and ctx.message.author.id in
+                            commands[str(ctx.guild.id)]['settings']['Whitelist'] and ctx.author.id in
                             commands[str(ctx.guild.id)]['settings'][
-                                'Whitelist'] or ctx.message.author == ctx.guild.owner))
+                                'Whitelist'] or ctx.author == ctx.guild.owner))
 
                 try:
                     await client.wait_for('message', check=check, timeout=30.0)
@@ -4069,8 +3860,8 @@ async def settings(ctx, setting=None, *, args=None):
             commands[str(ctx.guild.id)]['settings']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'startgame', 'start', 'sg'])
-async def startgame(ctx, *, args=None):
+@client.slash_command(name='u-sg', description='Starts a game of UNO.', guild_ids=guild_ids)
+async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if ctx.channel.category.name != 'UNO-GAME':
@@ -4078,17 +3869,18 @@ async def startgame(ctx, *, args=None):
             if commands[str(ctx.guild.id)]['startgame']['Enabled']:
                 if ((not commands[str(ctx.guild.id)]['startgame']['BlacklistEnabled'] or not
                 commands[str(ctx.guild.id)]['startgame']['Blacklist'])
-                    or ctx.message.author.id not in commands[str(ctx.guild.id)]['startgame']['Blacklist']) \
+                    or ctx.author.id not in commands[str(ctx.guild.id)]['startgame']['Blacklist']) \
                         and (not commands[str(ctx.guild.id)]['startgame']['WhitelistEnabled'] or
-                             commands[str(ctx.guild.id)]['startgame']['Whitelist'] and ctx.message.author.id in
+                             commands[str(ctx.guild.id)]['startgame']['Whitelist'] and ctx.author.id in
                              commands[str(ctx.guild.id)]['startgame'][
-                                 'Whitelist']) or ctx.message.author == ctx.guild.owner:
+                                 'Whitelist']) or ctx.author == ctx.guild.owner:
                     if str(ctx.guild.id) not in games:
                         dgs = json.loads(
                             s3_resource.Object('unobot-bucket', 'dgs.json').get()['Body'].read().decode('utf-8'))
 
                         games[str(ctx.guild.id)] = {'seconds': 40}
                         games[str(ctx.guild.id)]['settings'] = dgs[str(ctx.guild.id)]
+                        games[str(ctx.guild.id)]['players'] = {}
 
                         user_options = json.loads(
                             s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
@@ -4173,15 +3965,12 @@ async def startgame(ctx, *, args=None):
                             message.set_footer(
                                 text='React with \'✋\' to join, \'▶️\' to force start, and \'❌\' to cancel the game.')
 
-                            if len(games[str(ctx.guild.id)].keys()) == 2:
+                            if len(games[str(ctx.guild.id)]['players'].keys()) < 2:
                                 message.add_field(name='Players:', value='None', inline=False)
                             else:
                                 p = ""
-                                for key in games[str(ctx.guild.id)]:
-                                    if key in ('settings', 'seconds'):
-                                        continue
-                                    else:
-                                        p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
+                                for key in games[str(ctx.guild.id)]['players']:
+                                    p += (':small_blue_diamond: ' + client.get_user(int(key)).name + '\n')
 
                                 message.add_field(name='Players:', value=p, inline=False)
 
@@ -4198,7 +3987,7 @@ async def startgame(ctx, *, args=None):
                             else:
                                 message.add_field(name='Game Settings:', value='None', inline=False)
 
-                            message.add_field(name='Game Creator:', value=str(ctx.message.author), inline=False)
+                            message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
                             e = await ctx.send(embed=message)
                             eid = e.id
@@ -4229,8 +4018,6 @@ async def startgame(ctx, *, args=None):
                                     )
 
                                     if len(games[str(ctx.guild.id)].keys()) > 3:
-                                        players = games[str(ctx.guild.id)]
-
                                         message_dict = m.to_dict()
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
@@ -4239,9 +4026,9 @@ async def startgame(ctx, *, args=None):
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict))
 
-                                        await game_setup(ctx, players)
+                                        await game_setup(ctx, games[str(ctx.guild.id)])
 
-                                        games[str(ctx.guild.id)]['creator'] = ctx.message.author.id
+                                        games[str(ctx.guild.id)]['creator'] = ctx.author.id
 
                                     else:
                                         message_dict = m.to_dict()
@@ -4268,23 +4055,20 @@ async def startgame(ctx, *, args=None):
                                 await asyncio.sleep(10)
 
                         else:
-                            if len(games[str(ctx.guild.id)].keys()) > 3:
-                                players = games[str(ctx.guild.id)]
+                            if len(games[str(ctx.guild.id)]['players']) > 1:
+                                await game_setup(ctx, games[str(ctx.guild.id)])
 
-                                await game_setup(ctx, players)
-
-                                games[str(ctx.guild.id)]['creator'] = ctx.message.author.id
+                                games[str(ctx.guild.id)]['creator'] = ctx.author.id
 
                                 message = discord.Embed(title='A game of UNO has started!',
                                                         description=':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.',
                                                         color=discord.Color.red())
 
+                                players = games[str(ctx.guild.id)]['players']
+
                                 p = ""
-                                for key in games[str(ctx.guild.id)]:
-                                    if key in ('settings', 'seconds', 'cards', 'current', 'player', 'creator'):
-                                        continue
-                                    else:
-                                        p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
+                                for key in players:
+                                    p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
 
                                 message.add_field(name='Players:', value=p, inline=False)
 
@@ -4301,7 +4085,7 @@ async def startgame(ctx, *, args=None):
                                 else:
                                     message.add_field(name='Game Settings:', value='None', inline=False)
 
-                                message.add_field(name='Game Creator:', value=str(ctx.message.author), inline=False)
+                                message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
                                 await ctx.send(embed=message)
 
@@ -4310,15 +4094,12 @@ async def startgame(ctx, *, args=None):
                                                         description=':x: Not enough players! At least 2 players are needed (Bots do not count).',
                                                         color=discord.Color.red())
 
-                                if len(games[str(ctx.guild.id)].keys()) == 2:
+                                if not games[str(ctx.guild.id)]['players']:
                                     message.add_field(name='Players:', value='None', inline=False)
                                 else:
                                     p = ""
-                                    for key in games[str(ctx.guild.id)]:
-                                        if key in ('settings', 'seconds'):
-                                            continue
-                                        else:
-                                            p += (str(await client.fetch_user(int(key))) + "\n")
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        p += (str(await client.fetch_user(int(key))) + "\n")
 
                                     message.add_field(name='Players:', value=p, inline=False)
 
@@ -4334,7 +4115,7 @@ async def startgame(ctx, *, args=None):
                                     message.add_field(name='Game Settings:', value=s, inline=False)
                                 else:
                                     message.add_field(name='Game Settings:', value='None', inline=False)
-                                message.add_field(name='Game Creator:', value=str(ctx.message.author), inline=False)
+                                message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
                                 await ctx.send(embed=message)
 
@@ -4388,7 +4169,7 @@ async def startgame(ctx, *, args=None):
             embed=discord.Embed(description=':x: **You can\'t use this command here!**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'endgame', 'eg', 'stop'])
+@client.slash_command(name='u-eg', description='Forcefully ends a game of UNO.', guild_ids=guild_ids)
 async def endgame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4396,16 +4177,16 @@ async def endgame(ctx):
         if commands[str(ctx.guild.id)]['endgame']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['endgame']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['endgame']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['endgame']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['endgame']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['endgame']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['endgame']['Whitelist'] and ctx.message.author.id in
+                         commands[str(ctx.guild.id)]['endgame']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['endgame'][
-                             'Whitelist']) or ctx.message.author == ctx.guild.owner or ctx.message.author == ctx.guild.get_member(
+                             'Whitelist']) or ctx.author == ctx.guild.owner or ctx.author == ctx.guild.get_member(
                 games[str(ctx.guild.id)]['creator']):
                 if ctx.channel.category.name != 'UNO-GAME':
                     if str(ctx.guild.id) in games and str(ctx.guild.id) not in ending:
                         await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
-                            description=':warning: **' + ctx.message.author.name + ' is ending the game!**',
+                            description=':warning: **' + ctx.author.name + ' is ending the game!**',
                             color=discord.Color.red()))) for x in ctx.guild.text_channels if
                             x.category.name == 'UNO-GAME'])
 
@@ -4458,7 +4239,7 @@ async def endgame(ctx):
             commands[str(ctx.guild.id)]['endgame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'leavegame', 'leave', 'quit', 'lg', 'quitgame'])
+@client.slash_command(name='u-leave', description='Gets you out of an ongoing game of UNO', guild_ids=guild_ids)
 async def leavegame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4466,45 +4247,39 @@ async def leavegame(ctx):
         if commands[str(ctx.guild.id)]['leavegame']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['leavegame']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['leavegame']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['leavegame']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['leavegame']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['leavegame']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['leavegame']['Whitelist'] and ctx.message.author.id in
+                         commands[str(ctx.guild.id)]['leavegame']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['leavegame'][
-                             'Whitelist']) or ctx.message.author == ctx.guild.owner:
+                             'Whitelist']) or ctx.author == ctx.guild.owner:
                 if ctx.channel.category.name == 'UNO-GAME':
-                    if str(ctx.guild.id) in games and str(ctx.message.author.id) in games[str(ctx.guild.id)]:
+                    if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]:
                         n = None
-                        p = list(games[str(ctx.guild.id)].keys())
-                        p.remove('settings')
-                        p.remove('seconds')
-                        p.remove('cards')
-                        p.remove('current')
-                        p.remove('player')
-                        p.remove('creator')
+                        p = list(games[str(ctx.guild.id)]['players'].keys())
 
                         temp = iter(p)
                         for key in temp:
-                            if key == str(ctx.message.author.id):
+                            if key == str(ctx.author.id):
                                 n = ctx.guild.get_member(int(next(temp, next(iter(p)))))
                                 break
 
-                        del games[str(ctx.guild.id)][str(ctx.message.author.id)]
+                        del games[str(ctx.guild.id)][str(ctx.author.id)]
 
                         if len(games[str(ctx.guild.id)]) - 6 >= 2:
                             await ctx.channel.delete()
 
                             await asyncio.gather(*[asyncio.create_task(x.send(
-                                discord.Embed(description=':warning: **' + ctx.message.author.name + '** left.'))) for x
+                                discord.Embed(description=':warning: **' + ctx.author.name + '** left.'))) for x
                                 in ctx.message.category.text_channels])
 
-                            if ctx.message.author.id == games[str(ctx.guild.id)]['player']:
+                            if ctx.author.id == games[str(ctx.guild.id)]['player']:
                                 await display_cards(n)
 
                         else:
                             await asyncio.gather(*[asyncio.create_task(x.send(
-                                    embed=discord.Embed(
-                                        description=':x: Since not enough players are left, ending game...',
-                                        color=discord.Color.red()))) for x in ctx.channel.category.text_channels])
+                                embed=discord.Embed(
+                                    description=':x: Since not enough players are left, ending game...',
+                                    color=discord.Color.red()))) for x in ctx.channel.category.text_channels])
 
                             ending.append(str(ctx.guild.id))
                             await game_shutdown(games[str(ctx.guild.id)], None, ctx.guild)
@@ -4551,7 +4326,7 @@ async def leavegame(ctx):
             commands[str(ctx.guild.id)]['leavegame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'kick', 'remove'])
+@client.slash_command(name='u-kick', description='Kicks someone out of an ongoing game of UNO', guild_ids=guild_ids)
 async def kick(ctx, user):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4559,10 +4334,10 @@ async def kick(ctx, user):
         if commands[str(ctx.guild.id)]['kick']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['kick']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['kick']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['kick']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['kick']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['kick']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['kick']['Whitelist'] and ctx.message.author.id in
-                         commands[str(ctx.guild.id)]['kick']['Whitelist']) or ctx.message.author == ctx.guild.owner:
+                         commands[str(ctx.guild.id)]['kick']['Whitelist'] and ctx.author.id in
+                         commands[str(ctx.guild.id)]['kick']['Whitelist']) or ctx.author == ctx.guild.owner:
                 user_converter = UserConverter()
 
                 try:
@@ -4577,25 +4352,7 @@ async def kick(ctx, user):
                 if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)] and str(
                         ctx.guild.id) not in ending:
                     n = None
-                    p = list(games[str(ctx.guild.id)].keys())
-                    p.remove('settings')
-                    p.remove('seconds')
-                    try:
-                        p.remove('cards')
-                    except ValueError:
-                        pass
-                    try:
-                        p.remove('current')
-                    except ValueError:
-                        pass
-                    try:
-                        p.remove('player')
-                    except ValueError:
-                        pass
-                    try:
-                        p.remove('creator')
-                    except ValueError:
-                        pass
+                    p = list(games[str(ctx.guild.id)]['players'].keys())
 
                     temp = iter(p)
                     for key in temp:
@@ -4603,12 +4360,13 @@ async def kick(ctx, user):
                             n = ctx.guild.get_member(int(next(temp, next(iter(p)))))
                             break
 
-                    del games[str(ctx.guild.id)][str(player.id)]
+                    del games[str(ctx.guild.id)]['players'][str(player.id)]
 
                     if len(games[str(ctx.guild.id)]) - 6 >= 2:
                         await discord.utils.get(ctx.guild.text_channels,
-                                                name=player.name.lower().replace(' ', '-').replace('.',
-                                                                                                   '') + '-uno-channel').delete()
+                                                name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                                         player.name.lower().replace(' ',
+                                                                                     '-')) + '-uno-channel').delete()
 
                         await asyncio.gather(*[asyncio.create_task(x.send(
                             discord.Embed(description=':warning: **' + player.name + '** was kicked.'))) for x in
@@ -4666,29 +4424,29 @@ async def kick(ctx, user):
             commands[str(ctx.guild.id)]['kick']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.command(aliases=[chr(173) + 'spectate', 'spec'])
-async def spectate(ctx, arg):
+@client.slash_command(name='u-specate', description='Turns your ability to spectate any game of UNO on or off', guild_ids=guild_ids)
+async def spectate(ctx, option: Option(str, 'on or off', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if 'spectate' not in cooldowns[str(ctx.guild.id)]:
         if commands[str(ctx.guild.id)]['spectate']['Enabled']:
             if ((not commands[str(ctx.guild.id)]['spectate']['BlacklistEnabled'] or not
             commands[str(ctx.guild.id)]['spectate']['Blacklist'])
-                or ctx.message.author.id not in commands[str(ctx.guild.id)]['spectate']['Blacklist']) \
+                or ctx.author.id not in commands[str(ctx.guild.id)]['spectate']['Blacklist']) \
                     and (not commands[str(ctx.guild.id)]['spectate']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['spectate']['Whitelist'] and ctx.message.author.id in
-                         commands[str(ctx.guild.id)]['spectate']['Whitelist']) or ctx.message.author == ctx.guild.owner:
+                         commands[str(ctx.guild.id)]['spectate']['Whitelist'] and ctx.author.id in
+                         commands[str(ctx.guild.id)]['spectate']['Whitelist']) or ctx.author == ctx.guild.owner:
                 role = discord.utils.get(ctx.guild.roles, name='UNO Spectator')
 
-                if arg.lower() == 'on' and role not in ctx.message.author.roles:
-                    await ctx.message.author.add_roles(role)
+                if option.lower() == 'on' and role not in ctx.author.roles:
+                    await ctx.author.add_roles(role)
 
                     await ctx.send(embed=discord.Embed(
                         description=':thumbsup: You now have the **UNO Spectator** role. You can now spectate any UNO game with the **SpectateGame** setting on.',
                         color=discord.Color.red()))
 
-                elif arg.lower() == 'off' and role in ctx.message.author.roles:
-                    await ctx.message.author.remove_roles(role)
+                elif option.lower() == 'off' and role in ctx.author.roles:
+                    await ctx.author.remove_roles(role)
 
                     await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
