@@ -368,7 +368,7 @@ async def game_setup(ctx, d):
             player: discord.PermissionOverwrite(read_messages=True)
         }
         channel = await category.create_text_channel(
-            sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
+            sub(r'[^\w- ]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
             overwrites=overwrites)
 
         await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
@@ -440,7 +440,7 @@ async def game_setup(ctx, d):
         m.set_image(url='attachment://image.png')
 
         await discord.utils.get(guild.text_channels,
-                                name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                name=sub(r'[^\w- ]', '',
                                          guild.get_member(int(id)).name.lower().replace(' ',
                                                                                         '-')) + '-uno-channel').send(
             file=file, embed=m)
@@ -786,25 +786,25 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
     if len(draw) == 1:
         await asyncio.gather(
             discord.utils.get(guild.channels,
-                              name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                              name=sub(r'[^\w- ]', '',
                                        player.name.lower().replace(' ', '-')) + '-uno-channel',
                               type=discord.ChannelType.text).send(file=file, embed=message),
             *[asyncio.create_task(x.send(
                 embed=discord.Embed(description='**' + player.name + '** drew a card.',
                                     color=discord.Color.red()))) for x in guild.text_channels if
-                x.category.name == 'UNO-GAME' and x.name != sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w- ]', '',
                                                                 player.name.lower().replace(' ', '-')) + '-uno-channel']
         )
     else:
         await asyncio.gather(
             discord.utils.get(guild.channels,
-                              name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                              name=sub(r'[^\w- ]', '',
                                        player.name.lower().replace(' ', '-')) + '-uno-channel',
                               type=discord.ChannelType.text).send(file=file, embed=message),
             *[asyncio.create_task(x.send(
                 embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
                                     color=discord.Color.red()))) for x in guild.text_channels if
-                x.category.name == 'UNO-GAME' and x.name != sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w- ]', '',
                                                                 player.name.lower().replace(' ', '-')) + '-uno-channel']
         )
 
@@ -814,7 +814,7 @@ async def display_cards(player: discord.Member):
 
     if str(guild.id) not in ending:
         async def send_cards(channel):
-            if channel.name == sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+            if channel.name == sub(r'[^\w- ]', '',
                                    player.name.lower().replace(' ', '-')) + '-uno-channel':
                 if not games[str(guild.id)]['settings']['Flip']:
                     color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
@@ -1418,7 +1418,7 @@ async def on_message(message):
 
                             if users[str(current_player.id)]['AllowAlerts']:
                                 await discord.utils.get(message.channel.category.text_channels,
-                                                        name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                                        name=sub(r'[^\w- ]', '',
                                                                  current_player.name.lower().replace(' ',
                                                                                                      '-')) + '-uno-channel').send(
                                     embed=discord.Embed(
@@ -1540,7 +1540,9 @@ async def on_message(message):
                                             if player:
                                                 if '#' not in player:
                                                     match = [x for x in player_ids if
-                                                             message.guild.get_member(int(x)).name == player]
+                                                             sub(r'[^\w- ]', '', message.guild.get_member(
+                                                                 int(x)).name) == player and message.guild.get_member(
+                                                                 int(x)).name != message.author]
                                                     if len(match) > 1:
                                                         await message.channel.send(
                                                             embed=discord.Embed(
@@ -1548,6 +1550,11 @@ async def on_message(message):
                                                                 color=discord.Color.red()))
 
                                                         return
+                                                    else:
+                                                        await message.channel.send(
+                                                            embed=discord.Embed(
+                                                                description=':x: **Player not found!**',
+                                                                color=discord.Color.red()))
 
                                                     player = int(match[0])
 
@@ -1576,7 +1583,7 @@ async def on_message(message):
 
                                                 for i in range(len(player_ids)):
                                                     games[str(message.guild.id)]['players'][player_ids[(i + 1) % len(player_ids)]][
-                                                        'cards'] = d[player_ids[i]]['cards']
+                                                        'cards'] = d['players'][player_ids[i]]['cards']
 
                                                 await asyncio.gather(
                                                     *[asyncio.create_task(x.send(embed=discord.Embed(
@@ -4362,7 +4369,7 @@ async def kick(ctx, user):
 
                     if len(games[str(ctx.guild.id)]) - 6 >= 2:
                         await discord.utils.get(ctx.guild.text_channels,
-                                                name=sub(r'[!@#$%^&*()\[\]\\|;:\'",./<>?~`]', '',
+                                                name=sub(r'[^\w- ]', '',
                                                          player.name.lower().replace(' ',
                                                                                      '-')) + '-uno-channel').delete()
 
