@@ -194,19 +194,16 @@ s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
 s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 
-try:
-    s3_resource.Object('unobot-bucket', 'dgs.json').load()
-except ClientError:
-    s3_client.put_object(Bucket='unobot-bucket', Key='dgs.json', Body=b'{}')
-dgs = json.loads(s3_resource.Object('unobot-bucket', 'dgs.json').get()['Body'].read().decode('utf-8'))
-guild_ids = [int(x) for x in dgs.keys()]
-
 
 def main():
     client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
+    try:
+        s3_resource.Object('unobot-bucket', 'dgs.json').load()
+    except ClientError:
+        s3_client.put_object(Bucket='unobot-bucket', Key='dgs.json', Body=b'{}')
     dgs_file = s3_resource.Object('unobot-bucket', 'dgs.json')
     dgs = json.loads(dgs_file.get()['Body'].read().decode('utf-8'))
 
@@ -282,7 +279,7 @@ async def initialize():
         if not discord.utils.get(guild.roles, name='UNO Spectator'):
             await guild.create_role(name='UNO Spectator', color=discord.Color.red())
 
-    await client.change_presence(activity=discord.Game(name='UNO | Use /u.help'))
+    await client.change_presence(activity=discord.Game(name=f'UNO | Use {prefix}help'))
 
 
 def rank(is_global, leaderboardreq, user=None, guild=None):
@@ -1215,10 +1212,11 @@ async def on_ready():
 @client.event
 async def on_guild_join(guild):
     await initialize()
+
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot has joined the guild ' + str(
         guild) + '.')
     await guild.text_channels[0].send(
-        "**Thanks for adding UNOBot!** :thumbsup:\n• `/u.` is my prefix.\n• Use `/u.commands` for a list of commands.\n• Use `/u.help` if you need help.\n• Use `/u.guide` for an in-depth guide on me.\n"
+        f"**Thanks for adding UNOBot!** :thumbsup:\n• `{prefix}` is my prefix.\n• Use `{prefix}commands` for a list of commands.\n• Use `{prefix}help` if you need help.\n• Use `{prefix}guide` for an in-depth guide on me.\n"
     )
 
 
@@ -2652,7 +2650,7 @@ async def on_raw_reaction_remove(payload):
 
 
 
-@client.slash_command(name='u-help', description='Shows the command usage, an in-depth guide on using UNOBot and a link to the rules of UNO.', guild_ids=guild_ids)
+@client.slash_command(name='u-help', description='Shows the command usage, an in-depth guide on using UNOBot and a link to the rules of UNO.')
 async def help(ctx):
     UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
 
@@ -2667,7 +2665,7 @@ async def help(ctx):
     await ctx.send(file=UNOBotPNG, embed=message)
 
 
-@client.slash_command(name='u-cmds', description='Shows you how to use UNOBot\'s commands.', guild_ids=guild_ids)
+@client.slash_command(name='u-cmds', description='Shows you how to use UNOBot\'s commands.')
 async def commands(ctx, command: Option(str, 'The command you want to learn', required=False, default='')):
     if not command:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
@@ -2815,7 +2813,7 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
             await ctx.send(embed=message)
 
 
-@client.slash_command(name='u-guide', description='Shows you how to use UNOBot in general.', guild_ids=guild_ids)
+@client.slash_command(name='u-guide', description='Shows you how to use UNOBot in general.')
 async def guide(ctx, area: Option(str, 'The area you want a guide on', required=False, default='')):
     if not area:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
@@ -2929,12 +2927,12 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
             await ctx.send(embed=message)
 
 
-@client.slash_command(name='u-rules', description='Gives you a link to the rules of UNO.', guild_ids=guild_ids)
+@client.slash_command(name='u-rules', description='Gives you a link to the rules of UNO.')
 async def rules(ctx):
     await ctx.send("https://github.com/VTiS15/UNOBot#game-rule")
 
 
-@client.slash_command(name='u-stats', description='Gives you a user\'s or your (if no user is specified) UNO stats in the current Discord server.', guild_ids=guild_ids)
+@client.slash_command(name='u-stats', description='Gives you a user\'s or your (if no user is specified) UNO stats in the current Discord server.')
 async def stats(ctx, user: Option(discord.User, 'The user whose local stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3014,7 +3012,7 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
             commands[str(ctx.guild.id)]['stats']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-gstats', description='Gives you a user\'s or your (if no user is specified) global stats.', guild_ids=guild_ids)
+@client.slash_command(name='u-gstats', description='Gives you a user\'s or your (if no user is specified) global stats.')
 async def globalstats(ctx, user: Option(discord.User, 'The user whose global stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3099,7 +3097,7 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
             commands[str(ctx.guild.id)]['globalstats']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-lb', description='Presents you with the UNO leaderboard in the current Discord server.', guild_ids=guild_ids)
+@client.slash_command(name='u-lb', description='Presents you with the UNO leaderboard in the current Discord server.')
 async def leaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3184,7 +3182,7 @@ async def leaderboard(ctx):
             commands[str(ctx.guild.id)]['leaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-glb', description='Presents you with the global UNO leaderboard.', guild_ids=guild_ids)
+@client.slash_command(name='u-glb', description='Presents you with the global UNO leaderboard.')
 async def globalleaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3278,7 +3276,7 @@ async def globalleaderboard(ctx):
             commands[str(ctx.guild.id)]['globalleaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-alerts', description='Turns your alerts on or off.', guild_ids=guild_ids)
+@client.slash_command(name='u-alerts', description='Turns your alerts on or off.')
 async def allowalerts(ctx, option: Option(str, 'on or off', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3357,7 +3355,7 @@ async def allowalerts(ctx, option: Option(str, 'on or off', required=True)):
             commands[str(ctx.guild.id)]['options']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-settings', description='Allows you to change the settings of UNOBot.', guild_ids=guild_ids)
+@client.slash_command(name='u-settings', description='Allows you to change the settings of UNOBot.')
 async def settings(ctx, setting: Option(str, 'The setting you wish to change'), *, args: Option(str, 'some arguments', required=False, default='')):
 
     if not setting:
@@ -3860,7 +3858,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
             commands[str(ctx.guild.id)]['settings']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-sg', description='Starts a game of UNO.', guild_ids=guild_ids)
+@client.slash_command(name='u-sg', description='Starts a game of UNO.')
 async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4169,7 +4167,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
             embed=discord.Embed(description=':x: **You can\'t use this command here!**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-eg', description='Forcefully ends a game of UNO.', guild_ids=guild_ids)
+@client.slash_command(name='u-eg', description='Forcefully ends a game of UNO.')
 async def endgame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4239,7 +4237,7 @@ async def endgame(ctx):
             commands[str(ctx.guild.id)]['endgame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-leave', description='Gets you out of an ongoing game of UNO', guild_ids=guild_ids)
+@client.slash_command(name='u-leave', description='Gets you out of an ongoing game of UNO')
 async def leavegame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4326,7 +4324,7 @@ async def leavegame(ctx):
             commands[str(ctx.guild.id)]['leavegame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-kick', description='Kicks someone out of an ongoing game of UNO', guild_ids=guild_ids)
+@client.slash_command(name='u-kick', description='Kicks someone out of an ongoing game of UNO')
 async def kick(ctx, user):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4424,7 +4422,7 @@ async def kick(ctx, user):
             commands[str(ctx.guild.id)]['kick']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-specate', description='Turns your ability to spectate any game of UNO on or off', guild_ids=guild_ids)
+@client.slash_command(name='u-specate', description='Turns your ability to spectate any game of UNO on or off')
 async def spectate(ctx, option: Option(str, 'on or off', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
