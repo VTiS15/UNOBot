@@ -1347,13 +1347,7 @@ async def on_message(message):
 
                 player = None
                 if games[str(message.guild.id)]['settings']['7-0'] and value == '7':
-                    player = message.content.split()[-1]
-
-                    if not message.guild.get_member_named(player):
-                        await message.channel.send(
-                            embed=discord.Embed(
-                                description='**Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
-                                color=discord.Color.red()))
+                    player = sub(r'[^\w-# ]', '', message.content.split()[-1])
 
                 if color == 'r':
                     color = 'red'
@@ -1540,9 +1534,9 @@ async def on_message(message):
                                             if player:
                                                 if '#' not in player:
                                                     match = [x for x in player_ids if
-                                                             sub(r'[^\w- ]', '', message.guild.get_member(
-                                                                 int(x)).name) == player and message.guild.get_member(
-                                                                 int(x)).name != message.author]
+                                                             message.guild.get_member(
+                                                                 int(x)).name == player and message.guild.get_member(
+                                                                 int(x)) != message.author]
                                                     if len(match) > 1:
                                                         await message.channel.send(
                                                             embed=discord.Embed(
@@ -1550,16 +1544,20 @@ async def on_message(message):
                                                                 color=discord.Color.red()))
 
                                                         return
-                                                    else:
+                                                    elif len(match) < 1:
                                                         await message.channel.send(
                                                             embed=discord.Embed(
-                                                                description=':x: **Player not found!**',
+                                                                description='**Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
                                                                 color=discord.Color.red()))
-
-                                                    player = int(match[0])
+                                                        return
+                                                    else:
+                                                        player = int(match[0])
 
                                                 else:
-                                                    player = message.guild.get_member_named(player).id
+                                                    for key in player_ids:
+                                                        if str(message.guild.get_member(int(key))) == player:
+                                                            player = int(key)
+                                                            break
 
                                                 await play_card(color + value, message.author)
 
