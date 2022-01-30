@@ -3,3 +3,4 @@ botocore~=1.23.46
 scipy~=1.7.3
 Pillow~=9.0.0
 DateTime~=4.3
+py-cord~=2.0.0b1
