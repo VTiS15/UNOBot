@@ -4,10 +4,12 @@ import json
 import boto3
 from os import getenv
 from botocore.exceptions import ClientError
-from discord import Option
 from scipy.stats import rankdata
 from copy import deepcopy
+from discord import Option
+from discord.ui import Button, View
 from discord.ext import commands
+from discord.ext.commands import has_permissions
 from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
@@ -189,14 +191,14 @@ games = {}
 stack = {}
 ending = []
 last_run = datetime.now()
-s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
-                         aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
-s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
-                             aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+s3_client = boto3.client('s3', aws_access_key_id='AKIASK5OVKOYQOTULJGK',
+                         aws_secret_access_key='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')
+s3_resource = boto3.resource('s3', aws_access_key_id='AKIASK5OVKOYQOTULJGK',
+                             aws_secret_access_key='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')
 
 
 def main():
-    client.run(getenv('BOT_TOKEN'))
+    client.run('ODQ2OTQ4NzIwMTU5NDkwMDc4.YK28dg.-doCKgZdlYVbz9VKJby4wqzzPjs')
 
 
 async def initialize():
@@ -349,7 +351,7 @@ async def cmd_info(ctx, cmd):
     message.add_field(name=':mag: View Command Info', value='Gives you info on the ' + cmd + ' command\'s settings.\n\n'
                                                                                              '`' + prefix + 'settings commands ' + cmd + ' view`')
 
-    await ctx.send(embed=message)
+    await ctx.respond(embed=message)
 
 
 async def game_setup(ctx, d):
@@ -368,7 +370,7 @@ async def game_setup(ctx, d):
             player: discord.PermissionOverwrite(read_messages=True)
         }
         channel = await category.create_text_channel(
-            sub(r'[^\w- ]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
+            sub(r'[^\w -]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
             overwrites=overwrites)
 
         await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
@@ -440,7 +442,7 @@ async def game_setup(ctx, d):
         m.set_image(url='attachment://image.png')
 
         await discord.utils.get(guild.text_channels,
-                                name=sub(r'[^\w- ]', '',
+                                name=sub(r'[^\w -]', '',
                                          guild.get_member(int(id)).name.lower().replace(' ',
                                                                                         '-')) + '-uno-channel').send(
             file=file, embed=m)
@@ -504,8 +506,8 @@ async def game_setup(ctx, d):
     if not d['settings']['Flip']:
         if '+2' in d['current']:
             if d['settings']['StackCards'] \
-                    and (any('+2' in card for card in d[cplayer]['cards'])
-                         or any('+4' in card for card in d[cplayer]['cards'])):
+                    and (any('+2' in card for card in d['players'][cplayer]['cards'])
+                         or any('+4' in card for card in d['players'][cplayer]['cards'])):
                 stack[str(guild.id)] = 2
 
                 await asyncio.gather(
@@ -526,7 +528,7 @@ async def game_setup(ctx, d):
     else:
         if '+1' in d['current'][0]:
             if d['settings']['StackCards'] and any(
-                    '+2' in card for card in d[cplayer]['cards']):
+                    '+2' in card for card in d['players'][cplayer]['cards']):
                 stack[str(guild.id)] = 1
 
                 await asyncio.gather(
@@ -786,25 +788,25 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
     if len(draw) == 1:
         await asyncio.gather(
             discord.utils.get(guild.channels,
-                              name=sub(r'[^\w- ]', '',
+                              name=sub(r'[^\w -]', '',
                                        player.name.lower().replace(' ', '-')) + '-uno-channel',
                               type=discord.ChannelType.text).send(file=file, embed=message),
             *[asyncio.create_task(x.send(
                 embed=discord.Embed(description='**' + player.name + '** drew a card.',
                                     color=discord.Color.red()))) for x in guild.text_channels if
-                x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w- ]', '',
+                x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
                                                                 player.name.lower().replace(' ', '-')) + '-uno-channel']
         )
     else:
         await asyncio.gather(
             discord.utils.get(guild.channels,
-                              name=sub(r'[^\w- ]', '',
+                              name=sub(r'[^\w -]', '',
                                        player.name.lower().replace(' ', '-')) + '-uno-channel',
                               type=discord.ChannelType.text).send(file=file, embed=message),
             *[asyncio.create_task(x.send(
                 embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
                                     color=discord.Color.red()))) for x in guild.text_channels if
-                x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w- ]', '',
+                x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
                                                                 player.name.lower().replace(' ', '-')) + '-uno-channel']
         )
 
@@ -814,7 +816,7 @@ async def display_cards(player: discord.Member):
 
     if str(guild.id) not in ending:
         async def send_cards(channel):
-            if channel.name == sub(r'[^\w- ]', '',
+            if channel.name == sub(r'[^\w -]', '',
                                    player.name.lower().replace(' ', '-')) + '-uno-channel':
                 if not games[str(guild.id)]['settings']['Flip']:
                     color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
@@ -1347,7 +1349,7 @@ async def on_message(message):
 
                 player = None
                 if games[str(message.guild.id)]['settings']['7-0'] and value == '7':
-                    player = sub(r'[^\w-# ]', '', message.content.split()[-1])
+                    player = sub(r'[^\w# -]', '', message.content.split()[-1])
 
                 if color == 'r':
                     color = 'red'
@@ -1412,7 +1414,7 @@ async def on_message(message):
 
                             if users[str(current_player.id)]['AllowAlerts']:
                                 await discord.utils.get(message.channel.category.text_channels,
-                                                        name=sub(r'[^\w- ]', '',
+                                                        name=sub(r'[^\w -]', '',
                                                                  current_player.name.lower().replace(' ',
                                                                                                      '-')) + '-uno-channel').send(
                                     embed=discord.Embed(
@@ -1501,7 +1503,10 @@ async def on_message(message):
                     overwrite = message.channel.overwrites_for(message.author)
                     overwrite.send_messages = False
                     overwrite.read_messages = True
-                    await message.channel.set_permissions(message.author, overwrite=overwrite)
+                    try:
+                        await message.channel.set_permissions(message.author, overwrite=overwrite)
+                    except discord.NotFound:
+                        pass
 
                     if not games[str(message.guild.id)]['settings']['Flip']:
                         current_color = search(r'red|blue|green|yellow',
@@ -1534,8 +1539,8 @@ async def on_message(message):
                                             if player:
                                                 if '#' not in player:
                                                     match = [x for x in player_ids if
-                                                             message.guild.get_member(
-                                                                 int(x)).name == player and message.guild.get_member(
+                                                             sub(r'[^\w -]', '', message.guild.get_member(
+                                                                 int(x)).name) == player and message.guild.get_member(
                                                                  int(x)) != message.author]
                                                     if len(match) > 1:
                                                         await message.channel.send(
@@ -1543,19 +1548,28 @@ async def on_message(message):
                                                                 description=':x: **There are multiple ' + player + '\'s here!**',
                                                                 color=discord.Color.red()))
 
+                                                        overwrite.send_messages = True
+                                                        await message.channel.set_permissions(message.author,
+                                                                                              overwrite=overwrite)
+
                                                         return
                                                     elif len(match) < 1:
                                                         await message.channel.send(
                                                             embed=discord.Embed(
-                                                                description='**Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
+                                                                description=':x: **Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
                                                                 color=discord.Color.red()))
+
+                                                        overwrite.send_messages = True
+                                                        await message.channel.set_permissions(message.author,
+                                                                                              overwrite=overwrite)
+
                                                         return
                                                     else:
                                                         player = int(match[0])
 
                                                 else:
                                                     for key in player_ids:
-                                                        if str(message.guild.get_member(int(key))) == player:
+                                                        if sub(r'[^\w# -]', '', str(message.guild.get_member(int(key)))) == player:
                                                             player = int(key)
                                                             break
 
@@ -1624,19 +1638,40 @@ async def on_message(message):
                                                 if player:
                                                     if '#' not in player:
                                                         match = [x for x in player_ids if
-                                                                 message.guild.get_member(int(x)).name == player]
+                                                                 sub(r'[^\w -]', '', message.guild.get_member(
+                                                                     int(x)).name) == player and message.guild.get_member(
+                                                                     int(x)) != message.author]
                                                         if len(match) > 1:
                                                             await message.channel.send(
                                                                 embed=discord.Embed(
                                                                     description=':x: **There are multiple ' + player + '\'s here!**',
                                                                     color=discord.Color.red()))
 
-                                                            return
+                                                            overwrite.send_messages = True
+                                                            await message.channel.set_permissions(message.author,
+                                                                                                  overwrite=overwrite)
 
-                                                        player = int(match[0])
+                                                            return
+                                                        elif len(match) < 1:
+                                                            await message.channel.send(
+                                                                embed=discord.Embed(
+                                                                    description=':x: **Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
+                                                                    color=discord.Color.red()))
+
+                                                            overwrite.send_messages = True
+                                                            await message.channel.set_permissions(message.author,
+                                                                                                  overwrite=overwrite)
+
+                                                            return
+                                                        else:
+                                                            player = int(match[0])
 
                                                     else:
-                                                        player = message.guild.get_member_named(player).id
+                                                        for key in player_ids:
+                                                            if sub(r'[^\w# -]', '',
+                                                                   str(message.guild.get_member(int(key)))) == player:
+                                                                player = int(key)
+                                                                break
 
                                                     await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[0] == color + value]),
@@ -1713,19 +1748,40 @@ async def on_message(message):
                                                 if player:
                                                     if '#' not in player:
                                                         match = [x for x in player_ids if
-                                                                 message.guild.get_member(int(x)).name == player]
+                                                                 sub(r'[^\w -]', '', message.guild.get_member(
+                                                                     int(x)).name) == player and message.guild.get_member(
+                                                                     int(x)) != message.author]
                                                         if len(match) > 1:
                                                             await message.channel.send(
                                                                 embed=discord.Embed(
                                                                     description=':x: **There are multiple ' + player + '\'s here!**',
                                                                     color=discord.Color.red()))
 
-                                                            return
+                                                            overwrite.send_messages = True
+                                                            await message.channel.set_permissions(message.author,
+                                                                                                  overwrite=overwrite)
 
-                                                        player = int(match[0])
+                                                            return
+                                                        elif len(match) < 1:
+                                                            await message.channel.send(
+                                                                embed=discord.Embed(
+                                                                    description=':x: **Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
+                                                                    color=discord.Color.red()))
+
+                                                            overwrite.send_messages = True
+                                                            await message.channel.set_permissions(message.author,
+                                                                                                  overwrite=overwrite)
+
+                                                            return
+                                                        else:
+                                                            player = int(match[0])
 
                                                     else:
-                                                        player = message.guild.get_member_named(player).id
+                                                        for key in player_ids:
+                                                            if sub(r'[^\w# -]', '',
+                                                                   str(message.guild.get_member(int(key)))) == player:
+                                                                player = int(key)
+                                                                break
 
                                                     await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                                         str(message.author.id)]['cards'] if x[1] == color + value]),
@@ -1841,10 +1897,7 @@ async def on_message(message):
                                                 color=discord.Color.red()))
 
                                         overwrite.send_messages = True
-                                        try:
-                                            await message.channel.set_permissions(message.author, overwrite=overwrite)
-                                        except discord.errors.NotFound:
-                                            pass
+                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
 
                                         return
 
@@ -1855,10 +1908,7 @@ async def on_message(message):
                                             color=discord.Color.red()))
 
                                     overwrite.send_messages = True
-                                    try:
-                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
-                                    except discord.errors.NotFound:
-                                        pass
+                                    await message.channel.set_permissions(message.author, overwrite=overwrite)
 
                                     return
 
@@ -1884,7 +1934,7 @@ async def on_message(message):
                                             try:
                                                 await message.channel.set_permissions(message.author,
                                                                                       overwrite=overwrite)
-                                            except discord.errors.NotFound:
+                                            except discord.NotFound:
                                                 pass
 
                                             return
@@ -1896,10 +1946,7 @@ async def on_message(message):
                                                 color=discord.Color.red()))
 
                                         overwrite.send_messages = True
-                                        try:
-                                            await message.channel.set_permissions(message.author, overwrite=overwrite)
-                                        except discord.errors.NotFound:
-                                            pass
+                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
 
                                         return
 
@@ -1924,7 +1971,7 @@ async def on_message(message):
                                             try:
                                                 await message.channel.set_permissions(message.author,
                                                                                       overwrite=overwrite)
-                                            except discord.errors.NotFound:
+                                            except discord.NotFound:
                                                 pass
 
                                             return
@@ -1936,10 +1983,7 @@ async def on_message(message):
                                                 color=discord.Color.red()))
 
                                         overwrite.send_messages = True
-                                        try:
-                                            await message.channel.set_permissions(message.author, overwrite=overwrite)
-                                        except discord.errors.NotFound:
-                                            pass
+                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
 
                                         return
 
@@ -1951,7 +1995,7 @@ async def on_message(message):
 
                                 ordered_dict = OrderedDict()
                                 for x in player_ids:
-                                    ordered_dict[x] = d[x]
+                                    ordered_dict[x] = d['players'][x]
 
                                 d['players'] = dict(ordered_dict)
 
@@ -2498,7 +2542,7 @@ async def on_message(message):
                     overwrite.send_messages = True
                     try:
                         await message.channel.set_permissions(message.author, overwrite=overwrite)
-                    except discord.errors.NotFound:
+                    except discord.NotFound:
                         pass
 
                 else:
@@ -2513,149 +2557,8 @@ async def on_message(message):
             await client.process_commands(message)
 
 
-@client.event
-async def on_raw_reaction_add(payload):
-    channel = await client.fetch_channel(payload.channel_id)
-    message = await channel.fetch_message(payload.message_id)
-    guild = client.get_guild(payload.guild_id)
-
-    if message.author == client.user and not payload.member.bot and (
-            str(guild.id) in games and 'current' not in games[str(guild.id)]):
-        message_dict = message.embeds[0].to_dict()
-
-        if str(payload.emoji) == '✋':
-            user_options = json.loads(
-                s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
-
-            if str(payload.user_id) not in games[str(guild.id)]:
-                for g in client.guilds:
-                    user_options[str(payload.user_id)].pop(str(g.id), None)
-
-                games[str(guild.id)]['players'][str(payload.user_id)] = user_options[str(payload.user_id)]
-                games[str(guild.id)]['players'][str(payload.user_id)]['cards'] = []
-
-                if len(games[str(guild.id)]['players'].keys()) > 0:
-                    for field in message_dict['fields']:
-                        if field['name'] == 'Players:':
-                            value = ''
-
-                            for key in games[str(guild.id)]['players']:
-                                value += (':small_blue_diamond: ' + guild.get_member(int(key)).name + '\n')
-
-                            field['value'] = value
-
-                            break
-
-                await message.edit(embed=discord.Embed.from_dict(message_dict))
-
-        elif str(payload.emoji) == '▶️':
-            if payload.member == guild.owner or str(payload.member) == message.embeds[0].to_dict()['fields'][2][
-                'value']:
-                await asyncio.gather(
-                    message.clear_reaction('✋'),
-                    message.clear_reaction('▶️'),
-                    message.clear_reaction('❌')
-                )
-
-                games[str(guild.id)]['seconds'] = -2
-
-                if len(games[str(guild.id)]['players'].keys()) > 1:
-                    await game_setup(await client.get_context(message), games[str(guild.id)])
-
-                    games[str(guild.id)]['creator'] = payload.member.id
-
-                    message_dict['title'] = 'A game of UNO has started!'
-                    message_dict[
-                        'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
-                    del message_dict['footer']
-
-                    await message.edit(embed=discord.Embed.from_dict(message_dict))
-
-                else:
-                    message_dict['title'] = 'A game of UNO failed to start!'
-                    message_dict[
-                        'description'] = ':x: Not enough players! At least 2 players are needed (Bots do not count).'
-                    del message_dict['footer']
-
-                    await message.edit(embed=discord.Embed.from_dict(message_dict))
-
-                    print('[' + datetime.now().strftime(
-                        '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(guild) + '.')
-
-        elif str(payload.emoji) == '❌':
-            if payload.member == guild.owner or str(payload.member) == message.embeds[0].to_dict()['fields'][2][
-                'value']:
-                await asyncio.gather(
-                    message.clear_reaction('✋'),
-                    message.clear_reaction('▶️'),
-                    message.clear_reaction('❌')
-                )
-
-                games[str(guild.id)]['seconds'] = -1
-
-                message_dict['title'] = 'A game of UNO was cancelled!'
-
-                if payload.member == guild.owner:
-                    message_dict['description'] = ':x: The server owner cancelled the game.'
-                elif str(payload.member) == message.embeds[0].to_dict()['fields'][2]['value']:
-                    message_dict['description'] = ':x: The game creator cancelled the game.'
-
-                del message_dict['footer']
-
-                await message.edit(embed=discord.Embed.from_dict(message_dict))
-
-                try:
-                    del games[str(guild.id)]
-                except ValueError:
-                    pass
-                except KeyError:
-                    pass
-
-                print('[' + datetime.now().strftime(
-                    '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(guild) + '.')
-
-
-@client.event
-async def on_raw_reaction_remove(payload):
-    timestamp = datetime.now()
-
-    if (timestamp - last_run).total_seconds() < 3:
-        await asyncio.sleep(3)
-
-    channel = client.get_channel(payload.channel_id)
-    message = await channel.fetch_message(payload.message_id)
-    guild = client.get_guild(payload.guild_id)
-    user = client.get_user(payload.user_id)
-
-    if str(guild.id) not in games or str(user.id) not in games[str(guild.id)]:
-        await asyncio.sleep(1)
-
-    if message.author == client.user and not user.bot and (
-            str(guild.id) in games and 'current' not in games[str(guild.id)]):
-        message_dict = message.embeds[0].to_dict()
-
-        if str(payload.emoji) == '✋':
-            del games[str(guild.id)]['players'][str(user.id)]
-
-            if len(games[str(guild.id)].keys()) >= 2:
-                for field in message_dict['fields']:
-                    if field['name'] == 'Players:':
-                        if len(games[str(guild.id)].keys()) == 2:
-                            field['value'] = 'None'
-                        else:
-                            value = ''
-                            for key in games[str(guild.id)]['players']:
-                                value += (':small_blue_diamond: ' + guild.get_member(int(key)).name + '\n')
-
-                            field['value'] = value
-
-                        break
-
-            await message.edit(embed=discord.Embed.from_dict(message_dict))
-
-
-
 @client.slash_command(name='u-help', description='Shows the command usage, an in-depth guide on using UNOBot and a link to the rules of UNO.')
+@has_permissions(read_messages=True)
 async def help(ctx):
     UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
 
@@ -2667,10 +2570,11 @@ async def help(ctx):
                       value='`/u.guide`\nRead an in-depth guide on using UNO Bot.\n' + chr(173), inline=False)
     message.add_field(name=':scroll: UNO Rules', value='`/u.rules`\nRead the rules of the original UNO.', inline=False)
 
-    await ctx.send(file=UNOBotPNG, embed=message)
+    await ctx.respond(file=UNOBotPNG, embed=message)
 
 
 @client.slash_command(name='u-cmds', description='Shows you how to use UNOBot\'s commands.')
+@has_permissions(read_messages=True)
 async def commands(ctx, command: Option(str, 'The command you want to learn', required=False, default='')):
     if not command:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
@@ -2693,48 +2597,45 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
                           value='Adjusts how UNOBot works for the entire server.\n' + chr(173))
         message.set_footer(text='• Use ' + prefix + 'commands <command> to get more help on that command.')
 
-        await ctx.send(file=UNOBotPNG, embed=message)
+        await ctx.respond(file=UNOBotPNG, embed=message)
 
     else:
-        if command in ('startgame', 'sg', 'start'):
-            message = discord.Embed(title=prefix + 'startgame', color=discord.Color.red())
+        if command == 'sg':
+            message = discord.Embed(title=prefix + 'sg', color=discord.Color.red())
             message.add_field(name='Description:',
                               value='Start a game of UNO. Play with those mentioned in the message. Players can play their cards in their auto-created UNO channels.',
                               inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'startgame (list of @user-mentions) (game settings)`',
+            message.add_field(name='Usage:', value='`' + prefix + 'sg (list of @user-mentions) (game settings)`',
                               inline=False)
             message.add_field(name=chr(173),
                               value='**Note:** You must have at least 2 players to start a game, bots do not count.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Tips:',
-                              value='• Use `' + prefix + 'gamesettings list` to get a list of the game settings.\n• You can change the default game settings using `' + prefix + 'settings dgs`.',
+                              value='• You can change the default game settings using `' + prefix + 'settings dgs`.',
                               inline=False)
             message.add_field(name='Examples:',
-                              value='• `' + prefix + 'startgame @VTiS @CoffinMan`\n• `' + prefix + 'sg advancedStart`')
-            message.add_field(name='Aliases: ', value='start, sg')
+                              value='• `' + prefix + 'sg @VTiS @CoffinMan`\n• `' + prefix + 'sg QuickStart`')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('endgame', 'eg', 'stop'):
-            message = discord.Embed(title=prefix + 'endgame', color=discord.Color.red())
+        elif command == 'eg':
+            message = discord.Embed(title=prefix + 'eg', color=discord.Color.red())
             message.add_field(name='Description:', value='Ends the ongoing UNO game.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'endgame`', inline=False)
+            message.add_field(name='Usage:', value='`' + prefix + 'eg`', inline=False)
             message.add_field(name=chr(173),
                               value='**Note:** Only the game creator, admins, and whitelisted roles from the settings can use this.\n' + chr(
                                   173), inline=False)
-            message.add_field(name='Aliases: ', value='eg, stop')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('leavegame', 'leave', 'quit', 'lg', 'quitgame'):
-            message = discord.Embed(title=prefix + 'leavegame', color=discord.Color.red())
+        elif command == 'leave':
+            message = discord.Embed(title=prefix + 'leave', color=discord.Color.red())
             message.add_field(name='Description:', value='Lets you leave the UNO game.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'leavegame`', inline=False)
-            message.add_field(name='Aliases: ', value='leave, quite, lg, quitgame')
+            message.add_field(name='Usage:', value='`' + prefix + 'leave`', inline=False)
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('kick', 'remove'):
+        elif command == 'kick':
             message = discord.Embed(title=prefix + 'kick', color=discord.Color.red())
             message.add_field(name='Description:', value='Kicks a player from an UNO game.', inline=False)
             message.add_field(name='Usage:', value='`' + prefix + 'kick <@user-mention>`', inline=False)
@@ -2742,83 +2643,69 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
                               value='**Note:** Only the game creator, admins, and whitelisted roles from the settings can use this.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Examples:', value='`' + prefix + 'kick @CoffinMan`')
-            message.add_field(name='Aliases: ', value='remove')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('spectate', 'spec'):
+        elif command == 'spectate':
             message = discord.Embed(title=prefix + 'spectate', color=discord.Color.red())
             message.add_field(name='Description:', value='Spectate games of UNO.', inline=False)
             message.add_field(name='Usage:', value='`' + prefix + 'spectate (on|off)`', inline=False)
-            message.add_field(name='Aliases: ', value='spec')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
         elif command == 'stats':
             message = discord.Embed(title=prefix + 'stats', color=discord.Color.red())
             message.add_field(name='Description:', value='Gives you a user\'s stats only from this Discord server.',
                               inline=False)
             message.add_field(name='Usage:', value='`' + prefix + 'stats (@user-mention)`', inline=False)
-            message.add_field(name=chr(173),
-                              value='**Tip:** You can hide your stats with `' + prefix + 'options HideStats on`.\n' + chr(
-                                  173), inline=False)
             message.add_field(name='Examples:', value='`' + prefix + 'stats @VTiS`')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('globalstats', 'gstats', 'global-stats', 'g-stats', 'global_stats', 'g_stats'):
-            message = discord.Embed(title=prefix + 'globalstats', color=discord.Color.red())
+        elif command == 'gstats':
+            message = discord.Embed(title=prefix + 'gstats', color=discord.Color.red())
             message.add_field(name='Description:', value='Gives you a user\'s stats from all servers.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'globalstats (@user-mention)`', inline=False)
-            message.add_field(name='Tips:', value='• You can just type `' + prefix + 'gstats`.\n'
-                                                                                     '• You can hide your global stats with `' + prefix + 'options HideGlobalStats on`.',
-                              inline=False)
-            message.add_field(name='Examples:', value='• `' + prefix + 'globalstats @VTiS`')
-            message.add_field(name='Aliases: ', value='gstats, global-stats, g-stats, global_stats, g_stats')
+            message.add_field(name='Usage:', value='`' + prefix + 'gstats (@user-mention)`', inline=False)
+            message.add_field(name='Examples:', value='• `' + prefix + 'gstats @VTiS`')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('leaderboard', 'lb', 'leaderboards'):
-            message = discord.Embed(title=prefix + 'leaderboard', color=discord.Color.red())
+        elif command == 'lb':
+            message = discord.Embed(title=prefix + 'lb', color=discord.Color.red())
             message.add_field(name='Description:', value='Gives you a leaderboard only from this Discord server.',
                               inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'leaderboard`', inline=False)
-            message.add_field(name='Aliases: ', value='lb, leaderboards')
+            message.add_field(name='Usage:', value='`' + prefix + 'lb`', inline=False)
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in (
-                'globalleaderboard', 'glb', 'g-lb', 'g_lb', 'gleaderboard', 'global-leaderboard', 'global_leaderboard'):
-            message = discord.Embed(title=prefix + 'globalleaderboard', color=discord.Color.red())
-            message.add_field(name='Description:', value='Gives you a eladerboard for all servers.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'globalleaderboard`', inline=False)
-            message.add_field(name='Aliases: ',
-                              value='glb, g-lb, g_lb, gleaderboard, global-leaderboard, global_leaderboard')
+        elif command == 'glb':
+            message = discord.Embed(title=prefix + 'glb', color=discord.Color.red())
+            message.add_field(name='Description:', value='Gives you a leaderboard for all servers.', inline=False)
+            message.add_field(name='Usage:', value='`' + prefix + 'glb`', inline=False)
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('allowalerts', 'alerts', 'alert', 'aa'):
-            message = discord.Embed(title=prefix + 'allowalerts', color=discord.Color.red())
+        elif command == 'alerts':
+            message = discord.Embed(title=prefix + 'alerts', color=discord.Color.red())
             message.add_field(name='Description:', value='Allows alerts just for you.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'allowalerts <on|off|view>`', inline=False)
+            message.add_field(name='Usage:', value='`' + prefix + 'alerts <on|off|view>`', inline=False)
             message.add_field(name='Examples:', value='• `' + prefix + 'aa on`')
-            message.add_field(name='Aliases: ', value='allowalerts, alerts, alert, aa')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
-        elif command in ('settings', 'set', 'sett', 'stngs', 'setting', 'stng'):
+        elif command == 'settings':
             message = discord.Embed(title='UNOBot Settings', color=discord.Color.red(),
                                     description='Adjusts how UNOBot works for the entire server.')
             message.add_field(name=':wrench: Command Customization:', value=prefix + '`settings commands`')
             message.add_field(name=':game_die: Default Game Settings:', value=prefix + '`settings dgs`')
             message.add_field(name=':arrows_counterclockwise: Reset UNOBot:', value=prefix + '`settings reset`',
                               inline=False)
-            message.add_field(name='Aliases: ', value='set, sett, stngs, setting, stng')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
 
 @client.slash_command(name='u-guide', description='Shows you how to use UNOBot in general.')
+@has_permissions(read_messages=True)
 async def guide(ctx, area: Option(str, 'The area you want a guide on', required=False, default='')):
     if not area:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
@@ -2838,7 +2725,7 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
         message.add_field(name=':wrench: Changing user options:',
                           value='`' + prefix + 'guide options`\nChange your personal options to tailor your experience.')
 
-        await ctx.send(file=UNOBotPNG, embed=message)
+        await ctx.respond(file=UNOBotPNG, embed=message)
 
     else:
         if area == 'start':
@@ -2855,7 +2742,7 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
                                     '• A text channel will be created in this category for each player you mentioned.\n'
                                     '• The channel is where the player will play their cards.')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
         elif area == 'play':
             message = discord.Embed(title='How to Play Your Cards', color=discord.Color.red())
@@ -2875,7 +2762,7 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
                               value='• If you don\'t have a card to play, use `u!draw` to draw a card from the deck.\n'
                                     '• After drawing your turn will be over, unless the game setting DrawUntilMatch is on.')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
         elif area == 'commands':
             message = discord.Embed(title='How to Change the Server\'s command settings', color=discord.Color.red())
@@ -2897,7 +2784,7 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
             message.add_field(name='View command settings:',
                               value='• Use `u!settings commands <command> view` to see command info like the state, whitelist, and blacklist.')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
         elif area == 'settings':
             message = discord.Embed(title='How to Change the Server\'s Settings', color=discord.Color.red())
@@ -2915,7 +2802,7 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
                                                           '• This will reset all of the data UnoBot has on your server.\n'
                                                           '• When prompted, respond only with "CONFIRM" in all caps to confirm the reset.')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
         elif area == 'options':
             message = discord.Embed(title='How to Change Your User Options', color=discord.Color.red(),
@@ -2929,15 +2816,17 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
             message.add_field(name='Navigating to your channel:',
                               value='• Use `u!options view` to view your enabled options.')
 
-            await ctx.send(embed=message)
+            await ctx.respond(embed=message)
 
 
 @client.slash_command(name='u-rules', description='Gives you a link to the rules of UNO.')
+@has_permissions(read_messages=True)
 async def rules(ctx):
-    await ctx.send("https://github.com/VTiS15/UNOBot#game-rule")
+    await ctx.respond("https://github.com/VTiS15/UNOBot#game-rule")
 
 
 @client.slash_command(name='u-stats', description='Gives you a user\'s or your (if no user is specified) UNO stats in the current Discord server.')
+@has_permissions(read_messages=True)
 async def stats(ctx, user: Option(discord.User, 'The user whose local stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -2974,10 +2863,10 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
                     message.add_field(name='Total Losses',
                                       value='**' + str(dict['Played'] - dict['Wins']) + '** games lost.')
 
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 else:
-                    await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                    await ctx.respond(embed=discord.Embed(color=discord.Color.red(),
                                                        description=':x: **' + user.name + ' has not played UNO yet.**'))
 
                 if commands[str(ctx.guild.id)]['stats']['Cooldown'] > 0:
@@ -3004,20 +2893,21 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
                         cooldowns[str(ctx.guild.id)].remove('stats')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['stats']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-gstats', description='Gives you a user\'s or your (if no user is specified) global stats.')
+@has_permissions(read_messages=True)
 async def globalstats(ctx, user: Option(discord.User, 'The user whose global stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3059,10 +2949,10 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
                     message.add_field(name='Total Wins', value='**' + str(w) + '** games won.', inline=False)
                     message.add_field(name='Total Losses', value='**' + str(p - w) + '** games lost.')
 
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 else:
-                    await ctx.send(embed=discord.Embed(color=discord.Color.red(),
+                    await ctx.respond(embed=discord.Embed(color=discord.Color.red(),
                                                        description=':x: **' + user.name + ' has not played UNO yet.**'))
 
                 if commands[str(ctx.guild.id)]['globalstats']['Cooldown'] > 0:
@@ -3089,20 +2979,21 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
                         cooldowns[str(ctx.guild.id)].remove('globalstats')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['globalstats']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-lb', description='Presents you with the UNO leaderboard in the current Discord server.')
+@has_permissions(read_messages=True)
 async def leaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3141,24 +3032,21 @@ async def leaderboard(ctx):
                     if count >= 5:
                         break
 
-                message.set_thumbnail(url=ctx.guild.icon_url)
+                message.set_thumbnail(url=ctx.guild.icon)
 
                 if count > 0:
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
                 else:
                     message = discord.Embed(color=discord.Color.red(),
                                             description=':x: **No one has played UNO in this server yet!**')
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 if commands[str(ctx.guild.id)]['leaderboard']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('leaderboard')
 
                     def check(message):
                         return len(message.content.split()) == 6 \
-                               and message.content.split()[0] in (
-                                   prefix + 'settings', prefix + 'set', prefix + 'sett', prefix + 'stngs',
-                                   prefix + 'setting',
-                                   prefix + 'stng') \
+                               and message.content.split()[0] == prefix + 'settings' \
                                and message.content.split()[1].lower() == 'commands' \
                                and message.content.split()[2].lower() == 'leaderboard' \
                                and message.content.split()[3].lower() == 'cooldown' \
@@ -3174,20 +3062,21 @@ async def leaderboard(ctx):
                         cooldowns[str(ctx.guild.id)].remove('leaderboard')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['leaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-glb', description='Presents you with the global UNO leaderboard.')
+@has_permissions(read_messages=True)
 async def globalleaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -3236,11 +3125,11 @@ async def globalleaderboard(ctx):
                         break
 
                 if count > 0:
-                    message.set_footer(text='Use "' + prefix + 'globalstats" to check your rank.')
-                    await ctx.send(embed=message)
+                    message.set_footer(text='Use "' + prefix + 'gstats" to check your rank.')
+                    await ctx.respond(embed=message)
                 else:
                     message = discord.Embed(color=discord.Color.red(), description=':x: **No one has played UNO yet!**')
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 if commands[str(ctx.guild.id)]['globalleaderboard']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('globalleaderboard')
@@ -3267,22 +3156,23 @@ async def globalleaderboard(ctx):
                         cooldowns[str(ctx.guild.id)].remove('globalleaderboard')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**',
                                     color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['globalleaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-alerts', description='Turns your alerts on or off.')
-async def allowalerts(ctx, option: Option(str, 'on or off', required=True)):
+@has_permissions(read_messages=True)
+async def allowalerts(ctx, option: Option(str, 'on, off, or view', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if 'allowalerts' not in cooldowns[str(ctx.guild.id)]:
@@ -3306,21 +3196,17 @@ async def allowalerts(ctx, option: Option(str, 'on or off', required=True)):
                     message = discord.Embed(title=ctx.author.name + '\'s alerts', description=description,
                                             color=discord.Color.red())
 
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 elif option.lower() == 'on':
                     users[str(ctx.author.id)]['AllowAlerts'] = True
 
                     users_file.put(Body=json.dumps(users).encode('utf-8'))
 
-                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                 elif option.lower() == 'off':
                     users[str(ctx.author.id)]['AllowAlerts'] = False
 
                     users_file.put(Body=json.dumps(users).encode('utf-8'))
-
-                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                 if commands[str(ctx.guild.id)]['allowalerts']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('allowalerts')
@@ -3346,21 +3232,22 @@ async def allowalerts(ctx, option: Option(str, 'on or off', required=True)):
                         cooldowns[str(ctx.guild.id)].remove('allowalerts')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**',
                                     color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['options']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-settings', description='Allows you to change the settings of UNOBot.')
+@has_permissions(read_messages=True)
 async def settings(ctx, setting: Option(str, 'The setting you wish to change'), *, args: Option(str, 'some arguments', required=False, default='')):
 
     if not setting:
@@ -3372,7 +3259,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                           inline=False)
         message.add_field(name='Aliases: ', value='set, sett, stngs, setting, stng')
 
-        await ctx.send(embed=message)
+        await ctx.respond(embed=message)
 
         return
 
@@ -3405,13 +3292,13 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                             '`' + prefix + 'settings commands <command> view`')
                     message.set_footer(text='You can get a list of commands using "u!commands"')
 
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 elif len(args.split()) == 1:
                     if args in cmds:
                         await cmd_info(ctx, args)
                     else:
-                        await ctx.send(embed=discord.Embed(
+                        await ctx.respond(embed=discord.Embed(
                             description=':x: I don\'t understand your command, use `' + prefix + 'settings help`',
                             color=discord.Color.red()))
 
@@ -3424,13 +3311,9 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                             commands[str(ctx.guild.id)][s]['Enabled'] = True
                             commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
-                            await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                         elif b == 'off':
                             commands[str(ctx.guild.id)][s]['Enabled'] = False
                             commands_file.put(Body=json.dumps(commands).encode('utf-8'))
-
-                            await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                         elif b == 'view':
                             if commands[str(ctx.guild.id)][s]['Enabled']:
@@ -3493,15 +3376,15 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 else:
                                     message.add_field(name='Blacklist', value='Disabled :x:\n\nNone', inline=False)
 
-                            await ctx.send(embed=message)
+                            await ctx.respond(embed=message)
 
                         else:
-                            await ctx.send(embed=discord.Embed(
+                            await ctx.respond(embed=discord.Embed(
                                 description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                 color=discord.Color.red()))
 
                     else:
-                        await ctx.send(embed=discord.Embed(
+                        await ctx.respond(embed=discord.Embed(
                             description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                             color=discord.Color.red()))
 
@@ -3513,13 +3396,13 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                     if s in cmds:
                         if x == 'cooldown':
                             if y == 'view':
-                                await ctx.send(
+                                await ctx.respond(
                                     embed=discord.Embed(description='The **' + s + '** command has a cooldown of **'
                                                                     + str(
                                         commands[str(ctx.guild.id)][s]['Cooldown']) + ' seconds**.',
                                                         color=discord.Color.red()))
                             else:
-                                await ctx.send(embed=discord.Embed(
+                                await ctx.respond(embed=discord.Embed(
                                     description=':x: I don\'t understand your command, use `' + prefix + 'settings help`',
                                     color=discord.Color.red()))
 
@@ -3528,13 +3411,9 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 commands[str(ctx.guild.id)][s][x.capitalize() + 'Enabled'] = True
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
-                                await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                             elif y == 'disable':
                                 commands[str(ctx.guild.id)][s][x.capitalize() + 'Enabled'] = False
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
-
-                                await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                             elif y == 'view':
                                 if commands[str(ctx.guild.id)][s][x.capitalize() + 'Enabled']:
@@ -3558,20 +3437,20 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 else:
                                     message.add_field(name='User and Role List', value='None')
 
-                                await ctx.send(embed=message)
+                                await ctx.respond(embed=message)
 
                             else:
-                                await ctx.send(embed=discord.Embed(
+                                await ctx.respond(embed=discord.Embed(
                                     description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                     color=discord.Color.red()))
 
                         else:
-                            await ctx.send(embed=discord.Embed(
+                            await ctx.respond(embed=discord.Embed(
                                 description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                 color=discord.Color.red()))
 
                     else:
-                        await ctx.send(embed=discord.Embed(
+                        await ctx.respond(embed=discord.Embed(
                             description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                             color=discord.Color.red()))
 
@@ -3588,15 +3467,13 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     commands[str(ctx.guild.id)][s]['Cooldown'] = int(z)
                                     commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
-                                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                                 except ValueError:
-                                    await ctx.send(embed=discord.Embed(
+                                    await ctx.respond(embed=discord.Embed(
                                         description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                         color=discord.Color.red()))
 
                             else:
-                                await ctx.send(embed=discord.Embed(
+                                await ctx.respond(embed=discord.Embed(
                                     description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                     color=discord.Color.red()))
 
@@ -3611,7 +3488,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     try:
                                         user = await role_converter.convert(ctx, z)
                                     except BadArgument:
-                                        await ctx.send(embed=discord.Embed(
+                                        await ctx.respond(embed=discord.Embed(
                                             description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                             color=discord.Color.red()))
 
@@ -3623,8 +3500,6 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     commands[str(ctx.guild.id)][s][x.capitalize()] = [user.id]
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
-                                await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                             elif y == 'remove':
                                 user_converter = UserConverter()
                                 role_converter = RoleConverter()
@@ -3635,7 +3510,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     try:
                                         user = await role_converter.convert(ctx, z)
                                     except BadArgument:
-                                        await ctx.send(embed=discord.Embed(
+                                        await ctx.respond(embed=discord.Embed(
                                             description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                             color=discord.Color.red()))
 
@@ -3648,25 +3523,23 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                         commands[str(ctx.guild.id)][s][x.capitalize()] = None
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
-                                await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                             else:
-                                await ctx.send(embed=discord.Embed(
+                                await ctx.respond(embed=discord.Embed(
                                     description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                     color=discord.Color.red()))
 
                         else:
-                            await ctx.send(embed=discord.Embed(
+                            await ctx.respond(embed=discord.Embed(
                                 description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                 color=discord.Color.red()))
 
                     else:
-                        await ctx.send(embed=discord.Embed(
+                        await ctx.respond(embed=discord.Embed(
                             description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                             color=discord.Color.red()))
 
                 else:
-                    await ctx.send(embed=discord.Embed(
+                    await ctx.respond(embed=discord.Embed(
                         description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                         color=discord.Color.red()))
 
@@ -3685,7 +3558,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                       value='View the default game settings\n\n'
                                             '`' + prefix + 'settings dgs view`')
 
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 elif args == 'view':
                     message = discord.Embed(title='Default Game Settings', color=discord.Color.red())
@@ -3698,7 +3571,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                         else:
                             message.add_field(name=s, value='Disabled :x:')
 
-                    await ctx.send(embed=message)
+                    await ctx.respond(embed=message)
 
                 elif len(args.split()) == 2:
                     s = args.split()[0]
@@ -3709,13 +3582,9 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                             dgs[str(ctx.guild.id)][s] = True
                             dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
-                            await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
-
                         elif x == 'off':
                             dgs[str(ctx.guild.id)][s] = False
                             dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
-
-                            await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                         elif x == 'view':
                             if type(dgs[str(ctx.guild.id)][s]) == int:
@@ -3762,16 +3631,16 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                                         'Enable or disable it using `' + prefix + 'settings dgs ' + s + ' <on|off>`')
 
                             else:
-                                await ctx.send(
+                                await ctx.respond(
                                     embed=discord.Embed(description=':x: **' + s + '** is not a valid game setting.',
                                                         color=discord.Color.red()))
 
                                 return
 
-                            await ctx.send(embed=message)
+                            await ctx.respond(embed=message)
 
                     else:
-                        await ctx.send(embed=discord.Embed(
+                        await ctx.respond(embed=discord.Embed(
                             description=':x: **' + s + '** is not a game setting. Use `' + prefix + 'settings dgs view` for a list of settings.',
                             color=discord.Color.red()))
 
@@ -3786,26 +3655,24 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 if 3 < int(y) < 15:
                                     dgs[str(ctx.guild.id)][s] = int(y)
                                     dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
-
-                                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
                                 else:
 
-                                    await ctx.send(
+                                    await ctx.respond(
                                         embed=discord.Embed(description=':x: **You can only start with 3-15 cards.**',
                                                             color=discord.Color.red()))
 
                             except ValueError:
-                                await ctx.send(embed=discord.Embed(
+                                await ctx.respond(embed=discord.Embed(
                                     description=':x: Please enter an integer.',
                                     color=discord.Color.red()))
 
                         else:
-                            await ctx.send(embed=discord.Embed(
+                            await ctx.respond(embed=discord.Embed(
                                 description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                                 color=discord.Color.red()))
 
                     else:
-                        await ctx.send(embed=discord.Embed(
+                        await ctx.respond(embed=discord.Embed(
                             description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                             color=discord.Color.red()))
 
@@ -3815,7 +3682,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                                     'Respond with **CONFIRM** in 30 seconds to confirm and reset UNOBot.',
                                         color=discord.Color.red())
                 resets.append(ctx.guild.id)
-                await ctx.send(embed=message)
+                await ctx.respond(embed=message)
 
                 def check(m):
                     return m.content == 'CONFIRM' and (
@@ -3827,7 +3694,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                 try:
                     await client.wait_for('message', check=check, timeout=30.0)
                 except asyncio.TimeoutError:
-                    await ctx.send(embed=discord.Embed(description=':ok_hand: **OK, UNOBot will not reset.**',
+                    await ctx.respond(embed=discord.Embed(description=':ok_hand: **OK, UNOBot will not reset.**',
                                                        color=discord.Color.red()))
 
             if commands[str(ctx.guild.id)]['settings']['Cooldown'] > 0:
@@ -3854,17 +3721,19 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                     cooldowns[str(ctx.guild.id)].remove('settings')
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                     color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['settings']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-sg', description='Starts a game of UNO.')
+@has_permissions(read_messages=True)
 async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply', required=False, default='')):
+
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
     if ctx.channel.category.name != 'UNO-GAME':
@@ -3877,13 +3746,14 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                              commands[str(ctx.guild.id)]['startgame']['Whitelist'] and ctx.author.id in
                              commands[str(ctx.guild.id)]['startgame'][
                                  'Whitelist']) or ctx.author == ctx.guild.owner:
-                    if str(ctx.guild.id) not in games:
+                    if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == 40:
                         dgs = json.loads(
                             s3_resource.Object('unobot-bucket', 'dgs.json').get()['Body'].read().decode('utf-8'))
 
                         games[str(ctx.guild.id)] = {'seconds': 40}
                         games[str(ctx.guild.id)]['settings'] = dgs[str(ctx.guild.id)]
                         games[str(ctx.guild.id)]['players'] = {}
+                        games[str(ctx.guild.id)]['creator'] = ctx.author.id
 
                         user_options = json.loads(
                             s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
@@ -3898,8 +3768,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     for guild in client.guilds:
                                         user_options[str(user.id)].pop(str(guild.id), None)
-                                    games[str(ctx.guild.id)][str(user.id)] = user_options[str(user.id)]
-                                    games[str(ctx.guild.id)][str(user.id)]['cards'] = []
+                                    games[str(ctx.guild.id)]['players'][str(user.id)] = user_options[str(user.id)]
+                                    games[str(ctx.guild.id)]['players'][str(user.id)]['cards'] = []
 
                                 except BadArgument:
                                     if a[i] in (
@@ -3920,7 +3790,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                     break
 
                                                 else:
-                                                    await ctx.send(
+                                                    await ctx.respond(
                                                         embed=discord.Embed(
                                                             description=':x: **You can only start with 3-15 cards.**',
                                                             color=discord.Color.red()))
@@ -3930,7 +3800,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                     return
 
                                             except ValueError:
-                                                await ctx.send(embed=discord.Embed(
+                                                await ctx.respond(embed=discord.Embed(
                                                     description=':x: Please enter an integer for the number of starting cards.',
                                                     color=discord.Color.red()))
 
@@ -3939,7 +3809,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                 return
 
                                         else:
-                                            await ctx.send(embed=discord.Embed(
+                                            await ctx.respond(embed=discord.Embed(
                                                 description=':x: I don\'t understand your command, use `' + prefix + 'commands startgame`',
                                                 color=discord.Color.red()))
 
@@ -3948,7 +3818,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             return
 
                                     else:
-                                        await ctx.send(embed=discord.Embed(
+                                        await ctx.respond(embed=discord.Embed(
                                             description=':x: I don\'t understand your command, use `' + prefix + 'commands startgame`',
                                             color=discord.Color.red()))
 
@@ -3965,8 +3835,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 message = discord.Embed(title='A game of UNO is going to start!',
                                                         description='Less than 30 seconds left!',
                                                         color=discord.Color.from_rgb(102, 51, 153))
-                            message.set_footer(
-                                text='React with \'✋\' to join, \'▶️\' to force start, and \'❌\' to cancel the game.')
 
                             if len(games[str(ctx.guild.id)]['players'].keys()) < 2:
                                 message.add_field(name='Players:', value='None', inline=False)
@@ -3992,14 +3860,108 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
-                            e = await ctx.send(embed=message)
-                            eid = e.id
+                            join = Button(label='Join!', style=discord.ButtonStyle.green, emoji='✋')
+                            async def join_callback(interaction):
+                                message_dict = interaction.message.embeds[0].to_dict()
 
-                            await asyncio.gather(
-                                e.add_reaction('✋'),
-                                e.add_reaction('▶️'),
-                                e.add_reaction('❌')
-                            )
+                                if str(interaction.user.id) not in games[str(interaction.guild.id)]['players']:
+                                    for g in client.guilds:
+                                        user_options[str(interaction.user.id)].pop(str(g.id), None)
+
+                                    games[str(interaction.guild.id)]['players'][str(interaction.user.id)] = user_options[
+                                        str(interaction.user.id)]
+                                    games[str(interaction.guild.id)]['players'][str(interaction.user.id)]['cards'] = []
+
+                                    if len(games[str(interaction.guild.id)]['players'].keys()) > 0:
+                                        for field in message_dict['fields']:
+                                            if field['name'] == 'Players:':
+                                                value = ''
+
+                                                for key in games[str(interaction.guild.id)]['players']:
+                                                    value += (':small_blue_diamond: ' + interaction.guild.get_member(
+                                                        int(key)).name + '\n')
+
+                                                field['value'] = value
+
+                                                break
+
+                                    await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
+                            join.callback = join_callback
+
+                            start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
+                            async def start_callback(interaction):
+                                await interaction.response.defer()
+
+                                message_dict = interaction.message.embeds[0].to_dict()
+
+                                if interaction.user == interaction.guild.owner or str(interaction.user) == str(
+                                        interaction.guild.get_member(games[str(interaction.guild.id)]['creator'])):
+
+                                    games[str(interaction.guild.id)]['seconds'] = -2
+
+                                    if len(games[str(interaction.guild.id)]['players'].keys()) > 1:
+                                        games[str(interaction.guild.id)]['creator'] = interaction.user.id
+
+                                        message_dict['title'] = 'A game of UNO has started!'
+                                        message_dict[
+                                            'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
+
+                                        try:
+                                            await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+
+                                            await game_setup(await client.get_context(interaction.message),
+                                                             games[str(interaction.guild.id)])
+                                        except discord.errors.NotFound:
+                                            pass
+
+                                    else:
+                                        message_dict['title'] = 'A game of UNO failed to start!'
+                                        message_dict[
+                                            'description'] = ':x: Not enough players! At least 2 players are needed (Bots do not count).'
+
+                                        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+
+                                        print('[' + datetime.now().strftime(
+                                            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(
+                                            guild) + '.')
+                            start.callback = start_callback
+
+                            cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
+                            async def cancel_callback(interaction):
+                                message_dict = interaction.message.embeds[0].to_dict()
+
+                                if interaction.user == interaction.guild.owner or str(interaction.user) == \
+                                        interaction.message.embeds[0].to_dict()['fields'][2][
+                                            'value']:
+
+                                    games[str(interaction.guild.id)]['seconds'] = -1
+
+                                    message_dict['title'] = 'A game of UNO was cancelled!'
+
+                                    if interaction.user == interaction.guild.owner:
+                                        message_dict['description'] = ':x: The server owner cancelled the game.'
+                                    elif str(interaction.user) == interaction.message.embeds[0].to_dict()['fields'][2]['value']:
+                                        message_dict['description'] = ':x: The game creator cancelled the game.'
+
+                                    await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+
+                                    try:
+                                        del games[str(interaction.guild.id)]
+                                    except ValueError:
+                                        pass
+
+                                    print('[' + datetime.now().strftime(
+                                        '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(interaction.guild) + '.')
+                            cancel.callback = cancel_callback
+
+                            view = View()
+                            view.add_item(join)
+                            view.add_item(start)
+                            view.add_item(cancel)
+
+                            response = await ctx.respond(embed=message, view=view)
+                            e = await response.original_message()
+                            eid = e.id
 
                             while True:
                                 if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
@@ -4014,24 +3976,16 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 m = (await ctx.fetch_message(eid)).embeds[0]
 
                                 if games[str(ctx.guild.id)]['seconds'] == 0:
-                                    await asyncio.gather(
-                                        e.clear_reaction('✋'),
-                                        e.clear_reaction('▶️'),
-                                        e.clear_reaction('❌')
-                                    )
-
-                                    if len(games[str(ctx.guild.id)].keys()) > 3:
+                                    if len(games[str(ctx.guild.id)]['players'].keys()) > 1:
                                         message_dict = m.to_dict()
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
                                             'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
                                         del message_dict['footer']
 
-                                        await e.edit(embed=discord.Embed.from_dict(message_dict))
+                                        await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
 
                                         await game_setup(ctx, games[str(ctx.guild.id)])
-
-                                        games[str(ctx.guild.id)]['creator'] = ctx.author.id
 
                                     else:
                                         message_dict = m.to_dict()
@@ -4039,10 +3993,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict[
                                             'description'] = ':x: Not enough players! At least 2 players are needed (Bots do not count).'
 
-                                        del message_dict['footer']
                                         del games[str(ctx.guild.id)]
 
-                                        await e.edit(embed=discord.Embed.from_dict(message_dict))
+                                        await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
 
                                         print('[' + datetime.now().strftime(
                                             '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(
@@ -4059,21 +4012,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                         else:
                             if len(games[str(ctx.guild.id)]['players']) > 1:
-                                await game_setup(ctx, games[str(ctx.guild.id)])
-
-                                games[str(ctx.guild.id)]['creator'] = ctx.author.id
-
-                                message = discord.Embed(title='A game of UNO has started!',
+                                m = discord.Embed(title='A game of UNO has started!',
                                                         description=':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.',
                                                         color=discord.Color.red())
 
-                                players = games[str(ctx.guild.id)]['players']
-
                                 p = ""
-                                for key in players:
+                                for key in games[str(ctx.guild.id)]['players']:
                                     p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
 
-                                message.add_field(name='Players:', value=p, inline=False)
+                                m.add_field(name='Players:', value=p, inline=False)
 
                                 s = ""
                                 for setting in games[str(ctx.guild.id)]['settings']:
@@ -4084,13 +4031,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         s += ('• ' + setting + "\n")
 
                                 if s:
-                                    message.add_field(name='Game Settings:', value=s, inline=False)
+                                    m.add_field(name='Game Settings:', value=s, inline=False)
                                 else:
-                                    message.add_field(name='Game Settings:', value='None', inline=False)
+                                    m.add_field(name='Game Settings:', value='None', inline=False)
 
-                                message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
+                                m.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
-                                await ctx.send(embed=message)
+                                await ctx.respond(embed=m)
+
+                                await game_setup(ctx, games[str(ctx.guild.id)])
 
                             else:
                                 message = discord.Embed(title='A game of UNO failed to start!',
@@ -4120,7 +4069,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message.add_field(name='Game Settings:', value='None', inline=False)
                                 message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
-                                await ctx.send(embed=message)
+                                await ctx.respond(embed=message)
 
                                 del games[str(ctx.guild.id)]
 
@@ -4151,28 +4100,29 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 cooldowns[str(ctx.guild.id)].remove('startgame')
 
                     else:
-                        await ctx.send(embed=discord.Embed(description=':x: **A game is already underway!**',
+                        await ctx.respond(embed=discord.Embed(description=':x: **A game is already underway!**',
                                                            color=discord.Color.red()))
 
                 else:
-                    await ctx.send(
+                    await ctx.respond(
                         embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                             color=discord.Color.red()))
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
         else:
-            await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+            await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
                 commands[str(ctx.guild.id)]['startgame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(
+        await ctx.respond(
             embed=discord.Embed(description=':x: **You can\'t use this command here!**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-eg', description='Forcefully ends a game of UNO.')
+@has_permissions(read_messages=True)
 async def endgame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4196,13 +4146,17 @@ async def endgame(ctx):
                         ending.append(str(ctx.guild.id))
                         await game_shutdown(games[str(ctx.guild.id)], None, ctx.guild)
 
+                        await ctx.respond(
+                            embed=discord.Embed(description=':thumbsup: **The game has been shut down.**',
+                                                color=discord.Color.red()))
+
                     else:
-                        await ctx.send(
+                        await ctx.respond(
                             embed=discord.Embed(description=':x: **The game doesn\'t exist.**',
                                                 color=discord.Color.red()))
 
                 else:
-                    await ctx.send(
+                    await ctx.respond(
                         embed=discord.Embed(description=':x: **You can\'t use this command here!**',
                                             color=discord.Color.red()))
 
@@ -4229,20 +4183,21 @@ async def endgame(ctx):
                         cooldowns[str(ctx.guild.id)].remove('endgame')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['endgame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-leave', description='Gets you out of an ongoing game of UNO')
+@has_permissions(read_messages=True)
 async def leavegame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4288,7 +4243,7 @@ async def leavegame(ctx):
                             await game_shutdown(games[str(ctx.guild.id)], None, ctx.guild)
 
                 else:
-                    await ctx.send(
+                    await ctx.respond(
                         embed=discord.Embed(description=':x: **You can\'t use this command here!**',
                                             color=discord.Color.red()))
 
@@ -4316,20 +4271,21 @@ async def leavegame(ctx):
                         cooldowns[str(ctx.guild.id)].remove('leavegame')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['leavegame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-kick', description='Kicks someone out of an ongoing game of UNO')
+@has_permissions(read_messages=True)
 async def kick(ctx, user):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4346,7 +4302,7 @@ async def kick(ctx, user):
                 try:
                     player = await user_converter.convert(ctx, user)
                 except BadArgument:
-                    await ctx.send(embed=discord.Embed(
+                    await ctx.respond(embed=discord.Embed(
                         description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
                         color=discord.Color.red()))
 
@@ -4367,7 +4323,7 @@ async def kick(ctx, user):
 
                     if len(games[str(ctx.guild.id)]) - 6 >= 2:
                         await discord.utils.get(ctx.guild.text_channels,
-                                                name=sub(r'[^\w- ]', '',
+                                                name=sub(r'[^\w -]', '',
                                                          player.name.lower().replace(' ',
                                                                                      '-')) + '-uno-channel').delete()
 
@@ -4377,8 +4333,6 @@ async def kick(ctx, user):
 
                         if player.id == games[str(ctx.guild.id)]['player']:
                             await display_cards(n)
-
-                        await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                     else:
                         for channel in [x for x in ctx.guild.text_channels if x.category.name == 'UNO-GAME']:
@@ -4414,20 +4368,21 @@ async def kick(ctx, user):
                         cooldowns[str(ctx.guild.id)].remove('kick')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['kick']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
-@client.slash_command(name='u-specate', description='Turns your ability to spectate any game of UNO on or off')
+@client.slash_command(name='u-spectate', description='Turns your ability to spectate any game of UNO on or off')
+@has_permissions(read_messages=True)
 async def spectate(ctx, option: Option(str, 'on or off', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -4444,14 +4399,12 @@ async def spectate(ctx, option: Option(str, 'on or off', required=True)):
                 if option.lower() == 'on' and role not in ctx.author.roles:
                     await ctx.author.add_roles(role)
 
-                    await ctx.send(embed=discord.Embed(
+                    await ctx.respond(embed=discord.Embed(
                         description=':thumbsup: You now have the **UNO Spectator** role. You can now spectate any UNO game with the **SpectateGame** setting on.',
                         color=discord.Color.red()))
 
                 elif option.lower() == 'off' and role in ctx.author.roles:
                     await ctx.author.remove_roles(role)
-
-                    await ctx.message.add_reaction('\N{THUMBS UP SIGN}')
 
                 if commands[str(ctx.guild.id)]['spectate']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('spectate')
@@ -4476,16 +4429,16 @@ async def spectate(ctx, option: Option(str, 'on or off', required=True)):
                         cooldowns[str(ctx.guild.id)].remove('spectate')
 
             else:
-                await ctx.send(
+                await ctx.respond(
                     embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                         color=discord.Color.red()))
 
         else:
-            await ctx.send(
+            await ctx.respond(
                 embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
     else:
-        await ctx.send(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['spectate']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
