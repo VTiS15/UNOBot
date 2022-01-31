@@ -23,7 +23,7 @@ If you want to view command usage, read an in-depth guide on using the bot, or r
 ## Command Usage
 The UNOBot uses the prefix `/u-` for commands.
 | Command | Arguments | Description | Example |
-| ------- | ----- | --------- | ----------- | ------- |
+| ------- | --------- | ----------- | ------- |
 | `/u-help` | None | Prints help info |
 | `/u-rules` | None | [UNO Rules](#rule) |
 | `/u-guide`| (`start/play/commands/settings/options`) | Gives you a guide on using bot | `/u-guide start` |
