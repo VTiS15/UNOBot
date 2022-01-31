@@ -373,13 +373,20 @@ async def game_setup(ctx, d):
             sub(r'[^\w -]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
             overwrites=overwrites)
 
-        await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
+        welcome = await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
                                                                     'Strategize, play your cards, unleash your wrath by drawing the feces out of people, and have fun with the game of UNO right here!\n\n'
                                                                     '• Use `p/play <card_color> <card_value>` to play a card.\n'
                                                                     '• Use `c/card(s)` to see your cards at anytime.\n'
                                                                     '• Use `d/draw` to draw a card.\n'
                                                                     '• Use `s/say <message>` to send a message to all players in their UNO channels.\n'
                                                                     '• Use `a/alert` to alert the player who is playing a card.')
+        await welcome.pin()
+
+        gcontents = '**Game settings:**\n'
+        for key in [x for x in d['settings'] if d['settings'][x] and x != 'StartingCards' or d['settings'][x] != 7 and x == 'StartingCards']:
+            gcontents += f'• {key}\n'
+        gsettings = await channel.send(content=gcontents)
+        await gsettings.pin()
 
     await asyncio.gather(*[asyncio.create_task(set_channel(x)) for x in player_ids])
 
@@ -3860,25 +3867,30 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
-                            join = Button(label='Join!', style=discord.ButtonStyle.green, emoji='✋')
+                            join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
                             async def join_callback(interaction):
-                                message_dict = interaction.message.embeds[0].to_dict()
+                                message = interaction.message
+                                guild = interaction.guild
+                                user = interaction.user
 
-                                if str(interaction.user.id) not in games[str(interaction.guild.id)]['players']:
+                                message_dict = message.embeds[0].to_dict()
+
+                                if str(user.id) not in games[str(guild.id)]['players']:
+
                                     for g in client.guilds:
-                                        user_options[str(interaction.user.id)].pop(str(g.id), None)
+                                        user_options[str(user.id)].pop(str(g.id), None)
 
-                                    games[str(interaction.guild.id)]['players'][str(interaction.user.id)] = user_options[
-                                        str(interaction.user.id)]
-                                    games[str(interaction.guild.id)]['players'][str(interaction.user.id)]['cards'] = []
+                                    games[str(guild.id)]['players'][str(user.id)] = user_options[
+                                        str(user.id)]
+                                    games[str(guild.id)]['players'][str(user.id)]['cards'] = []
 
-                                    if len(games[str(interaction.guild.id)]['players'].keys()) > 0:
+                                    if len(games[str(guild.id)]['players'].keys()) > 0:
                                         for field in message_dict['fields']:
                                             if field['name'] == 'Players:':
                                                 value = ''
 
-                                                for key in games[str(interaction.guild.id)]['players']:
-                                                    value += (':small_blue_diamond: ' + interaction.guild.get_member(
+                                                for key in games[str(guild.id)]['players']:
+                                                    value += (':small_blue_diamond: ' + guild.get_member(
                                                         int(key)).name + '\n')
 
                                                 field['value'] = value
@@ -3886,6 +3898,30 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                 break
 
                                     await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
+
+                                else:
+
+                                    if str(guild.id) in games and 'current' not in games[str(guild.id)]:
+                                        message_dict = message.embeds[0].to_dict()
+
+                                        del games[str(guild.id)]['players'][str(user.id)]
+
+                                        if len(games[str(guild.id)]['players'].keys()) >= 0:
+                                            for field in message_dict['fields']:
+                                                if field['name'] == 'Players:':
+                                                    if len(games[str(guild.id)]['players'].keys()) == 0:
+                                                        field['value'] = 'None'
+                                                    else:
+                                                        value = ''
+                                                        for key in games[str(guild.id)]['players']:
+                                                            value += (':small_blue_diamond: ' + guild.get_member(
+                                                                int(key)).name + '\n')
+
+                                                        field['value'] = value
+
+                                                    break
+
+                                        await message.edit(embed=discord.Embed.from_dict(message_dict))
                             join.callback = join_callback
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
@@ -4078,10 +4114,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             def check(message):
                                 return len(message.content.split()) == 6 \
-                                       and message.content.split()[0] in (
-                                           prefix + 'settings', prefix + 'set', prefix + 'sett', prefix + 'stngs',
-                                           prefix + 'setting',
-                                           prefix + 'stng') \
+                                       and message.content.split()[0] == prefix + 'settings' \
                                        and message.content.split()[1].lower() == 'commands' \
                                        and message.content.split()[2].lower() == 'startgame' \
                                        and message.content.split()[3].lower() == 'cooldown' \
