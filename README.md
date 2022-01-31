@@ -28,7 +28,7 @@ The UNOBot uses the prefix `/u-` for commands.
 | `/u-rules` | None | [UNO Rules](#rule) |
 | `/u-guide`| (`start/play/commands/settings/options`) | Gives you a **guide** on using bot | `/u-guide start` |
 | `/u-sg` | (@user mentions), (game settings) | **Starts a game** in the server | `/u-sg @VTiS @Dong Flip`| 
-| `/u-eg` | **Ends the ongoing game** in the server |
+| `/u-eg` || **Ends the ongoing game** in the server |
 | `/u-alerts` | `on/off/view` | Turns your **alerts** on or off | `/u.alerts on` |
 | `/u-kick` | @user mention | **Kicks** a player from a game | `/u-kick @VTiS` |
 | `/u-stats` | (@user mention) | Gives you a user's **stats** only from the current Discord server. Gives you your stats if no user is mentioned | `/u-stats @VTiS` |
