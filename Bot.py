@@ -3042,6 +3042,7 @@ async def leaderboard(ctx):
                 message.set_thumbnail(url=ctx.guild.icon)
 
                 if count > 0:
+                    message.set_footer(text='Use "' + prefix + 'stats" to check your local rank.')
                     await ctx.respond(embed=message)
                 else:
                     message = discord.Embed(color=discord.Color.red(),
@@ -3132,7 +3133,7 @@ async def globalleaderboard(ctx):
                         break
 
                 if count > 0:
-                    message.set_footer(text='Use "' + prefix + 'gstats" to check your rank.')
+                    message.set_footer(text='Use "' + prefix + 'gstats" to check your global rank.')
                     await ctx.respond(embed=message)
                 else:
                     message = discord.Embed(color=discord.Color.red(), description=':x: **No one has played UNO yet!**')
