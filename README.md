@@ -35,7 +35,7 @@ The UNOBot uses the prefix `/u-` for commands.
 | `/u-gstats` | (@user mention) | Gives you a user's **global stats** only from all Discord servers. Gives you your global stats if no user is mentioned | `/u-gstats @VTiS`|
 | `/u-lb` | None | Gives you a **leaderboard** only from the current Discord server |
 | `/u-glb` | None | Gives you a **global leaderboard** from all Discord servers |
-| `/u-settings` | Variable arguments | Change the **settings** for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u-settings commands allowalerts off`, `/u-settings dgs Flip on`, `/u-settings dgs StartingCards 15`, `/u-settings reset` |
+| `/u-settings` | Variable | Change the **settings** for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u-settings commands allowalerts off`, `/u-settings dgs Flip on`, `/u-settings dgs StartingCards 15`, `/u-settings reset` |
 
 # <a name="rule">Game Rules📃</a>
 ## <img align="right" src="https://user-images.githubusercontent.com/73805050/130345109-413d6558-77d6-42cf-962c-1cb9eaad750e.png" width="100" height="69.2"> Original UNO!
