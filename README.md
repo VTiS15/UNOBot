@@ -1,5 +1,5 @@
 # UNOBot <img align="right" src="https://user-images.githubusercontent.com/73805050/130341782-78d30da7-0313-44f5-889c-06ab7eb8de9a.png">
-Improved from [Exium's work](https://top.gg/bot/565305035592957954), this is a Python bot that incorporates the popular card game, **UNO**, into your Discord server, because public bots suck.\
+Improved from [Exium's work](https://top.gg/bot/565305035592957954), this is a Python bot that incorporates the popular card game, **UNO**, into your Discord server, because frankly their bot sucks.\
 It allows Discord servers to play the game completely within text channels. Challenge your friends and climb the leaderboard!
 
 # Features💡
@@ -9,12 +9,11 @@ It allows Discord servers to play the game completely within text channels. Chal
 * Local and global **leaderboards**
 * Check and show off your **stats**.
 * Highly customizable player options, game and command settings
-* Friendly UI
 
 # Usage and Commands🛠️
-Type the following `/u.` command to start a game of UNO.
+Type the following `/u-` command to start a game of UNO.
 ```
-/u.startgame
+/u-sg
 # Starts a game, allowing users to join the game by reacting.
 ```
 The bot will send a message to the your server. Users can react to the message to join the game in 30 seconds.\
@@ -22,21 +21,21 @@ After 30 seconds, if there are enough (>1) players, a text channel for every pla
 <br/>
 If you want to view command usage, read an in-depth guide on using the bot, or read the rules of UNO, type `/u.help` in your Discord server.
 ## Command Usage
-The UNOBot uses the prefix `/u.` for commands.
-| Command | Alias | Arguments | Description | Example |
-| ------- | ----- | --------- | ----------- | ------- |
-| `/u.help` | `/u.h` | None | Prints help info |
-| `/u.rules` | `/u.r` | None | [UNO Rules](#rule) |
-| `/u.guide` | `/u.g` | (`start/play/commands/settings/options`) | Gives you a guide on using bot | `/u.g start` |
-| `/u.startgame` | `/u.start`, `/u.sg` | (@user mentions), (game settings) | Starts a game | `/u.sg @VTiS @Dong Flip`| 
-| `/u.endgame` | `/u.stop`, `/u.end`, `/u.eg` | None | Ends the ongoing game in the server |
-| `/u.allowalerts` | `/u.alerts`, `/u.alert`, `/u.aa` | `on/off/view` | Allows alerts just for you | `/u.aa on` |
-| `/u.kick` | `/u.remove` | @user mention | Kicks a player from a game | `u.kick @VTiS` |
-| `/u.stats` || (@user mention) | Gives you a user's stats only from the current Discord server. Gives you your stats if no user is mentioned | `/u.stats @VTiS` |
-| `/u.globalstats` | `/u.gstats` | (@user mention) | Gives you a user's global stats only from all Discord servers. Gives you your global stats if no user is mentioned | `/u.gstats @VTiS`|
-| `/u.leaderboard` | `/u.lb` | None | Gives you a leaderboard only from the current Discord server |
-| `/u.globalleaderboard` | `/u.global-leaderboard`, `/u.global_leaderboard`, `/u.gleaderboard`, `/u.g-lb`, `/u.g_lb` | None | Gives you a global leaderboard from all Discord servers |
-| `/u.settings` | `/u.setting`, `/u.stng`, `/u.stngs`, `/u.sett`, `/u.set` | Variable arguments | Change the settings for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u.set commands allowalerts off`, `/u.set dgs Flip on`, `/u.set dgs StartingCards 15`, `/u.set reset` |
+The UNOBot uses the prefix `/u-` for commands.
+| Command | Arguments | Description | Example |
+| ------- | --------- | ----------- | ------- |
+| `/u-help` | None | Prints **help info** |
+| `/u-rules` | None | [UNO Rules](#rule) |
+| `/u-guide`| (`start/play/commands/settings/options`) | Gives you a **guide** on using bot | `/u-guide start` |
+| `/u-sg` | (@user mentions), (game settings) | **Starts a game** in the server | `/u-sg @VTiS @Dong Flip`| 
+| `/u-eg` | None | **Ends the ongoing game** in the server |
+| `/u-alerts` | `on/off/view` | Turns your **alerts** on or off | `/u.alerts on` |
+| `/u-kick` | @user mention | **Kicks** a player from a game | `/u-kick @VTiS` |
+| `/u-stats` | (@user mention) | Gives you a user's **stats** only from the current Discord server. Gives you your stats if no user is mentioned | `/u-stats @VTiS` |
+| `/u-gstats` | (@user mention) | Gives you a user's **global stats** only from all Discord servers. Gives you your global stats if no user is mentioned | `/u-gstats @VTiS`|
+| `/u-lb` | None | Gives you a **leaderboard** only from the current Discord server |
+| `/u-glb` | None | Gives you a **global leaderboard** from all Discord servers |
+| `/u-settings` | Variable | Change the **settings** for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u-settings commands allowalerts off`, `/u-settings dgs Flip on`, `/u-settings dgs StartingCards 15`, `/u-settings reset` |
 
 # <a name="rule">Game Rules📃</a>
 ## <img align="right" src="https://user-images.githubusercontent.com/73805050/130345109-413d6558-77d6-42cf-962c-1cb9eaad750e.png" width="100" height="69.2"> Original UNO!
@@ -73,4 +72,4 @@ Play a Skip Everyone card by entering `<color>skip`, just like what you'd enter 
 Play a Wild Draw Color Card by entering `<color>+color`.
 
 # Similar Project📑
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It's a public bot and the frequent lags, bugs, and downtime are the crux of the matter. It's what pushed me to create this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It's a public bot and the frequent lags, bugs, and downtime are the crux of the matter. It's what motivated me to create this bot.
