@@ -4017,7 +4017,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
                                             'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
-                                        del message_dict['footer']
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
 
