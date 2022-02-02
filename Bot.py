@@ -569,33 +569,45 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
         score = 0
         for key in [x for x in player_ids if x != str(winner.id)]:
             for card in games[str(guild.id)]['players'][key]['cards']:
-                color = search(r'red|blue|green|yellow|pink|teal|orange|purple', card)
-                if color:
-                    color = color.group(0)
-                value = search(r'skip|reverse|wild|flip|\d|[+][4251c]', card).group(0)
+                if not games[str(guild.id)]['settings']['Flip'] or not games[str(guild.id)]['dark']:
+                    color = search(r'red|blue|green|yellow|pink|teal|orange|purple', card)
+                    if color:
+                        color = color.group(0)
+                    if games[str(guild.id)]['settings']['Flip']:
+                        value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+                    else:
+                        value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
 
-                if value == '+1':
-                    score += 10
-                elif value == '+2':
-                    if games[str(guild.id)]['settings']['Flip']:
-                        score += 50
-                    else:
+                    if value == '+1':
+                        score += 10
+                    elif value == '+2':
+                        if games[str(guild.id)]['settings']['Flip']:
+                            score += 50
+                        else:
+                            score += 20
+                    elif value in ('skip', 'reverse', 'flip'):
                         score += 20
-                elif value in ('skip', 'reverse', 'flip', '+5'):
-                    score += 20
-                elif color in ('pink', 'teal', 'orange', 'purple') and value == 'skip':
-                    score += 30
-                elif value == 'wild':
-                    if games[str(guild.id)]['settings']['Flip']:
-                        score += 40
-                    else:
+                    elif value == 'wild':
+                        if games[str(guild.id)]['settings']['Flip']:
+                            score += 40
+                        else:
+                            score += 50
+                    elif value == '+4':
                         score += 50
-                elif value == '+4':
-                    score += 50
-                elif value == '+color':
-                    score += 60
+                    else:
+                        score += int(value)
+
                 else:
-                    score += int(value)
+                    value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
+
+                    if value in ('+5', 'reverse', 'flip'):
+                        score += 20
+                    elif value == 'skip':
+                        score += 30
+                    elif value == '+c':
+                        score += 60
+                    else:
+                        score += int(value)
 
         ending.append(str(guild.id))
 
