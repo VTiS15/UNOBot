@@ -1285,16 +1285,6 @@ async def play_card(card, player: discord.Member):
             else:
                 await draw(n, 1, False, True)
 
-        ending.append(str(guild.id))
-
-        message = discord.Embed(title=player.name + ' Won! 🎉 🥳', color=discord.Color.red())
-        message.set_image(url=player.display_avatar.url)
-
-        await asyncio.gather(
-            *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
-
-        await asyncio.sleep(10)
-
         await game_shutdown(games[str(guild.id)], player)
 
 
