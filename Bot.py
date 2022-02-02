@@ -577,7 +577,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                 if value == '+1':
                     score += 10
                 elif value == '+2':
-                    if games['settings']['Flip']:
+                    if games[str(guild.id)]['settings']['Flip']:
                         score += 50
                     else:
                         score += 20
@@ -586,7 +586,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                 elif color in ('pink', 'teal', 'orange', 'purple') and value == 'skip':
                     score += 30
                 elif value == 'wild':
-                    if games['settings']['Flip']:
+                    if games[str(guild.id)]['settings']['Flip']:
                         score += 40
                     else:
                         score += 50
