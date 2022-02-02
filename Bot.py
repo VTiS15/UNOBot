@@ -572,7 +572,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                 color = search(r'red|blue|green|yellow|pink|teal|orange|purple', card)
                 if color:
                     color = color.group(0)
-                value = search(r'skip|reverse|wild|flip|\d|\+[4251c]', card).group(0)
+                value = search(r'skip|reverse|wild|flip|\d|[+][4251c]', card).group(0)
 
                 if value == '+1':
                     score += 10
