@@ -1244,9 +1244,6 @@ async def play_card(card, player: discord.Member):
 
         await channel.send(file=file, embed=message)
 
-    await asyncio.gather(
-        *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
-
     if not games[str(guild.id)]['players'][str(player.id)]['cards']:
         if '+' in card:
             n = None
