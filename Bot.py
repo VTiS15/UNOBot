@@ -1930,11 +1930,21 @@ async def on_message(message):
                                                 description=':x: **You can\'t play a ' + color.capitalize() + 'Reverse here!**',
                                                 color=discord.Color.red()))
 
+                                        overwrite.send_messages = True
+                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                        return
+
                                 else:
                                     await message.channel.send(
                                         embed=discord.Embed(
                                             description=':x: **You don\'t have a ' + color.capitalize() + 'Reverse!**',
                                             color=discord.Color.red()))
+
+                                    overwrite.send_messages = True
+                                    await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                    return
 
                             else:
                                 if not games[str(message.guild.id)]['dark']:
@@ -1954,11 +1964,21 @@ async def on_message(message):
                                                     description=':x: **You can\'t play a ' + color.capitalize() + 'Reverse here!**',
                                                     color=discord.Color.red()))
 
+                                            overwrite.send_messages = True
+                                            await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                            return
+
                                     else:
                                         await message.channel.send(
                                             embed=discord.Embed(
                                                 description=':x: **You don\'t have a ' + color.capitalize() + 'Reverse!**',
                                                 color=discord.Color.red()))
+
+                                        overwrite.send_messages = True
+                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                        return
 
                                 else:
                                     if color + 'reverse' in [x[1] for x in
@@ -1980,6 +2000,8 @@ async def on_message(message):
                                             overwrite.send_messages = True
                                             await message.channel.set_permissions(message.author,
                                                                                       overwrite=overwrite)
+
+                                            return
 
                                     else:
                                         await message.channel.send(
