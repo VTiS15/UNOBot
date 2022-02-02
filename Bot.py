@@ -569,30 +569,26 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
         score = 0
         for key in [x for x in player_ids if x != str(winner.id)]:
             for card in games[str(guild.id)]['players'][key]['cards']:
-                if not games[str(guild.id)]['settings']['Flip'] or not games[str(guild.id)]['dark']:
-                    color = search(r'red|blue|green|yellow|pink|teal|orange|purple', card)
-                    if color:
-                        color = color.group(0)
-                    if games[str(guild.id)]['settings']['Flip']:
-                        value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+                if not games[str(guild.id)]['settings']['Flip']:
+                    value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+
+                    if value in ('+2', 'skip', 'reverse'):
+                        score += 20
+                    elif value in ('+4', 'wild'):
+                        score += 50
                     else:
-                        value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+                        score += int(value)
+
+                elif not games[str(guild.id)]['dark']:
+                    value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
 
                     if value == '+1':
                         score += 10
-                    elif value == '+2':
-                        if games[str(guild.id)]['settings']['Flip']:
-                            score += 50
-                        else:
-                            score += 20
-                    elif value in ('skip', 'reverse', 'flip'):
+                    elif value in ('reverse', 'flip', 'skip'):
                         score += 20
                     elif value == 'wild':
-                        if games[str(guild.id)]['settings']['Flip']:
-                            score += 40
-                        else:
-                            score += 50
-                    elif value == '+4':
+                        score += 40
+                    elif value == '+2':
                         score += 50
                     else:
                         score += int(value)
@@ -604,6 +600,8 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                         score += 20
                     elif value == 'skip':
                         score += 30
+                    elif value == 'wild':
+                        score += 40
                     elif value == '+c':
                         score += 60
                     else:
