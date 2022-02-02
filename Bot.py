@@ -1247,6 +1247,59 @@ async def play_card(card, player: discord.Member):
     await asyncio.gather(
         *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
+    if not games[str(guild.id)]['players'][str(player.id)]['cards']:
+        if '+' in card:
+            n = None
+            p = list(games[str(guild.id)]['players'].keys())
+
+            temp = iter(p)
+            for key in temp:
+                if key == str(player.id):
+                    n = guild.get_member(int(next(temp, next(iter(p)))))
+                    break
+
+            if '4' in card:
+                if str(guild.id) in stack:
+                    stack[str(guild.id)] += 4
+                    await draw(n, stack[str(guild.id)])
+                else:
+                    await draw(n, 4)
+
+            elif '2' in card:
+                if str(guild.id) in stack:
+                    stack[str(guild.id)] += 2
+                    await draw(n, stack[str(guild.id)])
+                else:
+                    await draw(n, 2)
+            elif '1' in card:
+                if str(guild.id) in stack:
+                    stack[str(guild.id)] += 1
+
+                    await draw(n, stack[str(guild.id)])
+                else:
+                    await draw(n, 1)
+            elif '5' in card:
+                if str(guild.id) in stack:
+                    stack[str(guild.id)] += 5
+
+                    await draw(n, stack[str(guild.id)])
+                else:
+                    await draw(n, 5)
+            else:
+                await draw(n, 1, False, True)
+
+        ending.append(str(guild.id))
+
+        message = discord.Embed(title=player.name + ' Won! 🎉 🥳', color=discord.Color.red())
+        message.set_image(url=player.display_avatar.url)
+
+        await asyncio.gather(
+            *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+
+        await asyncio.sleep(10)
+
+        await game_shutdown(games[str(guild.id)], player)
+
 
 @client.event
 async def on_ready():
