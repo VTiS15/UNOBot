@@ -20,8 +20,7 @@ from discord.ext.commands import UserConverter, RoleConverter, BadArgument
 
 prefix = '/u-'
 intents = discord.Intents.default()
-intents.members, intents.messages, intents.reactions = True, True, True
-client = commands.Bot(command_prefix=prefix, intents=intents)
+client = commands.Bot(command_prefix=prefix, intents=intents.all())
 client.remove_command('help')
 default_dgs = {
     "DrawUntilMatch": False,
