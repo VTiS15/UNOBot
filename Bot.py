@@ -1569,77 +1569,57 @@ async def on_message(message):
                     try:
                         if value in [str(x) for x in range(10)]:
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + value in games[str(message.guild.id)]['players'][str(message.author.id)][
-                                    'cards']:
+                                if color + value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == value) and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
                                         if games[str(message.guild.id)]['settings']['7-0']:
-                                            player_ids = list(games[str(message.guild.id)]['players'].keys())
+                                            if value == '7':
+                                                user_converter = UserConverter()
+                                                player = None
 
-                                            if player:
-                                                if '#' not in player:
-                                                    match = [x for x in player_ids if
-                                                             sub(r'[^\w -]', '', message.guild.get_member(
-                                                                 int(x)).name) == player and message.guild.get_member(
-                                                                 int(x)) != message.author]
-                                                    if len(match) > 1:
-                                                        await message.channel.send(
-                                                            embed=discord.Embed(
-                                                                description=':x: **There are multiple ' + player + '\'s here!**',
-                                                                color=discord.Color.red()))
+                                                try:
+                                                    player = await user_converter.convert(await client.get_context(message), message.content.split()[-1])
+                                                except BadArgument:
+                                                    await message.channel.send(
+                                                        embed=discord.Embed(
+                                                            description=':x: **Player not found! Make sure you mention with @ and then the EXACT name (plus discriminator, # with 4 digits after, if needed) of the user.**',
+                                                            color=discord.Color.red()))
 
-                                                        overwrite.send_messages = True
-                                                        await message.channel.set_permissions(message.author,
-                                                                                              overwrite=overwrite)
+                                                    overwrite.send_messages = True
+                                                    await message.channel.set_permissions(message.author,
+                                                                                          overwrite=overwrite)
 
-                                                        return
-                                                    elif len(match) < 1:
-                                                        await message.channel.send(
-                                                            embed=discord.Embed(
-                                                                description=':x: **Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
-                                                                color=discord.Color.red()))
+                                                if str(player.id) in games[str(message.guild.id)]['players']:
+                                                    await play_card(color + value, message.author)
 
-                                                        overwrite.send_messages = True
-                                                        await message.channel.set_permissions(message.author,
-                                                                                              overwrite=overwrite)
+                                                    games[str(message.guild.id)]['players'][str(player.id)]['cards'], \
+                                                    games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = \
+                                                        games[str(message.guild.id)]['players'][str(message.author.id)]['cards'], \
+                                                        games[str(message.guild.id)]['players'][str(player.id)]['cards']
 
-                                                        return
-                                                    else:
-                                                        player = int(match[0])
+                                                    await asyncio.gather(
+                                                        *[asyncio.create_task(x.send(embed=discord.Embed(
+                                                            description='**' + message.author.name + '** switched hands with **' + player.name + '**.',
+                                                            color=discord.Color.red()))) for x in
+                                                            message.channel.category.text_channels])
 
+                                                    await display_cards(n)
                                                 else:
-                                                    for key in player_ids:
-                                                        if sub(r'[^\w# -]', '',
-                                                               str(message.guild.get_member(int(key)))) == player:
-                                                            player = int(key)
-                                                            break
-
-                                                await play_card(color + value, message.author)
-
-                                                games[str(message.guild.id)]['players'][str(player)]['cards'], \
-                                                games[str(message.guild.id)]['players'][str(message.author.id)][
-                                                    'cards'] = \
-                                                    games[str(message.guild.id)]['players'][str(message.author.id)][
-                                                        'cards'], \
-                                                    games[str(message.guild.id)]['players'][str(player)]['cards']
-
-                                                await asyncio.gather(
-                                                    *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                        description='**' + message.author.name + '** switched hands with **' + message.guild.get_member(
-                                                            player).name + '**.', color=discord.Color.red()))) for x in
-                                                        message.channel.category.text_channels])
-
-                                                await display_cards(n)
+                                                    await message.channel.send(
+                                                        embed=discord.Embed(
+                                                            description=':x: **The user is not in this game!**',
+                                                            color=discord.Color.red()))
 
                                             elif value == '0':
                                                 await play_card(color + value, message.author)
 
                                                 d = deepcopy(games[str(message.guild.id)])
 
+                                                player_ids = list(games[str(message.guild.id)]['players'].keys())
+
                                                 for i in range(len(player_ids)):
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]][
+                                                    games[str(message.guild.id)]['players'][player_ids[(i + 1) % len(player_ids)]][
                                                         'cards'] = d['players'][player_ids[i]]['cards']
 
                                                 await asyncio.gather(
@@ -1673,107 +1653,84 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + value in [x[0] for x in
-                                                         games[str(message.guild.id)]['players'][
-                                                             str(message.author.id)]['cards']]:
+                                                         games[str(message.guild.id)]['players'][str(message.author.id)]['cards']]:
                                         if (current_color == color or current_value == value) and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
                                             if games[str(message.guild.id)]['settings']['7-0']:
-                                                player_ids = list(games[str(message.guild.id)]['players'].keys())
+                                                if value == '7':
+                                                    user_converter = UserConverter()
+                                                    player = None
 
-                                                if player:
-                                                    if '#' not in player:
-                                                        match = [x for x in player_ids if
-                                                                 sub(r'[^\w -]', '', message.guild.get_member(
-                                                                     int(x)).name) == player and message.guild.get_member(
-                                                                     int(x)) != message.author]
-                                                        if len(match) > 1:
-                                                            await message.channel.send(
-                                                                embed=discord.Embed(
-                                                                    description=':x: **There are multiple ' + player + '\'s here!**',
-                                                                    color=discord.Color.red()))
+                                                    try:
+                                                        player = await user_converter.convert(
+                                                            await client.get_context(message),
+                                                            message.content.split()[-1])
+                                                    except BadArgument:
+                                                        await message.channel.send(
+                                                            embed=discord.Embed(
+                                                                description=':x: **Player not found! Make sure you mention with @ and then the EXACT name (plus discriminator, # with 4 digits after, if needed) of the user.**',
+                                                                color=discord.Color.red()))
 
-                                                            overwrite.send_messages = True
-                                                            await message.channel.set_permissions(message.author,
-                                                                                                  overwrite=overwrite)
+                                                        overwrite.send_messages = True
+                                                        await message.channel.set_permissions(message.author,
+                                                                                              overwrite=overwrite)
 
-                                                            return
-                                                        elif len(match) < 1:
-                                                            await message.channel.send(
-                                                                embed=discord.Embed(
-                                                                    description=':x: **Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
-                                                                    color=discord.Color.red()))
+                                                    if str(player.id) in games[str(message.guild.id)]['players']:
+                                                        await play_card(color + value, message.author)
 
-                                                            overwrite.send_messages = True
-                                                            await message.channel.set_permissions(message.author,
-                                                                                                  overwrite=overwrite)
-
-                                                            return
-                                                        else:
-                                                            player = int(match[0])
-
-                                                    else:
-                                                        for key in player_ids:
-                                                            if sub(r'[^\w# -]', '',
-                                                                   str(message.guild.get_member(int(key)))) == player:
-                                                                player = int(key)
-                                                                break
-
-                                                    await play_card(
-                                                        choice([x for x in games[str(message.guild.id)]['players'][
-                                                            str(message.author.id)]['cards'] if x[0] == color + value]),
-                                                        message.author)
-
-                                                    games[str(message.guild.id)]['players'][str(player)]['cards'], \
-                                                    games[str(message.guild.id)]['players'][str(message.author.id)][
-                                                        'cards'] = \
-                                                        games[str(message.guild.id)]['players'][str(message.author.id)][
+                                                        games[str(message.guild.id)]['players'][str(player.id)][
                                                             'cards'], \
-                                                        games[str(message.guild.id)]['players'][str(player)]['cards']
+                                                        games[str(message.guild.id)]['players'][str(message.author.id)][
+                                                            'cards'] = \
+                                                            games[str(message.guild.id)]['players'][
+                                                                str(message.author.id)]['cards'], \
+                                                            games[str(message.guild.id)]['players'][str(player.id)][
+                                                                'cards']
 
-                                                    await asyncio.gather(
-                                                        *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                            description='**' + message.author.name + '** switched hands with **' + message.guild.get_member(
-                                                                player).name + '**.', color=discord.Color.red()))) for x
-                                                            in
-                                                            message.channel.category.text_channels])
+                                                        await asyncio.gather(
+                                                            *[asyncio.create_task(x.send(embed=discord.Embed(
+                                                                description='**' + message.author.name + '** switched hands with **' + player.name + '**.',
+                                                                color=discord.Color.red()))) for x in
+                                                                message.channel.category.text_channels])
 
-                                                    await display_cards(n)
+                                                        await display_cards(n)
+                                                    else:
+                                                        await message.channel.send(
+                                                            embed=discord.Embed(
+                                                                description=':x: **The user is not in this game!**',
+                                                                color=discord.Color.red()))
 
                                                 elif value == '0':
-                                                    await play_card(
-                                                        choice([x for x in games[str(message.guild.id)]['players'][
-                                                            str(message.author.id)]['cards'] if x[0] == color + value]),
-                                                        message.author)
+                                                    await play_card(color + value, message.author)
 
                                                     d = deepcopy(games[str(message.guild.id)])
+
+                                                    player_ids = list(games[str(message.guild.id)]['players'].keys())
 
                                                     for i in range(len(player_ids)):
                                                         games[str(message.guild.id)]['players'][
                                                             player_ids[(i + 1) % len(player_ids)]][
-                                                            'cards'] = d[player_ids[i]]['cards']
+                                                            'cards'] = d['players'][player_ids[i]]['cards']
 
                                                     await asyncio.gather(
                                                         *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                            description='** Everyone switched hands!**',
-                                                            color=discord.Color.red()))) for x
-                                                            in
+                                                            description='**Everyone switched hands!**',
+                                                            color=discord.Color.red()))) for x in
                                                             message.channel.category.text_channels])
 
                                                     await display_cards(n)
 
                                                 else:
-                                                    await play_card(
-                                                        choice([x for x in games[str(message.guild.id)]['players'][
-                                                            str(message.author.id)]['cards'] if x[0] == color + value]),
-                                                        message.author)
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
+                                                        str(message.author.id)]['cards'] if x[0] == color + value]),
+                                                                    message.author)
                                                     await display_cards(n)
 
                                             else:
-                                                await play_card(
-                                                    choice([x for x in games[str(message.guild.id)]['players'][
-                                                        str(message.author.id)]['cards'] if x[0] == color + value]),
-                                                    message.author)
+                                                await play_card(choice([x for x in games[str(message.guild.id)]['players'][
+                                                    str(message.author.id)]['cards'] if x[0] == color + value]),
+                                                                message.author)
                                                 await display_cards(n)
 
                                         else:
@@ -1790,107 +1747,84 @@ async def on_message(message):
 
                                 else:
                                     if color + value in [x[1] for x in
-                                                         games[str(message.guild.id)]['players'][
-                                                             str(message.author.id)]['cards']]:
+                                                         games[str(message.guild.id)]['players'][str(message.author.id)]['cards']]:
                                         if (current_color == color or current_value == value) and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
                                             if games[str(message.guild.id)]['settings']['7-0']:
-                                                player_ids = list(games[str(message.guild.id)]['players'].keys())
+                                                if value == '7':
+                                                    user_converter = UserConverter()
+                                                    player = None
 
-                                                if player:
-                                                    if '#' not in player:
-                                                        match = [x for x in player_ids if
-                                                                 sub(r'[^\w -]', '', message.guild.get_member(
-                                                                     int(x)).name) == player and message.guild.get_member(
-                                                                     int(x)) != message.author]
-                                                        if len(match) > 1:
-                                                            await message.channel.send(
-                                                                embed=discord.Embed(
-                                                                    description=':x: **There are multiple ' + player + '\'s here!**',
-                                                                    color=discord.Color.red()))
+                                                    try:
+                                                        player = await user_converter.convert(
+                                                            await client.get_context(message),
+                                                            message.content.split()[-1])
+                                                    except BadArgument:
+                                                        await message.channel.send(
+                                                            embed=discord.Embed(
+                                                                description=':x: **Player not found! Make sure you mention with @ and then the EXACT name (plus discriminator, # with 4 digits after, if needed) of the user.**',
+                                                                color=discord.Color.red()))
 
-                                                            overwrite.send_messages = True
-                                                            await message.channel.set_permissions(message.author,
-                                                                                                  overwrite=overwrite)
+                                                        overwrite.send_messages = True
+                                                        await message.channel.set_permissions(message.author,
+                                                                                              overwrite=overwrite)
 
-                                                            return
-                                                        elif len(match) < 1:
-                                                            await message.channel.send(
-                                                                embed=discord.Embed(
-                                                                    description=':x: **Player not found! Make sure the EXACT name of the player is entered. (It\'s case-sensitive!)**',
-                                                                    color=discord.Color.red()))
+                                                    if str(player.id) in games[str(message.guild.id)]['players']:
+                                                        await play_card(color + value, message.author)
 
-                                                            overwrite.send_messages = True
-                                                            await message.channel.set_permissions(message.author,
-                                                                                                  overwrite=overwrite)
-
-                                                            return
-                                                        else:
-                                                            player = int(match[0])
-
-                                                    else:
-                                                        for key in player_ids:
-                                                            if sub(r'[^\w# -]', '',
-                                                                   str(message.guild.get_member(int(key)))) == player:
-                                                                player = int(key)
-                                                                break
-
-                                                    await play_card(
-                                                        choice([x for x in games[str(message.guild.id)]['players'][
-                                                            str(message.author.id)]['cards'] if x[1] == color + value]),
-                                                        message.author)
-
-                                                    games[str(message.guild.id)]['players'][str(player)]['cards'], \
-                                                    games[str(message.guild.id)]['players'][str(message.author.id)][
-                                                        'cards'] = \
-                                                        games[str(message.guild.id)]['players'][str(message.author.id)][
+                                                        games[str(message.guild.id)]['players'][str(player.id)][
                                                             'cards'], \
-                                                        games[str(message.guild.id)]['players'][str(player)]['cards']
+                                                        games[str(message.guild.id)]['players'][str(message.author.id)][
+                                                            'cards'] = \
+                                                            games[str(message.guild.id)]['players'][
+                                                                str(message.author.id)]['cards'], \
+                                                            games[str(message.guild.id)]['players'][str(player.id)][
+                                                                'cards']
 
-                                                    await asyncio.gather(
-                                                        *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                            description='**' + message.author.name + '** switched hands with **' + message.guild.get_member(
-                                                                player).name + '**.', color=discord.Color.red()))) for x
-                                                            in
-                                                            message.channel.category.text_channels])
+                                                        await asyncio.gather(
+                                                            *[asyncio.create_task(x.send(embed=discord.Embed(
+                                                                description='**' + message.author.name + '** switched hands with **' + player.name + '**.',
+                                                                color=discord.Color.red()))) for x in
+                                                                message.channel.category.text_channels])
 
-                                                    await display_cards(n)
+                                                        await display_cards(n)
+                                                    else:
+                                                        await message.channel.send(
+                                                            embed=discord.Embed(
+                                                                description=':x: **The user is not in this game!**',
+                                                                color=discord.Color.red()))
 
                                                 elif value == '0':
-                                                    await play_card(
-                                                        choice([x for x in games[str(message.guild.id)]['players'][
-                                                            str(message.author.id)]['cards'] if x[1] == color + value]),
-                                                        message.author)
+                                                    await play_card(color + value, message.author)
 
                                                     d = deepcopy(games[str(message.guild.id)])
+
+                                                    player_ids = list(games[str(message.guild.id)]['players'].keys())
 
                                                     for i in range(len(player_ids)):
                                                         games[str(message.guild.id)]['players'][
                                                             player_ids[(i + 1) % len(player_ids)]][
-                                                            'cards'] = d[player_ids[i]]['cards']
+                                                            'cards'] = d['players'][player_ids[i]]['cards']
 
                                                     await asyncio.gather(
                                                         *[asyncio.create_task(x.send(embed=discord.Embed(
                                                             description='**Everyone switched hands!**',
-                                                            color=discord.Color.red()))) for x
-                                                            in
+                                                            color=discord.Color.red()))) for x in
                                                             message.channel.category.text_channels])
 
                                                     await display_cards(n)
 
                                                 else:
-                                                    await play_card(
-                                                        choice([x for x in games[str(message.guild.id)]['players'][
-                                                            str(message.author.id)]['cards'] if x[1] == color + value]),
-                                                        message.author)
+                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
+                                                        str(message.author.id)]['cards'] if x[1] == color + value]),
+                                                                    message.author)
                                                     await display_cards(n)
 
                                             else:
-                                                await play_card(
-                                                    choice([x for x in games[str(message.guild.id)]['players'][
-                                                        str(message.author.id)]['cards'] if x[1] == color + value]),
-                                                    message.author)
+                                                await play_card(choice([x for x in games[str(message.guild.id)]['players'][
+                                                    str(message.author.id)]['cards'] if x[1] == color + value]),
+                                                                message.author)
                                                 await display_cards(n)
 
                                         else:
@@ -1915,8 +1849,7 @@ async def on_message(message):
                                     stack[str(message.guild.id)] += 4
 
                                 if games[str(message.guild.id)]['settings']['StackCards'] and any(
-                                        '+4' in card for card in
-                                        games[str(message.guild.id)]['players'][str(n.id)]['cards']):
+                                        '+4' in card for card in games[str(message.guild.id)]['players'][str(n.id)]['cards']):
                                     await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                         description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                             stack[str(message.guild.id)]) + ' cards.**',
@@ -1944,8 +1877,7 @@ async def on_message(message):
 
                         elif value in ('reverse', 'r'):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)][
-                                    'cards']:
+                                if color + 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == 'reverse') and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
@@ -1957,27 +1889,16 @@ async def on_message(message):
                                                 description=':x: **You can\'t play a ' + color.capitalize() + 'Reverse here!**',
                                                 color=discord.Color.red()))
 
-                                        overwrite.send_messages = True
-                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
-
-                                        return
-
                                 else:
                                     await message.channel.send(
                                         embed=discord.Embed(
                                             description=':x: **You don\'t have a ' + color.capitalize() + 'Reverse!**',
                                             color=discord.Color.red()))
 
-                                    overwrite.send_messages = True
-                                    await message.channel.set_permissions(message.author, overwrite=overwrite)
-
-                                    return
-
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + 'reverse' in [x[0] for x in
-                                                             games[str(message.guild.id)]['players'][
-                                                                 str(message.author.id)][
+                                                             games[str(message.guild.id)]['players'][str(message.author.id)][
                                                                  'cards']]:
                                         if (current_color == color or current_value == 'reverse') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
@@ -1992,30 +1913,15 @@ async def on_message(message):
                                                     description=':x: **You can\'t play a ' + color.capitalize() + 'Reverse here!**',
                                                     color=discord.Color.red()))
 
-                                            overwrite.send_messages = True
-                                            try:
-                                                await message.channel.set_permissions(message.author,
-                                                                                      overwrite=overwrite)
-                                            except discord.NotFound:
-                                                pass
-
-                                            return
-
                                     else:
                                         await message.channel.send(
                                             embed=discord.Embed(
                                                 description=':x: **You don\'t have a ' + color.capitalize() + 'Reverse!**',
                                                 color=discord.Color.red()))
 
-                                        overwrite.send_messages = True
-                                        await message.channel.set_permissions(message.author, overwrite=overwrite)
-
-                                        return
-
                                 else:
                                     if color + 'reverse' in [x[1] for x in
-                                                             games[str(message.guild.id)]['players'][
-                                                                 str(message.author.id)][
+                                                             games[str(message.guild.id)]['players'][str(message.author.id)][
                                                                  'cards']]:
                                         if (current_color == color or current_value == 'reverse') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
@@ -2031,13 +1937,8 @@ async def on_message(message):
                                                     color=discord.Color.red()))
 
                                             overwrite.send_messages = True
-                                            try:
-                                                await message.channel.set_permissions(message.author,
+                                            await message.channel.set_permissions(message.author,
                                                                                       overwrite=overwrite)
-                                            except discord.NotFound:
-                                                pass
-
-                                            return
 
                                     else:
                                         await message.channel.send(
@@ -2093,8 +1994,7 @@ async def on_message(message):
 
                         elif value in ('skip', 's'):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + 'skip' in games[str(message.guild.id)]['players'][str(message.author.id)][
-                                    'cards']:
+                                if color + 'skip' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == 'skip') and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
@@ -2128,8 +2028,7 @@ async def on_message(message):
                             else:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + 'skip' in [x[0] for x in
-                                                          games[str(message.guild.id)]['players'][
-                                                              str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if (current_color == color or current_value == 'skip') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
@@ -2165,8 +2064,7 @@ async def on_message(message):
 
                                 else:
                                     if color + 'skip' in [x[1] for x in
-                                                          games[str(message.guild.id)]['players'][
-                                                              str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if (current_color == color or current_value == 'skip') and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
@@ -2220,9 +2118,8 @@ async def on_message(message):
                                             if not ('+' in current_value and games[str(message.guild.id)]['settings'][
                                                 'StackCards'] and str(message.guild.id) in stack):
                                                 await play_card(
-                                                    (color + 'wild',
-                                                     choice([x for x in games[str(message.guild.id)]['players'][
-                                                         str(message.author.id)]['cards'] if x[0] == 'wild'])[1]),
+                                                    (color + 'wild', choice([x for x in games[str(message.guild.id)]['players'][
+                                                        str(message.author.id)]['cards'] if x[0] == 'wild'])[1]),
                                                     message.author)
                                                 await display_cards(n)
 
@@ -2273,8 +2170,7 @@ async def on_message(message):
 
                         elif search(r'[+d](raw)* *2', value):
                             if not games[str(message.guild.id)]['settings']['Flip']:
-                                if color + '+2' in games[str(message.guild.id)]['players'][str(message.author.id)][
-                                    'cards']:
+                                if color + '+2' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                     if (current_color == color or current_value == '+2') and not (
                                             current_value == '+4' and str(message.guild.id) in stack):
                                         await play_card(color + '+2', message.author)
@@ -2287,8 +2183,7 @@ async def on_message(message):
                                         if games[str(message.guild.id)]['settings']['StackCards'] and (
                                                 any('+2' in card for card in
                                                     games[str(message.guild.id)]['players'][str(n.id)]['cards']) or any(
-                                            '+4' in card for card in
-                                            games[str(message.guild.id)]['players'][str(n.id)]['cards'])):
+                                            '+4' in card for card in games[str(message.guild.id)]['players'][str(n.id)]['cards'])):
                                             await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                                 description='**' + n.name + ' can choose to stack cards or draw ' + str(
                                                     stack[str(message.guild.id)]) + ' cards.**',
@@ -2328,10 +2223,9 @@ async def on_message(message):
                                            games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                         if color in ('red', 'blue', 'green', 'yellow'):
                                             await play_card(
-                                                (color + '+2',
-                                                 choice([x for x in games[str(message.guild.id)]['players'][
-                                                     str(message.author.id)]['cards'] if x[0] == '+2'])[
-                                                     1]), message.author)
+                                                (color + '+2', choice([x for x in games[str(message.guild.id)]['players'][
+                                                    str(message.author.id)]['cards'] if x[0] == '+2'])[
+                                                    1]), message.author)
 
                                             if str(message.guild.id) not in stack:
                                                 stack[str(message.guild.id)] = 2
@@ -2530,8 +2424,7 @@ async def on_message(message):
                             if games[str(message.guild.id)]['settings']['Flip']:
                                 if not games[str(message.guild.id)]['dark']:
                                     if color + 'flip' in [x[0] for x in
-                                                          games[str(message.guild.id)]['players'][
-                                                              str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if color == current_color or current_value == 'flip':
                                             c = choice([x for x in games[str(message.guild.id)]['players'][
@@ -2566,8 +2459,7 @@ async def on_message(message):
 
                                 else:
                                     if color + 'flip' in [x[1] for x in
-                                                          games[str(message.guild.id)]['players'][
-                                                              str(message.author.id)][
+                                                          games[str(message.guild.id)]['players'][str(message.author.id)][
                                                               'cards']]:
                                         if color == current_color or current_value == 'flip':
                                             c = choice([x for x in games[str(message.guild.id)]['players'][
