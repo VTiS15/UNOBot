@@ -54,13 +54,20 @@ For example, if the card is a Green 7, you must play a Green card or any color 7
 
 Play a card by entering `<color><value>` in your uno-channel. For example, if you wish to play a Green 7, enter `green7` in your uno-channel.
 Play a Wild Draw 4 by entering `<color>+4`.
-
 You may choose not to play a playable card from your hand. If so, you must draw a card.
-
-You win by getting rid of all your cards first. The last card can be a special card.
+#### Winning
+When a player no longer has any cards and the game ends, they receive points. All opponents’ cards are given to the winner and points are counted. This also applies even if the last card is an Action card, such as a Draw Two or a Wild Draw 4 – The next player must draw the required cards which will then be tallied up.
+#### Scoring
+The scoring for the cards is as follows:
+| Card Type | Score |
+| --------- | ----- |
+| Numbered cards (0-9) | Face value |
+| Draw 2/Skip/Reverse | 20 pts |
+| Wild/Wild Draw 4 | 50 pts |
 ### Special 7-0 Rule
 When the 7-0 Rule is applied, a player must switch hands with another designated player when they play a 7 (by entering `<color>7 <username>`, and everyone in the game must switch hands in the direction of play when a 0 is played.\
 For example, if the order of play is A -> B -> C -> A …, and if Player A plays a 0, then A must give their hand to B and B gives to C, and then C to A.
+
 ## <img align="right" src="https://user-images.githubusercontent.com/73805050/130345601-ec333b6a-2fb0-472b-85dc-e1d53b845269.png" width="94.6656" height="69.2"> UNO FLIP!
 The fundamental rules of UNO FLIP! is similar to that of the original UNO!, but a double-sided deck and hence new special cards are introduced in this game mode.
 ### Setup
@@ -69,13 +76,24 @@ A top card with Light Side up is randomly chosen to let the game begin. The top 
 ### Gameplay
 The gameplay is basically the same as the original UNO!.
 
-There are 4 new colors in the Dark Side, Pink(`p`), Teal(`t`), Orange(`o`), Purple(`z`). *(Probably should be "pp" instead of "z" lol)*
+However, there are 4 new colors in the Dark Side, Pink(`p`), Teal(`t`), Orange(`o`), Purple(`z`). *(Probably should be "pp" instead of "z" lol)*
 
 If you play a Flip card, everything flips from the Light Side to the Dark Side (if it's a Light Side Flip) or from the Dark Side to the Light Side (if it's a Dark Side Flip).\
 The Discard Pile is flipped first, then the Draw Pile, and finally everyone's hand must flip to the other side.
 
-Play a Skip Everyone card by entering `<color>skip`, just like what you'd enter for a normal skip.\
+Play a Skip Everyone card by entering `<color>skip`, just like what you'd enter to play a normal skip.\
 Play a Wild Draw Color Card by entering `<color>+color`.
+#### Scoring
+The scoring for the cards is as follows:
+| Card Type | Score |
+| --------- | ----- |
+| Numbered cards (0-9) | Face value |
+| Draw 1 | 10 pts |
+| Draw 5/Skip/Reverse/Flip | 20 pts |
+| Skip Everyone | 30 pts |
+| Wild | 40 pts |
+| Wild Draw 2 | 50 pts |
+| Wild Draw Color | 60 pts |
 
 # Similar Project📑
 * [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, the fact of which is what motivated me to create this bot.
