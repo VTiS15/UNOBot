@@ -81,7 +81,7 @@ However, there are 4 new colors in the Dark Side, Pink(`p`), Teal(`t`), Orange(`
 If you play a Flip card, everything flips from the Light Side to the Dark Side (if it's a Light Side Flip) or from the Dark Side to the Light Side (if it's a Dark Side Flip).\
 The Discard Pile is flipped first, then the Draw Pile, and finally everyone's hand must flip to the other side.
 
-Play a Skip Everyone card by entering `<color>skip`, just like what you'd enter for a normal skip.\
+Play a Skip Everyone card by entering `<color>skip`, just like what you'd enter to play a normal skip.\
 Play a Wild Draw Color Card by entering `<color>+color`.
 #### Scoring
 The scoring for the cards is as follows:
