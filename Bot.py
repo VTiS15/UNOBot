@@ -4022,6 +4022,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
                             async def start_callback(interaction):
                                 await interaction.response.defer()
+                                await interaction.message.edit(view=None)
 
                                 message_dict = interaction.message.embeds[0].to_dict()
 
@@ -4059,6 +4060,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
                             async def cancel_callback(interaction):
+                                await interaction.message.edit(view=None)
+
                                 message_dict = interaction.message.embeds[0].to_dict()
 
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == \
@@ -4074,7 +4077,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     elif str(interaction.user) == interaction.message.embeds[0].to_dict()['fields'][2]['value']:
                                         message_dict['description'] = ':x: The game creator cancelled the game.'
 
-                                    await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+                                    await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
 
                                     try:
                                         del games[str(interaction.guild.id)]
@@ -4107,13 +4110,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 m = (await ctx.fetch_message(eid)).embeds[0]
 
                                 if games[str(ctx.guild.id)]['seconds'] == 0:
+                                    await e.edit(view=None)
+
                                     if len(games[str(ctx.guild.id)]['players'].keys()) > 1:
                                         message_dict = m.to_dict()
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
                                             'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
 
-                                        await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+                                        await e.edit(embed=discord.Embed.from_dict(message_dict))
 
                                         await game_setup(ctx, games[str(ctx.guild.id)])
 
