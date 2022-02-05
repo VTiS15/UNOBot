@@ -439,7 +439,7 @@ async def game_setup(ctx, d):
                 image.paste(refined, (i * refined.size[0], 0))
         else:
             image = Image.new('RGBA', (
-                len(d['players'][id]['cards']['cards']) * (
+                len(d['players'][id]['cards']) * (
                     round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
                 round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123 * 2)),
                               (255, 0, 0, 0))
