@@ -425,24 +425,41 @@ async def game_setup(ctx, d):
 
         m = discord.Embed(title='Your cards:', color=discord.Color.red())
 
-        image = Image.new('RGBA', (
-            len(d['players'][id]['cards']) * (
-                round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
-            round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
-                          (255, 0, 0, 0))
-
         if not flip:
+            image = Image.new('RGBA', (
+                len(d['players'][id]['cards']) * (
+                    round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
+                round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
+                              (255, 0, 0, 0))
+
             for i in range(len(d['players'][id]['cards'])):
                 card = Image.open('images/' + d['players'][id]['cards'][i] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
                                        round(card.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
                 image.paste(refined, (i * refined.size[0], 0))
         else:
+            image = Image.new('RGBA', (
+                len(d['players'][id]['cards']['cards']) * (
+                    round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
+                round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123 * 2)),
+                              (255, 0, 0, 0))
+
             for i in range(len(d['players'][id]['cards'])):
-                card = Image.open('images/' + d['players'][id]['cards'][i][0] + '.png')
+                card = Image.open(
+                    'images/' + d['players'][id]['cards'][i][
+                        0] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                       round(card.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
+                                       round(card.size[1] / 6.0123456790123456790123456790123)),
+                                      Image.ANTIALIAS)
                 image.paste(refined, (i * refined.size[0], 0))
+
+                card = Image.open(
+                    'images/' + d['players'][id]['cards'][
+                        i][1] + '.png')
+                refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                       round(card.size[1] / 6.0123456790123456790123456790123)),
+                                      Image.ANTIALIAS)
+                image.paste(refined, (i * refined.size[0], refined.size[1]))
 
         with BytesIO() as image_binary:
             image.save(image_binary, format='PNG', quality=100)
