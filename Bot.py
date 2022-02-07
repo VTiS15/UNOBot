@@ -1291,7 +1291,7 @@ async def play_card(card, player: discord.Member):
                 else:
                     await draw(n, 4)
 
-            elif '2' in card or '2':
+            elif '2' in card or '2' in card[0]:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 2
                     await draw(n, stack[str(guild.id)])
