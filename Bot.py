@@ -1273,7 +1273,7 @@ async def play_card(card, player: discord.Member):
     if not games[str(guild.id)]['players'][str(player.id)]['cards']:
         ending.append(str(guild.id))
 
-        if '+' in card:
+        if any('+' in x for x in (card, card[0], card[1])):
             n = None
             p = list(games[str(guild.id)]['players'].keys())
 
@@ -1290,23 +1290,21 @@ async def play_card(card, player: discord.Member):
                 else:
                     await draw(n, 4)
 
-            elif '2' in card:
+            elif '2' in card or '2':
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 2
                     await draw(n, stack[str(guild.id)])
                 else:
                     await draw(n, 2)
-            elif '1' in card:
+            elif '1' in card[0]:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 1
-
                     await draw(n, stack[str(guild.id)])
                 else:
                     await draw(n, 1)
-            elif '5' in card:
+            elif '5' in card[1]:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 5
-
                     await draw(n, stack[str(guild.id)])
                 else:
                     await draw(n, 5)
