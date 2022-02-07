@@ -4039,12 +4039,12 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
                             async def start_callback(interaction):
                                 await interaction.response.defer()
-                                await interaction.message.edit(view=None)
-
-                                message_dict = interaction.message.embeds[0].to_dict()
 
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == str(
                                         interaction.guild.get_member(games[str(interaction.guild.id)]['creator'])):
+                                    await interaction.message.edit(view=None)
+
+                                    message_dict = interaction.message.embeds[0].to_dict()
 
                                     games[str(interaction.guild.id)]['seconds'] = -2
 
@@ -4077,16 +4077,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
                             async def cancel_callback(interaction):
-                                await interaction.message.edit(view=None)
-
-                                message_dict = interaction.message.embeds[0].to_dict()
-
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == \
                                         interaction.message.embeds[0].to_dict()['fields'][2][
                                             'value']:
 
+                                    await interaction.message.edit(view=None)
+
                                     games[str(interaction.guild.id)]['seconds'] = -1
 
+                                    message_dict = interaction.message.embeds[0].to_dict()
                                     message_dict['title'] = 'A game of UNO was cancelled!'
 
                                     if interaction.user == interaction.guild.owner:
