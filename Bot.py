@@ -1291,28 +1291,28 @@ async def play_card(card, player: discord.Member):
                 else:
                     await draw(n, 4)
 
-            elif '2' in card or '2' in card[0]:
+            elif '2' in card or '2' in card[0] and not games[str(guild.id)]['dark']:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 2
                     await draw(n, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, 2)
-            elif '1' in card[0]:
+            elif '1' in card[0] and not games[str(guild.id)]['dark']:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 1
                     await draw(n, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, 1)
-            elif '5' in card[1]:
+            elif '5' in card[1] and games[str(guild.id)]['dark']:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 5
                     await draw(n, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, 5)
-            else:
+            elif 'color' in card[1] and games[str(guild.id)]['dark']:
                 await draw(n, 1, False, True)
 
         await game_shutdown(games[str(guild.id)], player)
