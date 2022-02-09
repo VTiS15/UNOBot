@@ -4063,16 +4063,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                              games[str(interaction.guild.id)])
                                         except discord.errors.NotFound:
                                             pass
-
-                                    else:
-                                        message_dict['title'] = 'A game of UNO failed to start!'
-                                        message_dict[
-                                            'description'] = ':x: Not enough players! At least 2 players are needed (Bots do not count).'
-
-                                        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
-
-                                        print('[' + datetime.now().strftime(
-                                            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(interaction.guild) + '.')
                             start.callback = start_callback
 
                             cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
