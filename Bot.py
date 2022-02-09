@@ -4048,9 +4048,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict = interaction.message.embeds[0].to_dict()
 
-                                    games[str(interaction.guild.id)]['seconds'] = -2
-
                                     if len(games[str(interaction.guild.id)]['players'].keys()) > 1:
+                                        games[str(interaction.guild.id)]['seconds'] = -2
                                         games[str(interaction.guild.id)]['creator'] = interaction.user.id
 
                                         message_dict['title'] = 'A game of UNO has started!'
@@ -4073,8 +4072,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
 
                                         print('[' + datetime.now().strftime(
-                                            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(
-                                            guild) + '.')
+                                            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(interaction.guild) + '.')
                             start.callback = start_callback
 
                             cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
