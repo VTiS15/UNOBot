@@ -2,13 +2,12 @@ import asyncio
 import discord
 import json
 import boto3
-import errno
 from os import getenv
 from botocore.exceptions import ClientError
 from scipy.stats import rankdata
 from copy import deepcopy
 from discord import Option
-from socket import error as SocketError
+from aiohttp.client_exceptions import ClientOSError
 from discord.ui import Button, View
 from discord.ext import commands
 from discord.ext.commands import has_permissions
@@ -200,10 +199,7 @@ s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID')
 def main():
     try:
         client.run(getenv('BOT_TOKEN'))
-    except SocketError as e:
-        if e.errno == errno.ECONNRESET:
-            pass # Not error we are looking for
-    except ConnectionResetError:
+    except ClientOSError:
         pass
 
 
