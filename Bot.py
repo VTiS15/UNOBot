@@ -2,11 +2,13 @@ import asyncio
 import discord
 import json
 import boto3
+import errno
 from os import getenv
 from botocore.exceptions import ClientError
 from scipy.stats import rankdata
 from copy import deepcopy
 from discord import Option
+from socket import error as SocketError
 from discord.ui import Button, View
 from discord.ext import commands
 from discord.ext.commands import has_permissions
@@ -196,7 +198,13 @@ s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID')
 
 
 def main():
-    client.run(getenv('BOT_TOKEN'))
+    try:
+        client.run(getenv('BOT_TOKEN'))
+    except SocketError as e:
+        if e.errno == errno.ECONNRESET:
+            pass # Not error we are looking for
+    except ConnectionResetError:
+        pass
 
 
 async def initialize():
@@ -4045,10 +4053,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == str(
                                         interaction.guild.get_member(games[str(interaction.guild.id)]['creator'])):
                                     await interaction.message.edit(view=None)
-
-                                    message_dict = interaction.message.embeds[0].to_dict()
-
                                     if len(games[str(interaction.guild.id)]['players'].keys()) > 1:
+                                        message_dict = interaction.message.embeds[0].to_dict()
+
                                         games[str(interaction.guild.id)]['seconds'] = -2
                                         games[str(interaction.guild.id)]['creator'] = interaction.user.id
 
