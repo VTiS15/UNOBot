@@ -1171,12 +1171,12 @@ def get_hands(guild, player, n):
                 label=str(guild.get_member(int(key))), description=f'{len(key["cards"])} cards'
             ))
 
-        select = Select(placeholder='Who do you want to switch hands with?',
+        select = Select(placeholder='Choose a player...',
                         min_values=1,
                         max_values=1,
                         options=options)
 
-        def select_callback(interaction):
+        async def select_callback(interaction):
             switch = guild.get_member_named(select.values[0])
 
             games[str(guild.id)]['players'][str(player.id)]['cards'], \
