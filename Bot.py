@@ -1681,7 +1681,6 @@ async def on_message(message):
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
                                         await play_card(color + value, message.author)
-                                        print(games[str(message.guild.id)]['settings']['7-0'])
 
                                         if games[str(message.guild.id)]['settings']['7-0']:
                                             if value == '7':
@@ -1691,7 +1690,7 @@ async def on_message(message):
                                                 await message.channel.send(embed=discord.Embed(
                                                     description='**Who do you want to switch hands with?**',
                                                     color=discord.Color.red()
-                                                ), view=view)
+                                                ))
 
                                             elif value == '0':
                                                 d = deepcopy(games[str(message.guild.id)])
