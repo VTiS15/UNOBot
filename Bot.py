@@ -7,7 +7,6 @@ from botocore.exceptions import ClientError
 from scipy.stats import rankdata
 from copy import deepcopy
 from discord import Option, SelectOption
-from aiohttp.client_exceptions import ClientOSError
 from discord.ui import Button, View, Select
 from discord.ext import commands
 from discord.ext.commands import has_permissions
@@ -197,10 +196,7 @@ s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID')
 
 
 def main():
-    try:
-        client.run(getenv('BOT_TOKEN'))
-    except ClientOSError:
-        pass
+    client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
@@ -1161,12 +1157,13 @@ async def display_cards(player: discord.Member):
         return
 
 
-def get_hands(guild, player, n):
+def get_hands(guild, player: discord.Member, n: discord.Member):
     options = []
 
     for key in [x for x in games[str(guild.id)]['players'] if x != str(player.id)]:
         options.append(SelectOption(
-            label=str(guild.get_member(int(key))), description=f'{len(key["cards"])} cards'
+            label=str(guild.get_member(int(key))),
+            description=f'{len(games[str(guild.id)]["players"][key]["cards"])} cards'
         ))
 
     select = Select(placeholder='Choose a player...',
@@ -1175,6 +1172,8 @@ def get_hands(guild, player, n):
                     options=options)
 
     async def select_callback(interaction):
+        await interaction.response.defer()
+
         switch = guild.get_member_named(select.values[0])
 
         games[str(guild.id)]['players'][str(player.id)]['cards'], \
@@ -1687,16 +1686,15 @@ async def on_message(message):
                                                 view = View()
                                                 view.add_item(get_hands(message.guild, message.author, n))
 
-                                                await message.channel.send(embed=discord.Embed(
-                                                    description='**Who do you want to switch hands with?**',
-                                                    color=discord.Color.red()
-                                                ))
+                                                await message.channel.send(
+                                                    embed=discord.Embed(
+                                                        description='**Who do you want to switch hands with?**',
+                                                        color=discord.Color.red()), view=view)
 
                                             elif value == '0':
                                                 d = deepcopy(games[str(message.guild.id)])
 
                                                 player_ids = list(games[str(message.guild.id)]['players'].keys())
-
                                                 for i in range(len(player_ids)):
                                                     games[str(message.guild.id)]['players'][player_ids[(i + 1) % len(player_ids)]][
                                                         'cards'] = d['players'][player_ids[i]]['cards']
