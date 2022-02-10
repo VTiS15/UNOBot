@@ -1686,6 +1686,7 @@ async def on_message(message):
                                             if value == '7':
                                                 view = View()
                                                 view.add_item(get_hands(message.guild, message.author, n))
+                                                print(True)
 
                                                 await message.channel.send(embed=discord.Embed(
                                                     description='**Who do you want to switch hands with?**',
