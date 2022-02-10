@@ -1682,6 +1682,8 @@ async def on_message(message):
                                     if (current_color == color or current_value == value) and not (
                                             '+' in current_value and games[str(message.guild.id)]['settings'][
                                         'StackCards'] and str(message.guild.id) in stack):
+                                        await play_card(color + value, message.author)
+
                                         if games[str(message.guild.id)]['settings']['7-0']:
                                             if value == '7':
                                                 view = View()
@@ -1693,8 +1695,6 @@ async def on_message(message):
                                                 ), view=view)
 
                                             elif value == '0':
-                                                await play_card(color + value, message.author)
-
                                                 d = deepcopy(games[str(message.guild.id)])
 
                                                 player_ids = list(games[str(message.guild.id)]['players'].keys())
@@ -1713,8 +1713,6 @@ async def on_message(message):
                                                     await display_cards(n)
 
                                             else:
-                                                await play_card(color + value, message.author)
-
                                                 if str(message.guild.id) in games:
                                                     await display_cards(n)
 
@@ -1743,6 +1741,11 @@ async def on_message(message):
                                         if (current_color == color or current_value == value) and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
+                                            await play_card(
+                                                choice([x for x in games[str(message.guild.id)]['players'][
+                                                    str(message.author.id)]['cards'] if x[0] == color + value]),
+                                                message.author)
+
                                             if games[str(message.guild.id)]['settings']['7-0']:
                                                 if value == '7':
                                                     view = View()
@@ -1754,18 +1757,10 @@ async def on_message(message):
                                                     ), view=view)
 
                                                 else:
-                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
-                                                        str(message.author.id)]['cards'] if x[0] == color + value]),
-                                                                    message.author)
-
                                                     if str(message.guild.id) in games:
                                                         await display_cards(n)
 
                                             else:
-                                                await play_card(choice([x for x in games[str(message.guild.id)]['players'][
-                                                    str(message.author.id)]['cards'] if x[0] == color + value]),
-                                                                message.author)
-
                                                 if str(message.guild.id) in games:
                                                     await display_cards(n)
 
@@ -1787,6 +1782,10 @@ async def on_message(message):
                                         if (current_color == color or current_value == value) and not (
                                                 '+' in current_value and games[str(message.guild.id)]['settings'][
                                             'StackCards'] and str(message.guild.id) in stack):
+                                            await play_card(choice([x for x in games[str(message.guild.id)]['players'][
+                                                str(message.author.id)]['cards'] if x[1] == color + value]),
+                                                            message.author)
+
                                             if games[str(message.guild.id)]['settings']['7-0']:
                                                 if value == '7':
                                                     view = View()
@@ -1798,18 +1797,10 @@ async def on_message(message):
                                                     ), view=view)
 
                                                 else:
-                                                    await play_card(choice([x for x in games[str(message.guild.id)]['players'][
-                                                        str(message.author.id)]['cards'] if x[1] == color + value]),
-                                                                    message.author)
-
                                                     if str(message.guild.id) in games:
                                                         await display_cards(n)
 
                                             else:
-                                                await play_card(choice([x for x in games[str(message.guild.id)]['players'][
-                                                    str(message.author.id)]['cards'] if x[1] == color + value]),
-                                                                message.author)
-
                                                 if str(message.guild.id) in games:
                                                     await display_cards(n)
 
