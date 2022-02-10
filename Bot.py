@@ -1163,7 +1163,6 @@ async def display_cards(player: discord.Member):
 
 def get_hands(guild, player, n):
     options = []
-    select = None
 
     for key in [x for x in games[str(guild.id)]['players'] if x != str(player.id)]:
         options.append(SelectOption(
