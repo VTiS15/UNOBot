@@ -6,9 +6,9 @@ from os import getenv
 from botocore.exceptions import ClientError
 from scipy.stats import rankdata
 from copy import deepcopy
-from discord import Option
+from discord import Option, SelectOption
 from aiohttp.client_exceptions import ClientOSError
-from discord.ui import Button, View
+from discord.ui import Button, View, Select
 from discord.ext import commands
 from discord.ext.commands import has_permissions
 from collections import OrderedDict
@@ -1161,6 +1161,41 @@ async def display_cards(player: discord.Member):
         return
 
 
+def get_hands(guild, player, n):
+    options = []
+    select = None
+
+    if str(guild.id) not in ending:
+        for key in [x for x in games[str(guild.id)]['players'] if x != str(player.id)]:
+            options.append(SelectOption(
+                label=str(guild.get_member(int(key))), description=f'{len(key["cards"])} cards'
+            ))
+
+        select = Select(placeholder='Who do you want to switch hands with?',
+                        min_values=1,
+                        max_values=1,
+                        options=options)
+
+        def select_callback(interaction):
+            switch = guild.get_member_named(select.values[0])
+
+            games[str(guild.id)]['players'][str(player.id)]['cards'], \
+            games[str(guild.id)]['players'][str(switch.id)]['cards'] = \
+                games[str(guild.id)]['players'][str(player.id)]['cards'], \
+                games[str(guild.id)]['players'][str(switch.id)]['cards']
+
+            await asyncio.gather(
+                *[asyncio.create_task(x.send(embed=discord.Embed(
+                    description='**' + player.name + '** switched hands with **' + switch.name + '**.',
+                    color=discord.Color.red()))) for x in
+                    interaction.channel.category.text_channels])
+
+            await display_cards(n)
+        select.callback = select_callback
+
+    return select
+
+
 async def play_card(card, player: discord.Member):
     guild = player.guild
 
@@ -1649,42 +1684,13 @@ async def on_message(message):
                                         'StackCards'] and str(message.guild.id) in stack):
                                         if games[str(message.guild.id)]['settings']['7-0']:
                                             if value == '7':
-                                                user_converter = UserConverter()
-                                                player = None
+                                                view = View()
+                                                view.add_item(get_hands(message.guild, message.author, n))
 
-                                                try:
-                                                    player = await user_converter.convert(await client.get_context(message), message.content.split()[-1])
-                                                except BadArgument:
-                                                    await message.channel.send(
-                                                        embed=discord.Embed(
-                                                            description=':x: **Player not found! Make sure you mention with @ and then the EXACT name (plus discriminator, # with 4 digits after, if needed) of the user.**',
-                                                            color=discord.Color.red()))
-
-                                                    overwrite.send_messages = True
-                                                    await message.channel.set_permissions(message.author,
-                                                                                          overwrite=overwrite)
-
-                                                if str(player.id) in games[str(message.guild.id)]['players']:
-                                                    await play_card(color + value, message.author)
-
-                                                    if str(message.guild.id) in games:
-                                                        games[str(message.guild.id)]['players'][str(player.id)]['cards'], \
-                                                        games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = \
-                                                            games[str(message.guild.id)]['players'][str(message.author.id)]['cards'], \
-                                                            games[str(message.guild.id)]['players'][str(player.id)]['cards']
-
-                                                        await asyncio.gather(
-                                                            *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                                description='**' + message.author.name + '** switched hands with **' + player.name + '**.',
-                                                                color=discord.Color.red()))) for x in
-                                                                message.channel.category.text_channels])
-
-                                                        await display_cards(n)
-                                                else:
-                                                    await message.channel.send(
-                                                        embed=discord.Embed(
-                                                            description=':x: **The user is not in this game!**',
-                                                            color=discord.Color.red()))
+                                                await message.channel.send(embed=discord.Embed(
+                                                    description='**Who do you want to switch hands with?**',
+                                                    color=discord.Color.red()
+                                                ), view=view)
 
                                             elif value == '0':
                                                 await play_card(color + value, message.author)
@@ -1739,69 +1745,13 @@ async def on_message(message):
                                             'StackCards'] and str(message.guild.id) in stack):
                                             if games[str(message.guild.id)]['settings']['7-0']:
                                                 if value == '7':
-                                                    user_converter = UserConverter()
-                                                    player = None
+                                                    view = View()
+                                                    view.add_item(get_hands(message.guild, message.author, n))
 
-                                                    try:
-                                                        player = await user_converter.convert(
-                                                            await client.get_context(message),
-                                                            message.content.split()[-1])
-                                                    except BadArgument:
-                                                        await message.channel.send(
-                                                            embed=discord.Embed(
-                                                                description=':x: **Player not found! Make sure you mention with @ and then the EXACT name (plus discriminator, # with 4 digits after, if needed) of the user.**',
-                                                                color=discord.Color.red()))
-
-                                                        overwrite.send_messages = True
-                                                        await message.channel.set_permissions(message.author,
-                                                                                              overwrite=overwrite)
-
-                                                    if str(player.id) in games[str(message.guild.id)]['players']:
-                                                        await play_card(color + value, message.author)
-
-                                                        if str(message.guild.id) in games:
-                                                            games[str(message.guild.id)]['players'][str(player.id)][
-                                                                'cards'], \
-                                                            games[str(message.guild.id)]['players'][str(message.author.id)][
-                                                                'cards'] = \
-                                                                games[str(message.guild.id)]['players'][
-                                                                    str(message.author.id)]['cards'], \
-                                                                games[str(message.guild.id)]['players'][str(player.id)][
-                                                                    'cards']
-
-                                                            await asyncio.gather(
-                                                                *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                                    description='**' + message.author.name + '** switched hands with **' + player.name + '**.',
-                                                                    color=discord.Color.red()))) for x in
-                                                                    message.channel.category.text_channels])
-
-                                                            await display_cards(n)
-                                                    else:
-                                                        await message.channel.send(
-                                                            embed=discord.Embed(
-                                                                description=':x: **The user is not in this game!**',
-                                                                color=discord.Color.red()))
-
-                                                elif value == '0':
-                                                    await play_card(color + value, message.author)
-
-                                                    if str(message.guild.id) in games:
-                                                        d = deepcopy(games[str(message.guild.id)])
-
-                                                        player_ids = list(games[str(message.guild.id)]['players'].keys())
-
-                                                        for i in range(len(player_ids)):
-                                                            games[str(message.guild.id)]['players'][
-                                                                player_ids[(i + 1) % len(player_ids)]][
-                                                                'cards'] = d['players'][player_ids[i]]['cards']
-
-                                                        await asyncio.gather(
-                                                            *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                                description='**Everyone switched hands!**',
-                                                                color=discord.Color.red()))) for x in
-                                                                message.channel.category.text_channels])
-
-                                                        await display_cards(n)
+                                                    await message.channel.send(embed=discord.Embed(
+                                                        description='**Who do you want to switch hands with?**',
+                                                        color=discord.Color.red()
+                                                    ), view=view)
 
                                                 else:
                                                     await play_card(choice([x for x in games[str(message.guild.id)]['players'][
@@ -1839,69 +1789,13 @@ async def on_message(message):
                                             'StackCards'] and str(message.guild.id) in stack):
                                             if games[str(message.guild.id)]['settings']['7-0']:
                                                 if value == '7':
-                                                    user_converter = UserConverter()
-                                                    player = None
+                                                    view = View()
+                                                    view.add_item(get_hands(message.guild, message.author, n))
 
-                                                    try:
-                                                        player = await user_converter.convert(
-                                                            await client.get_context(message),
-                                                            message.content.split()[-1])
-                                                    except BadArgument:
-                                                        await message.channel.send(
-                                                            embed=discord.Embed(
-                                                                description=':x: **Player not found! Make sure you mention with @ and then the EXACT name (plus discriminator, # with 4 digits after, if needed) of the user.**',
-                                                                color=discord.Color.red()))
-
-                                                        overwrite.send_messages = True
-                                                        await message.channel.set_permissions(message.author,
-                                                                                              overwrite=overwrite)
-
-                                                    if str(player.id) in games[str(message.guild.id)]['players']:
-                                                        await play_card(color + value, message.author)
-
-                                                        if str(message.guild.id) in games:
-                                                            games[str(message.guild.id)]['players'][str(player.id)][
-                                                                'cards'], \
-                                                            games[str(message.guild.id)]['players'][str(message.author.id)][
-                                                                'cards'] = \
-                                                                games[str(message.guild.id)]['players'][
-                                                                    str(message.author.id)]['cards'], \
-                                                                games[str(message.guild.id)]['players'][str(player.id)][
-                                                                    'cards']
-
-                                                            await asyncio.gather(
-                                                                *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                                    description='**' + message.author.name + '** switched hands with **' + player.name + '**.',
-                                                                    color=discord.Color.red()))) for x in
-                                                                    message.channel.category.text_channels])
-
-                                                            await display_cards(n)
-                                                    else:
-                                                        await message.channel.send(
-                                                            embed=discord.Embed(
-                                                                description=':x: **The user is not in this game!**',
-                                                                color=discord.Color.red()))
-
-                                                elif value == '0':
-                                                    await play_card(color + value, message.author)
-
-                                                    if str(message.guild.id) in games:
-                                                        d = deepcopy(games[str(message.guild.id)])
-
-                                                        player_ids = list(games[str(message.guild.id)]['players'].keys())
-
-                                                        for i in range(len(player_ids)):
-                                                            games[str(message.guild.id)]['players'][
-                                                                player_ids[(i + 1) % len(player_ids)]][
-                                                                'cards'] = d['players'][player_ids[i]]['cards']
-
-                                                        await asyncio.gather(
-                                                            *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                                description='**Everyone switched hands!**',
-                                                                color=discord.Color.red()))) for x in
-                                                                message.channel.category.text_channels])
-
-                                                        await display_cards(n)
+                                                    await message.channel.send(embed=discord.Embed(
+                                                        description='**Who do you want to switch hands with?**',
+                                                        color=discord.Color.red()
+                                                    ), view=view)
 
                                                 else:
                                                     await play_card(choice([x for x in games[str(message.guild.id)]['players'][
