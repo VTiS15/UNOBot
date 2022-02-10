@@ -1165,33 +1165,32 @@ def get_hands(guild, player, n):
     options = []
     select = None
 
-    if str(guild.id) not in ending:
-        for key in [x for x in games[str(guild.id)]['players'] if x != str(player.id)]:
-            options.append(SelectOption(
-                label=str(guild.get_member(int(key))), description=f'{len(key["cards"])} cards'
-            ))
+    for key in [x for x in games[str(guild.id)]['players'] if x != str(player.id)]:
+        options.append(SelectOption(
+            label=str(guild.get_member(int(key))), description=f'{len(key["cards"])} cards'
+        ))
 
-        select = Select(placeholder='Choose a player...',
-                        min_values=1,
-                        max_values=1,
-                        options=options)
+    select = Select(placeholder='Choose a player...',
+                    min_values=1,
+                    max_values=1,
+                    options=options)
 
-        async def select_callback(interaction):
-            switch = guild.get_member_named(select.values[0])
+    async def select_callback(interaction):
+        switch = guild.get_member_named(select.values[0])
 
+        games[str(guild.id)]['players'][str(player.id)]['cards'], \
+        games[str(guild.id)]['players'][str(switch.id)]['cards'] = \
             games[str(guild.id)]['players'][str(player.id)]['cards'], \
-            games[str(guild.id)]['players'][str(switch.id)]['cards'] = \
-                games[str(guild.id)]['players'][str(player.id)]['cards'], \
-                games[str(guild.id)]['players'][str(switch.id)]['cards']
+            games[str(guild.id)]['players'][str(switch.id)]['cards']
 
-            await asyncio.gather(
-                *[asyncio.create_task(x.send(embed=discord.Embed(
-                    description='**' + player.name + '** switched hands with **' + switch.name + '**.',
-                    color=discord.Color.red()))) for x in
-                    interaction.channel.category.text_channels])
+        await asyncio.gather(
+            *[asyncio.create_task(x.send(embed=discord.Embed(
+                description='**' + player.name + '** switched hands with **' + switch.name + '**.',
+                color=discord.Color.red()))) for x in
+                interaction.channel.category.text_channels])
 
-            await display_cards(n)
-        select.callback = select_callback
+        await display_cards(n)
+    select.callback = select_callback
 
     return select
 
