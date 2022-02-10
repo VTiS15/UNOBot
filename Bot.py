@@ -1178,8 +1178,8 @@ def get_hands(guild, player: discord.Member, n: discord.Member):
 
         games[str(guild.id)]['players'][str(player.id)]['cards'], \
         games[str(guild.id)]['players'][str(switch.id)]['cards'] = \
-            games[str(guild.id)]['players'][str(player.id)]['cards'], \
-            games[str(guild.id)]['players'][str(switch.id)]['cards']
+            games[str(guild.id)]['players'][str(switch.id)]['cards'], \
+            games[str(guild.id)]['players'][str(player.id)]['cards']
 
         await asyncio.gather(
             *[asyncio.create_task(x.send(embed=discord.Embed(
