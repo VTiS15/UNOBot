@@ -3201,20 +3201,24 @@ async def allowalerts(ctx, option: Option(str, 'on, off, or view', required=True
                     else:
                         description = 'Disabled :x:'
 
-                    message = discord.Embed(title=ctx.author.name + '\'s alerts', description=description,
-                                            color=discord.Color.red())
-
-                    await ctx.respond(embed=message)
+                    await ctx.respond(embed=discord.Embed(title=ctx.author.name + '\'s alerts', description=description,
+                                            color=discord.Color.red()))
 
                 elif option.lower() == 'on':
                     users[str(ctx.author.id)]['AllowAlerts'] = True
 
                     users_file.put(Body=json.dumps(users).encode('utf-8'))
 
+                    await ctx.respond(embed=discord.Embed(description=':thumbsup: **Your alerts have been enabled.**',
+                                            color=discord.Color.red()))
+
                 elif option.lower() == 'off':
                     users[str(ctx.author.id)]['AllowAlerts'] = False
 
                     users_file.put(Body=json.dumps(users).encode('utf-8'))
+
+                    await ctx.respond(embed=discord.Embed(description=':thumbsup: **Your alerts have been disabled.**',
+                                                          color=discord.Color.red()))
 
                 if commands[str(ctx.guild.id)]['allowalerts']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('allowalerts')
