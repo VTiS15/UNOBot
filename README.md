@@ -65,7 +65,7 @@ The scoring for the cards is as follows:
 | Draw 2/Skip/Reverse | 20 pts |
 | Wild/Wild Draw 4 | 50 pts |
 ### Special 7-0 Rule
-When the 7-0 Rule is applied, a player must switch hands with another designated player when they play a 7 (by entering `<color>7 <username>`, and everyone in the game must switch hands in the direction of play when a 0 is played.\
+When the 7-0 Rule is applied, a player must switch hands with another designated player when they play a 7, and everyone in the game must switch hands in the direction of play whenever a 0 is played.\
 For example, if the order of play is A -> B -> C -> A …, and if Player A plays a 0, then A must give their hand to B and B gives to C, and then C to A.
 
 ## <img align="right" src="https://user-images.githubusercontent.com/73805050/130345601-ec333b6a-2fb0-472b-85dc-e1d53b845269.png" width="94.6656" height="69.2"> UNO FLIP!
