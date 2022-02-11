@@ -4,6 +4,7 @@ import json
 import boto3
 from os import getenv
 from botocore.exceptions import ClientError
+from aiohttp.client_exceptions import ClientOSError
 from scipy.stats import rankdata
 from copy import deepcopy
 from discord import Option, SelectOption
@@ -1144,7 +1145,10 @@ async def display_cards(player: discord.Member):
 
             message.set_footer(text=n.name + ' is next!')
 
-            await channel.send(files=[thumbnail, file], embed=message)
+            try:
+                await channel.send(files=[thumbnail, file], embed=message)
+            except ClientOSError:
+                pass
 
         await asyncio.gather(
             *[asyncio.create_task(send_cards(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
