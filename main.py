@@ -202,7 +202,7 @@ sys.setrecursionlimit(10**5)
 
 
 def main():
-    client.run(getenv('BOT_TOKEN'))
+    client.run('BOT_TOKEN')
 
 
 async def initialize():
@@ -666,7 +666,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
 
             users[str(winner.id)][str(guild.id)]['Score'] += score
             users[str(winner.id)][str(guild.id)]['Wins'] += 1
-            for i in [x for x in player_ids if player_ids != str(client.user.id)]:
+            for i in [x for x in player_ids if x != str(client.user.id)]:
                 users[i][str(guild.id)]['Played'] += 1
 
             users_file.put(Body=json.dumps(users).encode('utf-8'))
