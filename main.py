@@ -194,15 +194,15 @@ games = {}
 stack = {}
 ending = []
 last_run = datetime.now()
-s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
-                         aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
-s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
-                             aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+s3_client = boto3.client('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
+                         aws_secret_access_key='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')
+s3_resource = boto3.resource('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
+                             aws_secret_access_key='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')
 sys.setrecursionlimit(10**5)
 
 
 def main():
-    client.run(getenv('BOT_TOKEN'))
+    client.run('OTM4Mzg3Njk4OTA4MDM3MTUw.YfpjpQ.p3TaPhvhiQufifZZ-HD9bud6BXQ')
 
 
 async def initialize():
@@ -666,7 +666,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
 
             users[str(winner.id)][str(guild.id)]['Score'] += score
             users[str(winner.id)][str(guild.id)]['Wins'] += 1
-            for i in player_ids:
+            for i in [x for x in player_ids if player_ids != str(client.user.id)]:
                 users[i][str(guild.id)]['Played'] += 1
 
             users_file.put(Body=json.dumps(users).encode('utf-8'))
@@ -3464,10 +3464,10 @@ async def on_message(message):
                                         description=':x: **You aren\'t playing UNO Flip!**',
                                         color=discord.Color.red()))
 
-                    except IndexError:
-                        pass
-                    except TypeError:
-                        pass
+                    except IndexError as e:
+                        raise e
+                    except TypeError as e:
+                        raise e
 
                     overwrite.send_messages = True
                     try:
@@ -3480,8 +3480,8 @@ async def on_message(message):
                     await message.channel.send(
                         embed=discord.Embed(description=':x: **It\'s not your turn yet!**', color=discord.Color.red()))
 
-            except KeyError:
-                pass
+            except KeyError as e:
+                raise e
 
         else:
             await client.process_commands(message)
