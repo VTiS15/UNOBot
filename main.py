@@ -1994,9 +1994,8 @@ class Bot:
             if str(self.guild.id) in self.games:
                 self.games[str(self.guild.id)]['dark'] = not self.games[str(self.guild.id)][
                     'dark']
-                self.games[str(self.guild.id)]['current'] = self.games[str(self.guild.id)][
-                    'current_opposite']
-                self.games[str(self.guild.id)]['current_opposite'] = color + 'flip'
+                self.games[str(self.guild.id)]['current'], self.games[str(self.guild.id)]['current_opposite'] = \
+                self.games[str(self.guild.id)]['current_opposite'], self.games[str(self.guild.id)]['current']
 
                 await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                     description='**Everything is flipped!**',
