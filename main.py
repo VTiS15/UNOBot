@@ -202,7 +202,7 @@ sys.setrecursionlimit(10**5)
 
 
 def main():
-    client.run(getenvI('BOT_TOKEN'))
+    client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
