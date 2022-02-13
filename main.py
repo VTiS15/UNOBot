@@ -194,15 +194,15 @@ games = {}
 stack = {}
 ending = []
 last_run = datetime.now()
-s3_client = boto3.client('s3', aws_access_key_id='AKIASK5OVKOY3RQS3H2I',
-                         aws_secret_access_key='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')
-s3_resource = boto3.resource('s3', aws_access_key_id='AKIASK5OVKOY3RQS3H2I',
-                             aws_secret_access_key='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')
+s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
+                         aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
+                             aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 sys.setrecursionlimit(10**5)
 
 
 def main():
-    client.run('OTM4Mzg3Njk4OTA4MDM3MTUw.YfpjpQ.MI6RLdmI_Kp3DFfItiUqNXle2Fg')
+    client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
