@@ -1,6 +1,8 @@
-boto3~=1.20.46
-botocore~=1.23.46
+boto3~=1.20.51
+treelib~=1.6.1
+botocore~=1.23.51
+aiohttp~=3.8.1
 scipy~=1.8.0
-Pillow~=9.0.0
+Pillow~=9.0.1
 DateTime~=4.3
-py-cord~=2.0.0b1
+py-cord~=2.0.0b3
