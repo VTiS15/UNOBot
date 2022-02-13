@@ -966,10 +966,7 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                 *[asyncio.create_task(x.send(
                     embed=discord.Embed(description='**UNOBot** drew a card.',
                                         color=discord.Color.red()))) for x in guild.text_channels if
-                    x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
-                                                                    player.name.lower().replace(' ',
-                                                                                                '-')) + '-uno-channel']
-            )
+                    x.category.name == 'UNO-GAME'])
     else:
         if message:
             await asyncio.gather(
@@ -988,10 +985,7 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                 *[asyncio.create_task(x.send(
                     embed=discord.Embed(description='**UNOBot** drew **' + str(len(draw)) + '** cards.',
                                         color=discord.Color.red()))) for x in guild.text_channels if
-                    x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
-                                                                    player.name.lower().replace(' ',
-                                                                                                '-')) + '-uno-channel']
-            )
+                    x.category.name == 'UNO-GAME'])
 
 
 async def display_cards(player: discord.Member):
