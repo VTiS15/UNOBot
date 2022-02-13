@@ -709,10 +709,11 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
 
         if not bot:
             games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
+            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                             card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
         else:
             bot.cards.append(c)
-        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                         card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
+            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if card not in bot.cards]
 
         if not games[str(guild.id)]['cards']:
             games[str(guild.id)]['cards'] += cards
