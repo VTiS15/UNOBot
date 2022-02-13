@@ -1675,7 +1675,7 @@ class Bot:
 
     def __is_similar(self, x, y):
         return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(
-            y) or any(t in ('+4', '+color', 'wild') or t == '+2' and
+            y) or any(t in ('+4', '+color', 'wild', 'darkwild') or t == '+2' and
                       self.games[str(self.guild.id)]['settings']['Flip'] for t in (x, y))
 
     def __build_tree(self, tree, root):
@@ -2114,8 +2114,10 @@ class Bot:
 
             else:
                 if len(self.cards) == 1:
-                    if self.playables[0][1] in ('wild', '+color'):
-                        best = (self.playables[0][0], 'teal' + self.playables[0][1])
+                    if self.playables[0][1] == '+color':
+                        best = (self.playables[0][0], 'teal+color')
+                    elif self.playables[0][1] == 'darkwild':
+                        best = (self.playables[0][0], 'tealwild')
                     else:
                         best = self.playables[0]
                 else:
@@ -2123,6 +2125,9 @@ class Bot:
                     optimals = []
                     self.reccount = 0
                     for card in self.playables:
+                        if card[1] == 'darkwild':
+                            card[1] = 'wild'
+
                         tree = Tree()
                         tree.create_node(identifier=card[0] + '|' + card[1], data=self.__get_score(self.__get_value(card)))
                         self.__build_tree(tree, card[0] + '|' + card[1])
