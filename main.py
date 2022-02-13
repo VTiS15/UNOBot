@@ -194,15 +194,15 @@ games = {}
 stack = {}
 ending = []
 last_run = datetime.now()
-s3_client = boto3.client('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
-                         aws_secret_access_key='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')
-s3_resource = boto3.resource('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
-                             aws_secret_access_key='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')
+s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
+                         aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
+                             aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 sys.setrecursionlimit(10**5)
 
 
 def main():
-    client.run('OTM4Mzg3Njk4OTA4MDM3MTUw.YfpjpQ.p3TaPhvhiQufifZZ-HD9bud6BXQ')
+    client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
@@ -3464,10 +3464,10 @@ async def on_message(message):
                                         description=':x: **You aren\'t playing UNO Flip!**',
                                         color=discord.Color.red()))
 
-                    except IndexError as e:
-                        raise e
-                    except TypeError as e:
-                        raise e
+                    except IndexError:
+                        pass
+                    except TypeError:
+                        pass
 
                     overwrite.send_messages = True
                     try:
@@ -3480,8 +3480,8 @@ async def on_message(message):
                     await message.channel.send(
                         embed=discord.Embed(description=':x: **It\'s not your turn yet!**', color=discord.Color.red()))
 
-            except KeyError as e:
-                raise e
+            except KeyError:
+                pass
 
         else:
             await client.process_commands(message)
