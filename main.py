@@ -1524,6 +1524,9 @@ async def play_card(card, player: discord.Member):
             elif 'color' in card[1] and games[str(guild.id)]['dark']:
                 await draw(n, 1, False, True)
 
+        elif 'flip' in card[0] and not games[str(guild.id)]['dark'] or 'flip' in card[1] and games[str(guild.id)]['dark']:
+            games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
+
         await game_shutdown(games[str(guild.id)], player)
 
 
