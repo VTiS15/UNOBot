@@ -5273,7 +5273,7 @@ async def leavegame(ctx):
 
                         del games[str(ctx.guild.id)][str(ctx.author.id)]
 
-                        if len(games[str(ctx.guild.id)]) - 6 >= 2:
+                        if len(games[str(ctx.guild.id)]['players']) >= 2:
                             await ctx.channel.delete()
 
                             await asyncio.gather(*[asyncio.create_task(x.send(
