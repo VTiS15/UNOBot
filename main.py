@@ -1826,28 +1826,29 @@ class Bot:
 
         elif value == 'skip':
             if str(self.guild.id) in self.games:
-                m = self.guild.get_member(int(next(temp, next(iter(p)))))
-                if m == n:
-                    iterable = iter(p)
-                    next(iterable)
-                    m = self.guild.get_member(int(next(iterable)))
+                if not self.games[str(self.guild.id)]['settings']['Flip'] or self.games[str(self.guild.id)]['dark']:
+                    m = self.guild.get_member(int(next(temp, next(iter(p)))))
+                    if m == n:
+                        iterable = iter(p)
+                        next(iterable)
+                        m = self.guild.get_member(int(next(iterable)))
 
-                await asyncio.gather(*[asyncio.create_task(x.send(
-                    embed=discord.Embed(description='**' + n.name + ' is skipped.**',
-                                        color=discord.Color.red()))) for x in
-                    self.channels])
+                    await asyncio.gather(*[asyncio.create_task(x.send(
+                        embed=discord.Embed(description='**' + n.name + ' is skipped.**',
+                                            color=discord.Color.red()))) for x in
+                        self.channels])
 
-                await display_cards(m)
+                    await display_cards(m)
 
-            else:
-                if self.games[str(self.guild.id)]['dark']:
-                    if str(self.guild.id) in self.games:
-                        await asyncio.gather(*[asyncio.create_task(x.send(
-                            embed=discord.Embed(description='**Everyone is skipped!**',
-                                                color=discord.Color.red()))) for x in
-                            self.channels])
+                else:
+                    if self.games[str(self.guild.id)]['dark']:
+                        if str(self.guild.id) in self.games:
+                            await asyncio.gather(*[asyncio.create_task(x.send(
+                                embed=discord.Embed(description='**Everyone is skipped!**',
+                                                    color=discord.Color.red()))) for x in
+                                self.channels])
 
-                        await self.play()
+                            await self.play()
 
         elif value == 'wild':
             if str(self.guild.id) in self.games:
