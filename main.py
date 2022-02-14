@@ -5271,7 +5271,7 @@ async def leavegame(ctx):
                                 n = ctx.guild.get_member(int(next(temp, next(iter(p)))))
                                 break
 
-                        del games[str(ctx.guild.id)][str(ctx.author.id)]
+                        del games[str(ctx.guild.id)]['players'][str(ctx.author.id)]
 
                         if len(games[str(ctx.guild.id)]['players']) >= 2:
                             await ctx.channel.delete()
