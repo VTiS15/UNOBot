@@ -4766,7 +4766,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             user_options[str(user.id)].pop(str(guild.id), None)
                                         games[str(ctx.guild.id)]['players'][str(user.id)] = user_options[str(user.id)]
                                         games[str(ctx.guild.id)]['players'][str(user.id)]['cards'] = []
-                                    else:
+                                    elif not games[str(ctx.guild.id)]['settings']['7-0']:
                                         bot = True
 
                                 except BadArgument:
