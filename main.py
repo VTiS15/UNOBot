@@ -3771,7 +3771,7 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
 
     if 'stats' not in cooldowns[str(ctx.guild.id)]:
         if commands[str(ctx.guild.id)]['stats']['Enabled']:
-            if not user:
+            if not user or user == client.user:
                 user = ctx.author
 
             if ((not commands[str(ctx.guild.id)]['stats']['BlacklistEnabled'] or not
@@ -3867,7 +3867,7 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
 
     if 'globalstats' not in cooldowns[str(ctx.guild.id)]:
         if commands[str(ctx.guild.id)]['globalstats']['Enabled']:
-            if not user:
+            if not user or user == client.user:
                 user = ctx.author
 
             if ((not commands[str(ctx.guild.id)]['globalstats']['BlacklistEnabled'] or not
