@@ -417,6 +417,8 @@ async def game_setup(ctx, d, bot):
         await gsettings.pin()
 
     await asyncio.gather(*[asyncio.create_task(set_channel(x)) for x in player_ids if x != str(client.user.id)])
+    if bot:
+        b.channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
 
     if d['settings']['SpectateGame']:
         overwrites = {
@@ -726,10 +728,12 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
 
             if not bot:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
+                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                                 card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
             else:
                 bot.cards.append(c)
-            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                             card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
+                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                                 card not in bot.cards]
 
             if not games[str(guild.id)]['cards']:
                 games[str(guild.id)]['cards'] += cards
@@ -1527,11 +1531,10 @@ class Bot:
         self.name = 'UNOBot'
         self.id = client.user.id
         self.guild = guild
-        self.channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
+        self.channels = self.playables = []
         self.member = guild.get_member(self.id)
         self.games = games
         self.cards = cards
-        self.playables = []
         self.reccount = 0
 
     def __get_color_and_value(self, card):
@@ -1616,9 +1619,9 @@ class Bot:
         elif not d['dark']:
             if value == '+1':
                 return 10
-            elif value in ('reverse', 'flip', 'skip'):
+            elif value in ('reverse', 'skip'):
                 return 20
-            elif value == 'wild':
+            elif value in ('wild', 'flip'):
                 return 0
             elif value == '+2':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+2')
@@ -1643,7 +1646,7 @@ class Bot:
                 return int(value)
 
         else:
-            if value in ('reverse', 'flip'):
+            if value == 'reverse':
                 return 20
             elif value == '+5':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+5')
@@ -1666,7 +1669,7 @@ class Bot:
                     return -1
             elif value == 'skip':
                 return 30
-            elif value == 'wild':
+            elif value in ('wild', 'flip'):
                 return 0
             elif value == '+color':
                 return 60
@@ -1675,8 +1678,9 @@ class Bot:
 
     def __is_similar(self, x, y):
         return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(
-            y) or any(t in ('+4', '+color', 'wild', 'darkwild') or t == '+2' and
-                      self.games[str(self.guild.id)]['settings']['Flip'] for t in (x, y))
+            y) or any(t in ('+4', 'wild') or t[0] in ('+2', 'wild') and not
+        self.games[str(self.guild.id)]['dark'] or t[1] in ('+color', 'wild') and self.games[str(self.guild.id)]['dark']
+                      for t in (x, y))
 
     def __build_tree(self, tree, root):
         self.reccount += 1
@@ -1703,7 +1707,7 @@ class Bot:
         elif not d['dark']:
             rcard = tuple(root.split('|'))
 
-            for card in [x for x in self.cards if not tree.rsearch(root, lambda c: x[0] + '|' + x[1] in c) and self.__is_similar(x, rcard)]:
+            for card in [x for x in self.cards if not any(x[0] + '|' + x[1] in c for c in tree.rsearch(root)) and self.__is_similar(x, rcard)]:
                 value = self.__get_value(card)
                 count = 0
 
@@ -1722,7 +1726,7 @@ class Bot:
         else:
             rcard = tuple(root.split('|'))
 
-            for card in [x for x in self.cards if not tree.rsearch(root, lambda c: x[0] + '|' + x[1] in c) and self.__is_similar(x, rcard)]:
+            for card in [x for x in self.cards if not any(x[0] + '|' + x[1].replace('dark', '') in c for c in tree.rsearch(root)) and self.__is_similar(x, rcard)]:
                 value = self.__get_value(card)
                 count = 0
 
@@ -1738,7 +1742,7 @@ class Bot:
                 if self.reccount <= 1000:
                     self.__build_tree(tree, card[0] + '|' + card[1] + str(count))
 
-    async def __execute_card(self, color, value):
+    async def __execute_card(self, value):
         n = None
         p = list(self.games[str(self.guild.id)]['players'].keys())
 
@@ -2048,6 +2052,7 @@ class Bot:
         if not self.playables:
             if str(self.guild.id) in stack:
                 await draw(self.member, stack[str(self.guild.id)])
+                del stack[str(self.guild.id)]
             else:
                 await draw(self.member, 1)
             await display_cards(n)
@@ -2125,12 +2130,14 @@ class Bot:
                     optimals = []
                     self.reccount = 0
                     for card in self.playables:
-                        if card[1] == 'darkwild':
-                            card[1] = 'wild'
-
                         tree = Tree()
-                        tree.create_node(identifier=card[0] + '|' + card[1], data=self.__get_score(self.__get_value(card)))
-                        self.__build_tree(tree, card[0] + '|' + card[1])
+                        if card[1] != 'darkwild':
+                            tree.create_node(identifier=card[0] + '|' + card[1], data=self.__get_score(self.__get_value(card)))
+                            self.__build_tree(tree, card[0] + '|' + card[1])
+                        else:
+                            tree.create_node(identifier=card[0] + '|wild',
+                                             data=self.__get_score(self.__get_value(card)))
+                            self.__build_tree(tree, card[0] + '|wild')
 
                         paths = tree.paths_to_leaves()
 
@@ -2151,7 +2158,7 @@ class Bot:
 
             if self.__get_score(self.__get_value(best)) >= 0:
                 await play_card(best, self.member)
-                await self.__execute_card(*self.__get_color_and_value(best))
+                await self.__execute_card(self.__get_value(best))
             else:
                 if str(self.guild.id) in stack:
                     await draw(self.member, stack[str(self.guild.id)])
@@ -5331,18 +5338,27 @@ async def kick(ctx, user):
 
                     del games[str(ctx.guild.id)]['players'][str(player.id)]
 
-                    if len(games[str(ctx.guild.id)]) - 6 >= 2:
-                        await discord.utils.get(ctx.guild.text_channels,
-                                                name=sub(r'[^\w -]', '',
-                                                         player.name.lower().replace(' ',
-                                                                                     '-')) + '-uno-channel').delete()
+                    if len(games[str(ctx.guild.id)]['players']) >= 2:
+                        if player.id != client.user.id:
+                            await discord.utils.get(ctx.guild.text_channels,
+                                                    name=sub(r'[^\w -]', '',
+                                                             player.name.lower().replace(' ',
+                                                                                         '-')) + '-uno-channel').delete()
 
-                        await asyncio.gather(*[asyncio.create_task(x.send(
-                            discord.Embed(description=':warning: **' + player.name + '** was kicked.'))) for x in
-                            ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
+                            await asyncio.gather(*[asyncio.create_task(x.send(
+                                discord.Embed(description=':warning: **' + player.name + '** was kicked.'))) for x in
+                                ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
-                        if player.id == games[str(ctx.guild.id)]['player']:
-                            await display_cards(n)
+                            if player.id == games[str(ctx.guild.id)]['player']:
+                                await display_cards(n)
+
+                        else:
+                            await asyncio.gather(*[asyncio.create_task(x.send(
+                                discord.Embed(description=':warning: **UNOBot** was kicked.'))) for x in
+                                ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
+
+                            if player.id == games[str(ctx.guild.id)]['player']:
+                                await display_cards(n)
 
                     else:
                         for channel in [x for x in ctx.guild.text_channels if x.category.name == 'UNO-GAME']:
