@@ -1826,7 +1826,7 @@ class Bot:
 
         elif value == 'skip':
             if str(self.guild.id) in self.games:
-                if not self.games[str(self.guild.id)]['settings']['Flip'] or self.games[str(self.guild.id)]['dark']:
+                if not self.games[str(self.guild.id)]['settings']['Flip'] or not self.games[str(self.guild.id)]['dark']:
                     m = self.guild.get_member(int(next(temp, next(iter(p)))))
                     if m == n:
                         iterable = iter(p)
@@ -1841,14 +1841,12 @@ class Bot:
                     await display_cards(m)
 
                 else:
-                    if self.games[str(self.guild.id)]['dark']:
-                        if str(self.guild.id) in self.games:
-                            await asyncio.gather(*[asyncio.create_task(x.send(
-                                embed=discord.Embed(description='**Everyone is skipped!**',
-                                                    color=discord.Color.red()))) for x in
-                                self.channels])
+                    await asyncio.gather(*[asyncio.create_task(x.send(
+                        embed=discord.Embed(description='**Everyone is skipped!**',
+                                            color=discord.Color.red()))) for x in
+                        self.channels])
 
-                            await self.play()
+                    await display_cards(self.member)
 
         elif value == 'wild':
             if str(self.guild.id) in self.games:
