@@ -2089,7 +2089,7 @@ class Bot:
             elif not d['dark']:
                 if len(self.cards) == 1:
                     if self.playables[0][0] in ('wild', '+2'):
-                        best = ('blue' + self.playables[0], self.playables[0][1])
+                        best = ('blue' + self.playables[0][0], self.playables[0][1])
                     else:
                         best = self.playables[0]
                 else:
