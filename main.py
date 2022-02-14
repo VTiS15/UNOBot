@@ -5261,7 +5261,7 @@ async def leavegame(ctx):
                          commands[str(ctx.guild.id)]['leavegame'][
                              'Whitelist']) or ctx.author == ctx.guild.owner:
                 if ctx.channel.category.name == 'UNO-GAME':
-                    if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]:
+                    if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         n = None
                         p = list(games[str(ctx.guild.id)]['players'].keys())
 
