@@ -4885,20 +4885,16 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(guild.id)]['players'][str(user.id)]['cards'] = []
 
                                     if len(games[str(guild.id)]['players'].keys()) > 0:
-                                        for field in message_dict['fields']:
-                                            if field['name'] == 'Players:':
-                                                if bot:
-                                                    value = ':small_blue_diamond: UNOBot\n'
-                                                else:
-                                                    value = ''
+                                        if bot:
+                                            value = ':small_blue_diamond: UNOBot\n'
+                                        else:
+                                            value = ''
 
-                                                for key in games[str(guild.id)]['players']:
-                                                    value += (':small_blue_diamond: ' + guild.get_member(
-                                                        int(key)).name + '\n')
+                                        for key in games[str(guild.id)]['players']:
+                                            value += (':small_blue_diamond: ' + guild.get_member(
+                                                int(key)).name + '\n')
 
-                                                field['value'] = value
-
-                                                break
+                                        message.set_field_at(0, value=value)
 
                                     await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
 
@@ -4909,20 +4905,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         del games[str(guild.id)]['players'][str(user.id)]
 
-                                        if len(games[str(guild.id)]['players'].keys()) >= 0:
-                                            for field in message_dict['fields']:
-                                                if field['name'] == 'Players:':
-                                                    if len(games[str(guild.id)]['players'].keys()) == 0:
-                                                        field['value'] = 'None'
-                                                    else:
-                                                        value = ''
-                                                        for key in games[str(guild.id)]['players']:
-                                                            value += (':small_blue_diamond: ' + guild.get_member(
-                                                                int(key)).name + '\n')
+                                        if len(games[str(guild.id)]['players'].keys()) == 0:
+                                            message.embeds[0].set_field_at(0, value='None')
+                                        else:
+                                            value = ''
+                                            for key in games[str(guild.id)]['players']:
+                                                value += (':small_blue_diamond: ' + guild.get_member(
+                                                    int(key)).name + '\n')
 
-                                                        field['value'] = value
-
-                                                    break
+                                            message.embeds[0].set_field_at(0, value=value)
 
                                         await message.edit(embed=discord.Embed.from_dict(message_dict))
                             join.callback = join_callback
