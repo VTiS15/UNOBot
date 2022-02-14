@@ -417,8 +417,6 @@ async def game_setup(ctx, d, bot):
         await gsettings.pin()
 
     await asyncio.gather(*[asyncio.create_task(set_channel(x)) for x in player_ids if x != str(client.user.id)])
-    if bot:
-        b.channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
 
     if d['settings']['SpectateGame']:
         overwrites = {
@@ -427,6 +425,9 @@ async def game_setup(ctx, d, bot):
             discord.utils.get(guild.roles, name='UNO Spectator'): discord.PermissionOverwrite(read_messages=True)
         }
         await category.create_text_channel('Spectator-UNO-Channel', overwrites=overwrites)
+
+    if bot:
+        b.channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
 
     for id in [x for x in player_ids if x != str(client.user.id)]:
         while len(d['cards']) <= d['settings']['StartingCards']:
