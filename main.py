@@ -4894,7 +4894,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             value += (':small_blue_diamond: ' + guild.get_member(
                                                 int(key)).name + '\n')
 
-                                        message.embeds[0].set_field_at(0, value=value)
+                                        message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
 
                                     await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
 
@@ -4913,7 +4913,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                 value += (':small_blue_diamond: ' + guild.get_member(
                                                     int(key)).name + '\n')
 
-                                            message.embeds[0].set_field_at(0, value=value)
+                                            message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
 
                                         await message.edit(embed=discord.Embed.from_dict(message_dict))
                             join.callback = join_callback
@@ -5239,7 +5239,7 @@ async def leavegame(ctx):
                          commands[str(ctx.guild.id)]['leavegame']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['leavegame'][
                              'Whitelist']) or ctx.author == ctx.guild.owner:
-                if ctx.channel.category.name == 'UNO-GAME':
+                if ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         n = None
                         p = list(games[str(ctx.guild.id)]['players'].keys())
