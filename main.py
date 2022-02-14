@@ -4384,7 +4384,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
                                 await ctx.respond(embed=discord.Embed(
-                                    description=':thumbsup: The settings have been updated.',
+                                    description=':thumbsup: **The settings have been updated.**',
                                     color=discord.Color.red()))
 
                             elif y == 'disable':
@@ -4392,7 +4392,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
                                 await ctx.respond(embed=discord.Embed(
-                                    description=':thumbsup: The settings have been updated.',
+                                    description=':thumbsup: **The settings have been updated.**',
                                     color=discord.Color.red()))
 
                             elif y == 'view':
@@ -4448,7 +4448,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
                                     await ctx.respond(embed=discord.Embed(
-                                        description=':thumbsup: The settings have been updated.',
+                                        description=':thumbsup: **The settings have been updated.**',
                                         color=discord.Color.red()))
 
                                 except ValueError:
@@ -4485,7 +4485,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
                                 await ctx.respond(embed=discord.Embed(
-                                    description=':thumbsup: The settings have been updated.',
+                                    description=':thumbsup: **The settings have been updated.**',
                                     color=discord.Color.red()))
 
                             elif y == 'remove':
@@ -4512,7 +4512,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
                                 await ctx.respond(embed=discord.Embed(
-                                    description=':thumbsup: The settings have been updated.',
+                                    description=':thumbsup: **The settings have been updated.**',
                                     color=discord.Color.red()))
 
                             else:
@@ -4575,7 +4575,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                             dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
                             await ctx.respond(embed=discord.Embed(
-                                description=':thumbsup: The settings have been updated.',
+                                description=':thumbsup: **The settings have been updated.**',
                                 color=discord.Color.red()))
 
                         elif x == 'off':
@@ -4583,7 +4583,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                             dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
                             await ctx.respond(embed=discord.Embed(
-                                description=':thumbsup: The settings have been updated.',
+                                description=':thumbsup: **The settings have been updated.**',
                                 color=discord.Color.red()))
 
                         elif x == 'view':
@@ -4657,7 +4657,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
                                     await ctx.respond(embed=discord.Embed(
-                                        description=':thumbsup: The settings have been updated.',
+                                        description=':thumbsup: **The settings have been updated.**',
                                         color=discord.Color.red()))
                                 else:
 
@@ -5400,7 +5400,12 @@ async def kick(ctx, user):
                         await game_shutdown(games[str(ctx.guild.id)], None, ctx.guild)
 
                     await ctx.respond(embed=discord.Embed(
-                        description=':thumbsup: The player has been kicked.',
+                        description=':thumbsup: **The player has been kicked.**',
+                        color=discord.Color.red()))
+                    
+                else:
+                    await ctx.respond(embed=discord.Embed(
+                        description=':x: **No game exists.**',
                         color=discord.Color.red()))
 
                 if commands[str(ctx.guild.id)]['kick']['Cooldown'] > 0:
