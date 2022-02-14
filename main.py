@@ -4383,9 +4383,17 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                 commands[str(ctx.guild.id)][s][x.capitalize() + 'Enabled'] = True
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
+                                await ctx.respond(embed=discord.Embed(
+                                    description=':thumbsup: The settings have been updated.',
+                                    color=discord.Color.red()))
+
                             elif y == 'disable':
                                 commands[str(ctx.guild.id)][s][x.capitalize() + 'Enabled'] = False
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
+
+                                await ctx.respond(embed=discord.Embed(
+                                    description=':thumbsup: The settings have been updated.',
+                                    color=discord.Color.red()))
 
                             elif y == 'view':
                                 if commands[str(ctx.guild.id)][s][x.capitalize() + 'Enabled']:
@@ -4439,6 +4447,10 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     commands[str(ctx.guild.id)][s]['Cooldown'] = int(z)
                                     commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
+                                    await ctx.respond(embed=discord.Embed(
+                                        description=':thumbsup: The settings have been updated.',
+                                        color=discord.Color.red()))
+
                                 except ValueError:
                                     await ctx.respond(embed=discord.Embed(
                                         description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
@@ -4472,6 +4484,10 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     commands[str(ctx.guild.id)][s][x.capitalize()] = [user.id]
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
+                                await ctx.respond(embed=discord.Embed(
+                                    description=':thumbsup: The settings have been updated.',
+                                    color=discord.Color.red()))
+
                             elif y == 'remove':
                                 user_converter = UserConverter()
                                 role_converter = RoleConverter()
@@ -4494,6 +4510,10 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                                     if not commands[str(ctx.guild.id)][s][x.capitalize()]:
                                         commands[str(ctx.guild.id)][s][x.capitalize()] = None
                                 commands_file.put(Body=json.dumps(commands).encode('utf-8'))
+
+                                await ctx.respond(embed=discord.Embed(
+                                    description=':thumbsup: The settings have been updated.',
+                                    color=discord.Color.red()))
 
                             else:
                                 await ctx.respond(embed=discord.Embed(
@@ -4554,9 +4574,17 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                             dgs[str(ctx.guild.id)][s] = True
                             dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
+                            await ctx.respond(embed=discord.Embed(
+                                description=':thumbsup: The settings have been updated.',
+                                color=discord.Color.red()))
+
                         elif x == 'off':
                             dgs[str(ctx.guild.id)][s] = False
                             dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
+
+                            await ctx.respond(embed=discord.Embed(
+                                description=':thumbsup: The settings have been updated.',
+                                color=discord.Color.red()))
 
                         elif x == 'view':
                             if type(dgs[str(ctx.guild.id)][s]) == int:
@@ -4624,9 +4652,13 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                     if s == 'StartingCards':
                         if x == 'set':
                             try:
-                                if 3 < int(y) < 15:
+                                if 3 <= int(y) <= 15:
                                     dgs[str(ctx.guild.id)][s] = int(y)
                                     dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
+
+                                    await ctx.respond(embed=discord.Embed(
+                                        description=':thumbsup: The settings have been updated.',
+                                        color=discord.Color.red()))
                                 else:
 
                                     await ctx.respond(
@@ -5325,7 +5357,7 @@ async def kick(ctx, user):
 
                     return
 
-                if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)] and str(
+                if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)]['players'] and str(
                         ctx.guild.id) not in ending:
                     n = None
                     p = list(games[str(ctx.guild.id)]['players'].keys())
@@ -5349,16 +5381,13 @@ async def kick(ctx, user):
                                 discord.Embed(description=':warning: **' + player.name + '** was kicked.'))) for x in
                                 ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
-                            if player.id == games[str(ctx.guild.id)]['player']:
-                                await display_cards(n)
-
                         else:
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 discord.Embed(description=':warning: **UNOBot** was kicked.'))) for x in
                                 ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
-                            if player.id == games[str(ctx.guild.id)]['player']:
-                                await display_cards(n)
+                        if player.id == games[str(ctx.guild.id)]['player']:
+                            await display_cards(n)
 
                     else:
                         for channel in [x for x in ctx.guild.text_channels if x.category.name == 'UNO-GAME']:
@@ -5369,6 +5398,10 @@ async def kick(ctx, user):
                         ending.append(str(ctx.guild.id))
 
                         await game_shutdown(games[str(ctx.guild.id)], None, ctx.guild)
+
+                    await ctx.respond(embed=discord.Embed(
+                        description=':thumbsup: The player has been kicked.',
+                        color=discord.Color.red()))
 
                 if commands[str(ctx.guild.id)]['kick']['Cooldown'] > 0:
                     cooldowns[str(ctx.guild.id)].append('kick')
