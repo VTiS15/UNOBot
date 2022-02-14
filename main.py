@@ -4894,7 +4894,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             value += (':small_blue_diamond: ' + guild.get_member(
                                                 int(key)).name + '\n')
 
-                                        message.set_field_at(0, value=value)
+                                        message.embeds[0].set_field_at(0, value=value)
 
                                     await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
 
