@@ -1592,10 +1592,7 @@ class Bot:
                                                        total - i) / comb(
                                 108 * (total % 108 + 1) - len(self.cards), total)
 
-                if prob > 0.4:
-                    return 20 * prob
-                else:
-                    return -1
+                return 20 * prob
             elif value == 'wild':
                 return 0
             elif value == '+4':
@@ -1613,10 +1610,7 @@ class Bot:
                                                    total - i) / comb(
                             108 * (total % 108 + 1) - len(self.cards), total)
 
-                if prob > 0.5:
-                    return 50 * prob
-                else:
-                    return -1
+                return 50 * prob
             else:
                 return int(value)
 
@@ -1642,10 +1636,7 @@ class Bot:
                                                    total - i) / comb(
                             112 * (total % 112 + 1) - len(self.cards), total)
 
-                if prob > 0.5:
-                    return 50 * prob
-                else:
-                    return -1
+                return 50 * prob
             else:
                 return int(value)
 
@@ -1667,10 +1658,7 @@ class Bot:
                                                    total - i) / comb(
                             112 * (total % 112 + 1) - len(self.cards), total)
 
-                if prob > 0.5:
-                    return 20 * prob
-                else:
-                    return -1
+                return 20 * prob
             elif value == 'skip':
                 return 30
             elif value in ('wild', 'flip', '+color'):
