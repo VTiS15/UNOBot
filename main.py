@@ -1669,10 +1669,8 @@ class Bot:
                     return -1
             elif value == 'skip':
                 return 30
-            elif value in ('wild', 'flip'):
+            elif value in ('wild', 'flip', '+color'):
                 return 0
-            elif value == '+color':
-                return 60
             else:
                 return int(value)
 
