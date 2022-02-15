@@ -613,7 +613,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
             users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
             score = 0
-            for key in [x for x in player_ids if x != str(winner.id) and x != str(client.user.id)]:
+            for key in [x for x in player_ids if x != str(winner.id)]:
                 if key != str(client.user.id):
                     cards = games[str(guild.id)]['players'][key]['cards']
                 else:
@@ -659,10 +659,11 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                         else:
                             temp += int(value)
 
-                if users[key][str(guild.id)]['Score'] < temp:
-                    users[key][str(guild.id)]['Score'] = 0
-                else:
-                    users[key][str(guild.id)]['Score'] -= temp
+                if key == str(client.user.id):
+                    if users[key][str(guild.id)]['Score'] < temp:
+                        users[key][str(guild.id)]['Score'] = 0
+                    else:
+                        users[key][str(guild.id)]['Score'] -= temp
 
                 score += temp
 
