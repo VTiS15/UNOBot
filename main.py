@@ -3810,7 +3810,7 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
                         message.add_field(name='Total Games', value='**' + str(dict['Played']) + '** games played',
                                           inline=False)
                     if dict['Wins'] == 1:
-                        message.add_field(name='Total Wins', value='**1 game won',
+                        message.add_field(name='Total Wins', value='**1** game won',
                                           inline=False)
                     else:
                         message.add_field(name='Total Wins', value='**' + str(dict['Wins']) + '** games won', inline=False)
