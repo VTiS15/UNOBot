@@ -626,45 +626,46 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                         value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
 
                         if value in ('+2', 'skip', 'reverse'):
-                            score += 20
+                            temp += 20
                         elif value in ('+4', 'wild'):
-                            score += 50
+                            temp += 50
                         else:
-                            score += int(value)
+                            temp += int(value)
 
                     elif not games[str(guild.id)]['dark']:
                         value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
 
                         if value == '+1':
-                            score += 10
+                            temp += 10
                         elif value in ('reverse', 'flip', 'skip'):
-                            score += 20
+                            temp += 20
                         elif value == 'wild':
-                            score += 40
+                            temp += 40
                         elif value == '+2':
-                            score += 50
+                            temp += 50
                         else:
-                            score += int(value)
+                            temp += int(value)
 
                     else:
                         value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
 
                         if value in ('+5', 'reverse', 'flip'):
-                            score += 20
+                            temp += 20
                         elif value == 'skip':
-                            score += 30
+                            temp += 30
                         elif value == 'wild':
-                            score += 40
+                            temp += 40
                         elif value == '+c':
-                            score += 60
+                            temp += 60
                         else:
-                            score += int(value)
+                            temp += int(value)
 
-                users[key][str(guild.id)]['Score'] -= temp
                 if users[key][str(guild.id)]['Score'] < temp:
                     users[key][str(guild.id)]['Score'] = 0
                 else:
                     users[key][str(guild.id)]['Score'] -= temp
+
+                score += temp
 
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
