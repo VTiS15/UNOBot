@@ -3794,11 +3794,6 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
                         message.add_field(name='Score', value='**1** pt')
                     else:
                         message.add_field(name='Score', value=f'**{dict["Score"]}** pts')
-                    if round(dict["Score"] / dict["Played"], 2) == 1:
-                        message.add_field(name='Average score per game', value='**1** pt')
-                    else:
-                        message.add_field(name='Average score per game',
-                                          value=f'**{round(dict["Score"] / dict["Played"], 2)}** pts')
                     message.add_field(name='Win Percentage',
                                       value='Won **' + str(
                                           round(dict['Wins'] / dict['Played'] * 100)) + '%** of games',
@@ -3898,11 +3893,6 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
                         message.add_field(name='Score', value='**1** pt')
                     else:
                         message.add_field(name='Score', value=f'**{s}** pts')
-                    if round(s / p, 2) == 1:
-                        message.add_field(name='Average score per game', value='**1** pts')
-                    else:
-                        message.add_field(name='Average score per game',
-                                      value=f'**{round(s / p, 2)}** pts')
                     message.add_field(name='Win Percentage', value='Won **' + str(round(w / p * 100)) + '%** of games.',
                                       inline=False)
                     if p == 1:
