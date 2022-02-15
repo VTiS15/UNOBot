@@ -681,14 +681,14 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
             for i in [x for x in player_ids if x != str(client.user.id)]:
                 users[i][str(guild.id)]['Played'] += 1
 
-            users_file.put(Body=json.dumps(users).encode('utf-8'))
-
         else:
             message = discord.Embed(title=f'UNOBot Won! 🎉 🥳', color=discord.Color.red())
             message.set_image(url=client.user.display_avatar.url)
 
             await asyncio.gather(
                 *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+
+        users_file.put(Body=json.dumps(users).encode('utf-8'))
 
         await asyncio.sleep(10)
 
