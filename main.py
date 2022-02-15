@@ -659,7 +659,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                         else:
                             temp += int(value)
 
-                if key == str(client.user.id):
+                if key != str(client.user.id):
                     if users[key][str(guild.id)]['Score'] < temp:
                         users[key][str(guild.id)]['Score'] = 0
                     else:
