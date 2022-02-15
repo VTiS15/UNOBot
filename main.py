@@ -608,65 +608,65 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
     if winner and not guild:
         guild = winner.guild
 
-        if winner.id != client.user.id:
-            users_file = s3_resource.Object('unobot-bucket', 'users.json')
-            users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
+        users_file = s3_resource.Object('unobot-bucket', 'users.json')
+        users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
-            score = 0
-            for key in [x for x in player_ids if x != str(winner.id)]:
-                if key != str(client.user.id):
-                    cards = games[str(guild.id)]['players'][key]['cards']
+        score = 0
+        for key in [x for x in player_ids if x != str(winner.id)]:
+            if key != str(client.user.id):
+                cards = games[str(guild.id)]['players'][key]['cards']
+            else:
+                cards = games[str(guild.id)]['players'][key].cards
+
+            temp = 0
+            for card in cards:
+                if not games[str(guild.id)]['settings']['Flip']:
+                    value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+
+                    if value in ('+2', 'skip', 'reverse'):
+                        temp += 20
+                    elif value in ('+4', 'wild'):
+                        temp += 50
+                    else:
+                        temp += int(value)
+
+                elif not games[str(guild.id)]['dark']:
+                    value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+
+                    if value == '+1':
+                        temp += 10
+                    elif value in ('reverse', 'flip', 'skip'):
+                        temp += 20
+                    elif value == 'wild':
+                        temp += 40
+                    elif value == '+2':
+                        temp += 50
+                    else:
+                        temp += int(value)
+
                 else:
-                    cards = games[str(guild.id)]['players'][key].cards
+                    value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
 
-                temp = 0
-                for card in cards:
-                    if not games[str(guild.id)]['settings']['Flip']:
-                        value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
-
-                        if value in ('+2', 'skip', 'reverse'):
-                            temp += 20
-                        elif value in ('+4', 'wild'):
-                            temp += 50
-                        else:
-                            temp += int(value)
-
-                    elif not games[str(guild.id)]['dark']:
-                        value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
-
-                        if value == '+1':
-                            temp += 10
-                        elif value in ('reverse', 'flip', 'skip'):
-                            temp += 20
-                        elif value == 'wild':
-                            temp += 40
-                        elif value == '+2':
-                            temp += 50
-                        else:
-                            temp += int(value)
-
+                    if value in ('+5', 'reverse', 'flip'):
+                        temp += 20
+                    elif value == 'skip':
+                        temp += 30
+                    elif value == 'wild':
+                        temp += 40
+                    elif value == '+c':
+                        temp += 60
                     else:
-                        value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
+                        temp += int(value)
 
-                        if value in ('+5', 'reverse', 'flip'):
-                            temp += 20
-                        elif value == 'skip':
-                            temp += 30
-                        elif value == 'wild':
-                            temp += 40
-                        elif value == '+c':
-                            temp += 60
-                        else:
-                            temp += int(value)
+            if key != str(client.user.id):
+                if users[key][str(guild.id)]['Score'] < temp:
+                    users[key][str(guild.id)]['Score'] = 0
+                else:
+                    users[key][str(guild.id)]['Score'] -= temp
 
-                if key != str(client.user.id):
-                    if users[key][str(guild.id)]['Score'] < temp:
-                        users[key][str(guild.id)]['Score'] = 0
-                    else:
-                        users[key][str(guild.id)]['Score'] -= temp
+            score += temp
 
-                score += temp
-
+        if winner.id != client.user.id:
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
             else:
