@@ -2198,6 +2198,7 @@ async def on_member_join(member):
 
         if str(member.id) in user_stuff:
             user_stuff[str(member.id)][str(member.guild.id)] = {
+                'Wins': 0,
                 'Score': 0,
                 'Played': 0
             }
@@ -2206,6 +2207,7 @@ async def on_member_join(member):
             user_stuff[str(member.id)] = {
                 "AllowAlerts": True,
                 str(member.guild.id): {
+                    'Wins': 0,
                     'Score': 0,
                     'Played': 0
                 }}
@@ -4060,6 +4062,9 @@ async def globalleaderboard(ctx):
                     for index in list_duplicates_of(leaderboard, i):
                         user = client.get_user(int(list(users.keys())[index]))
                         p = 0
+
+                        if not user:
+                            continue
 
                         for guild in client.guilds:
                             if guild.get_member(user.id):
