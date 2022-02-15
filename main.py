@@ -4906,9 +4906,16 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         del games[str(guild.id)]['players'][str(user.id)]
 
                                         if len(games[str(guild.id)]['players'].keys()) == 0:
-                                            message.embeds[0].set_field_at(0, value='None')
+                                            if bot:
+                                                message.embeds[0].set_field_at(0, name='Players:',
+                                                                               value=':small_blue_diamond: UNOBot\n',
+                                                                               inline=False)
+                                            else:
+                                                message.embeds[0].set_field_at(0, name='Players:', value='None')
                                         else:
                                             value = ''
+                                            if bot:
+                                                value += ':small_blue_diamond: UNOBot\n'
                                             for key in games[str(guild.id)]['players']:
                                                 value += (':small_blue_diamond: ' + guild.get_member(
                                                     int(key)).name + '\n')
