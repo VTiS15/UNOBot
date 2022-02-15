@@ -1633,12 +1633,12 @@ class Bot:
                     n += 1
 
                 prob = 0
-                if n * least <= 12 * (total % 108 + 1):
+                if n * least <= 12 * (total % 112 + 1):
                     for i in range(n * least):
                         if i <= total:
-                            prob += comb(12 * (total % 108 + 1), i) * comb(96 * (total % 108 + 1) - len(self.cards),
+                            prob += comb(12 * (total % 112 + 1), i) * comb(100 * (total % 112 + 1) - len(self.cards),
                                                                            total - i) / comb(
-                                108 * (total % 108 + 1) - len(self.cards), total)
+                                112 * (total % 112 + 1) - len(self.cards), total)
 
                 return 20 * prob
             elif value in ('reverse', 'skip'):
