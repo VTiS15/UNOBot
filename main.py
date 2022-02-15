@@ -620,7 +620,6 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                     cards = games[str(guild.id)]['players'][key].cards
 
                 temp = 0
-
                 for card in cards:
                     if not games[str(guild.id)]['settings']['Flip']:
                         value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
@@ -2256,6 +2255,7 @@ async def on_message(message):
                     users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
                     for member in [x for x in message.guild.members if x.id != client.user.id and not x.bot]:
                         users[str(member.id)][str(message.guild.id)] = {
+                            'Wins': 0,
                             'Score': 0,
                             'Played': 0
                         }
