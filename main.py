@@ -619,6 +619,8 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                 else:
                     cards = games[str(guild.id)]['players'][key].cards
 
+                temp = 0
+
                 for card in cards:
                     if not games[str(guild.id)]['settings']['Flip']:
                         value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
@@ -657,6 +659,12 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
                             score += 60
                         else:
                             score += int(value)
+
+                users[key][str(guild.id)]['Score'] -= temp
+                if users[key][str(guild.id)]['Score'] < temp:
+                    users[key][str(guild.id)]['Score'] = 0
+                else:
+                    users[key][str(guild.id)]['Score'] -= temp
 
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
