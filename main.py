@@ -3506,7 +3506,10 @@ async def on_message(message):
                         embed=discord.Embed(description=':x: **It\'s not your turn yet!**', color=discord.Color.red()))
 
             except KeyError as e:
-                raise e
+                if str(message.guild.id) not in games:
+                    pass
+                else:
+                    raise e
 
         else:
             await client.process_commands(message)
