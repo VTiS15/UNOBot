@@ -2410,6 +2410,12 @@ async def on_message(message):
                                     embed=discord.Embed(description=':x: The current player has disabled alerts.',
                                                         color=discord.Color.red()))
 
+                        else:
+                            await message.channel.send(
+                                embed=discord.Embed(
+                                    description=':x: **You can\'t alert yourself!**',
+                                    color=discord.Color.red()))
+
                     else:
                         await message.channel.send(
                             embed=discord.Embed(
