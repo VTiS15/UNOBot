@@ -2318,7 +2318,10 @@ async def on_message(message):
                     color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
 
                 if not color:
-                    return
+                    await message.channel.send(
+                        embed=discord.Embed(
+                            description=':x: **I don\'t understand your command.**',
+                            color=discord.Color.red()))
                 else:
                     color = color.group(0)
 
