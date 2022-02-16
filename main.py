@@ -3491,8 +3491,11 @@ async def on_message(message):
 
                     except IndexError as e:
                         raise e
-                    except TypeError as e:
-                        raise e
+                    except TypeError:
+                        await message.channel.send(
+                            embed=discord.Embed(
+                                description=':x: **I don\'t understand your command.**',
+                                color=discord.Color.red()))
 
                     overwrite.send_messages = True
                     try:
