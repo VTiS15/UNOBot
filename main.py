@@ -3489,10 +3489,10 @@ async def on_message(message):
                                         description=':x: **You aren\'t playing UNO Flip!**',
                                         color=discord.Color.red()))
 
-                    except IndexError:
-                        pass
-                    except TypeError:
-                        pass
+                    except IndexError as e:
+                        raise e
+                    except TypeError as e:
+                        raise e
 
                     overwrite.send_messages = True
                     try:
@@ -3505,8 +3505,8 @@ async def on_message(message):
                     await message.channel.send(
                         embed=discord.Embed(description=':x: **It\'s not your turn yet!**', color=discord.Color.red()))
 
-            except KeyError:
-                pass
+            except KeyError as e:
+                raise e
 
         else:
             await client.process_commands(message)
