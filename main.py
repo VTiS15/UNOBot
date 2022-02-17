@@ -411,8 +411,12 @@ async def game_setup(ctx, d, bot):
         await welcome.pin()
 
         gcontents = '**Game settings:**\n'
-        for key in [x for x in d['settings'] if d['settings'][x] and x != 'StartingCards' or d['settings'][x] != 7 and x == 'StartingCards']:
-            gcontents += f'• {key}\n'
+        settings = [x for x in d['settings'] if d['settings'][x] and x != 'StartingCards' or d['settings'][x] != 7 and x == 'StartingCards']
+        if settings:
+            for key in settings:
+                gcontents += f'• {key}\n'
+        else:
+            gcontents += 'None'
         gsettings = await channel.send(content=gcontents)
         await gsettings.pin()
 
