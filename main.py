@@ -1587,8 +1587,15 @@ class Bot:
         d = self.games[str(self.guild.id)]
 
         if not d['settings']['Flip']:
-            if value in ( 'skip', 'reverse'):
-                return 20
+            if value in ('skip', 'reverse'):
+                if len(d['players']) == 2 or value == 'skip':
+                    return 20
+                else:
+                    player_ids = list(d['players'].keys())
+                    if len(d['players'][player_ids.index(str(self.id)) - 1]['cards']) == 1:
+                        return 0
+                    else:
+                        return 20
             elif value == '+2':
                 least = sum(1 for x in self.cards if self.__get_value(x) in ('+2', '+4'))
                 total = 0
@@ -1605,7 +1612,7 @@ class Bot:
                                                        total - i) / comb(
                                 108 * (total % 108 + 1) - len(self.cards), total)
 
-                return 20 * prob
+                return 10 * prob
             elif value == 'wild':
                 return 0
             elif value == '+4':
@@ -1646,7 +1653,14 @@ class Bot:
 
                 return 20 * prob
             elif value in ('reverse', 'skip'):
-                return 20
+                if len(d['players']) == 2 or value == 'skip':
+                    return 20
+                else:
+                    player_ids = list(d['players'].keys())
+                    if len(d['players'][player_ids.index(str(self.id)) - 1]['cards']) == 1:
+                        return 0
+                    else:
+                        return 20
             elif value in ('wild', 'flip'):
                 return 0
             elif value == '+2':
@@ -1670,7 +1684,14 @@ class Bot:
 
         else:
             if value == 'reverse':
-                return 20
+                if len(d['players']) == 2:
+                    return 20
+                else:
+                    player_ids = list(d['players'].keys())
+                    if len(d['players'][player_ids.index(str(self.id)) - 1]['cards']) == 1:
+                        return 0
+                    else:
+                        return 20
             elif value == '+5':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+5')
                 total = 0
