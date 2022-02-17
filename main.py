@@ -1630,7 +1630,7 @@ class Bot:
                                                    total - i) / comb(
                             108 * (total % 108 + 1) - len(self.cards), total)
 
-                return 50 * prob
+                return 20 * prob
             else:
                 return int(value)
 
@@ -1651,7 +1651,7 @@ class Bot:
                                                                            total - i) / comb(
                                 112 * (total % 112 + 1) - len(self.cards), total)
 
-                return 20 * prob
+                return 10 * prob
             elif value in ('reverse', 'skip'):
                 if len(d['players']) == 2 or value == 'skip':
                     return 20
@@ -1678,7 +1678,7 @@ class Bot:
                                                    total - i) / comb(
                             112 * (total % 112 + 1) - len(self.cards), total)
 
-                return 50 * prob
+                return 20 * prob
             else:
                 return int(value)
 
@@ -1707,9 +1707,9 @@ class Bot:
                                                    total - i) / comb(
                             112 * (total % 112 + 1) - len(self.cards), total)
 
-                return 20 * prob
+                return 10 * prob
             elif value == 'skip':
-                return 30
+                return 20
             elif value in ('wild', 'flip', '+color'):
                 return 0
             else:
