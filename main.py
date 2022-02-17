@@ -5,7 +5,7 @@ import boto3
 import sys
 from os import getenv
 from treelib import Tree
-from math import comb
+from math import comb, e
 from botocore.exceptions import ClientError
 from aiohttp.client_exceptions import ClientOSError
 from treelib.exceptions import DuplicatedNodeIdError
@@ -2079,7 +2079,7 @@ class Bot:
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
 
         n = None
-        p = list(self.games[str(self.guild.id)]['players'].keys())
+        p = list(d['players'].keys())
 
         temp = iter(p)
         for key in temp:
@@ -2107,6 +2107,8 @@ class Bot:
                     optimals = []
                     self.reccount = 0
 
+                    gamma = e**(-len(p) - 1)
+
                     for card in self.playables:
                         tree = Tree()
                         tree.create_node(identifier=card, data=self.__get_score(self.__get_value(card)))
@@ -2114,7 +2116,8 @@ class Bot:
 
                         paths = tree.paths_to_leaves()
 
-                        score = [sum(map(lambda x: tree.get_node(x).data, path)) for path in paths]
+                        score = [sum(map(lambda x: tree.get_node(x).data * gamma ** path.index(x), path)) for path in
+                                 paths]
                         for c in paths[score.index(max(score))]:
                             if self.__get_color(c):
                                 color_change = self.__get_color(c)
@@ -2136,6 +2139,9 @@ class Bot:
                     color_change = 'blue'
                     optimals = []
                     self.reccount = 0
+
+                    gamma = e**(-len(p) - 1)
+
                     for card in self.playables:
                         tree = Tree()
                         tree.create_node(identifier=card[0] + '|' + card[1], data=self.__get_score(self.__get_value(card)))
@@ -2143,7 +2149,8 @@ class Bot:
 
                         paths = tree.paths_to_leaves()
 
-                        score = [sum(map(lambda x: tree.get_node(x).data, path)) for path in paths]
+                        score = [sum(map(lambda x: tree.get_node(x).data * gamma ** path.index(x), path)) for path in
+                                 paths]
                         for c in paths[score.index(max(score))]:
                             if self.__get_color(tuple(c.split('|'))):
                                 color_change = self.__get_color(tuple(c.split('|')))
@@ -2167,6 +2174,9 @@ class Bot:
                     color_change = 'teal'
                     optimals = []
                     self.reccount = 0
+
+                    gamma = e**(-len(p) - 1)
+
                     for card in self.playables:
                         tree = Tree()
                         if card[1] != 'darkwild':
@@ -2179,7 +2189,8 @@ class Bot:
 
                         paths = tree.paths_to_leaves()
 
-                        score = [sum(map(lambda x: tree.get_node(x).data, path)) for path in paths]
+                        score = [sum(map(lambda x: tree.get_node(x).data * gamma ** path.index(x), path)) for path in
+                                 paths]
                         for c in paths[score.index(max(score))]:
                             if self.__get_color(tuple(c.split('|'))):
                                 color_change = self.__get_color(tuple(c.split('|')))
