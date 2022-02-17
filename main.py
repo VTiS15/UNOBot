@@ -2055,7 +2055,9 @@ class Bot:
                                           self.__is_similar(x, d['current']) or self.__get_value(x) in (
                                               '+4', 'wild')))
             elif '+2' in d['current']:
-                self.playables = list(set(x for x in self.cards if self.__get_value(x) in ('+4', '+2')))
+                self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+2'))
+                if not self.playables:
+                    self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+4'))
             else:
                 self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+4'))
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
@@ -2065,7 +2067,9 @@ class Bot:
                                           self.__is_similar(x, d['current']) or self.__get_value(x) in (
                                               '+2', 'wild')]
             elif '+1' in d['current']:
-                self.playables = list(set(x for x in self.cards if self.__get_value(x) in ('+1', '+2')))
+                self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+1'))
+                if not self.playables:
+                    self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+2'))
             else:
                 self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+2'))
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
