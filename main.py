@@ -1592,7 +1592,7 @@ class Bot:
                     return 20
                 else:
                     player_ids = list(d['players'].keys())
-                    if len(d['players'][(player_ids.index(str(self.id)) - 1 + len(player_ids)) % len(player_ids)][
+                    if len(d['players'][player_ids[(player_ids.index(str(self.id)) - 1 + len(player_ids)) % len(player_ids)]][
                                'cards']) == 1:
                         return 0
                     else:
@@ -1658,7 +1658,7 @@ class Bot:
                     return 20
                 else:
                     player_ids = list(d['players'].keys())
-                    if len(d['players'][(player_ids.index(str(self.id)) - 1 + len(player_ids)) % len(player_ids)][
+                    if len(d['players'][player_ids[(player_ids.index(str(self.id)) - 1 + len(player_ids)) % len(player_ids)]][
                                'cards']) == 1:
                         return 0
                     else:
@@ -1690,7 +1690,7 @@ class Bot:
                     return 20
                 else:
                     player_ids = list(d['players'].keys())
-                    if len(d['players'][(player_ids.index(str(self.id)) - 1 + len(player_ids)) % len(player_ids)][
+                    if len(d['players'][player_ids[(player_ids.index(str(self.id)) - 1 + len(player_ids)) % len(player_ids)]][
                                'cards']) == 1:
                         return 0
                     else:
