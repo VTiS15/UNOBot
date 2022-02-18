@@ -2409,7 +2409,7 @@ async def on_message(message):
                     color = 'orange'
                 elif color == 'z':
                     color = 'purple'
-                elif any(x in color for x in ('d', 'draw')) and int(
+                elif color and any(x in color for x in ('d', 'draw')) and int(
                         games[str(message.guild.id)]['player']) == message.author.id:
 
                     last_run = timestamp
