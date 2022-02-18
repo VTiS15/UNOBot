@@ -1364,8 +1364,14 @@ async def play_card(card, player: discord.Member):
         if not bot:
             if '+4' in card:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove('+4')
+
+                if str(client.user.id) in games[str(guild.id)]['players']:
+                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('+4', ''))
             elif 'wild' in card:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove('wild')
+
+                if str(client.user.id) in games[str(guild.id)]['players']:
+                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('wild', ''))
             else:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
@@ -1407,6 +1413,12 @@ async def play_card(card, player: discord.Member):
         if not bot:
             if c:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(c)
+
+                if len(games[str(guild.id)]['players'][str(player.id)]['cards']) == 1 and str(client.user.id) in games[str(guild.id)]['players']:
+                    if not games[str(guild.id)]['dark']:
+                        games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card[0].replace(c[0], ''))
+                    else:
+                        games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card[1].replace(c[1], ''))
             else:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
         else:
@@ -1553,6 +1565,7 @@ class Bot:
         self.games = games
         self.cards = cards
         self.reccount = 0
+        self.losing_colors = []
 
     def __get_color_and_value(self, card):
         d = self.games[str(self.guild.id)]
@@ -2084,6 +2097,14 @@ class Bot:
             else:
                 self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+5'))
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
+
+        if self.__get_color(d['current']) in self.losing_colors:
+            temp = [x for x in self.playables if self.__get_color(x) not in self.losing_colors]
+            if temp:
+                self.playables = temp
+                self.losing_colors = []
+        else:
+            self.losing_colors = []
 
         n = None
         p = list(d['players'].keys())
