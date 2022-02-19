@@ -26,7 +26,7 @@ Type the following `/u-` command to start a game of UNO.
 The bot will send a message to the your server. Users can react to the message to join the game in 30 seconds.\
 After 30 seconds, if there are enough (>1) players, a text channel for every player will be created and players can use their channels to play their hands.\
 <br/>
-If you want to view command usage, read an in-depth guide on using the bot, or read the rules of UNO, type `/u-help` in your Discord server.
+If you want to view command usage, read an in-depth guide on using the bot, or read the rules of UNO, type `/u-help` in your Discord server.\
 <br/>
 **Please DO NOT spam the bot.**
 ## Command Usage
