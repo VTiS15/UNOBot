@@ -307,7 +307,7 @@ async def initialize():
     await client.change_presence(activity=discord.Game(name=f'UNO | Use {prefix}help'))
 
 
-def rank(user: User=None, guild: Guild=None) -> Union[(int, int), list]:
+def rank(user: User=None, guild: Guild=None) -> Union[tuple, list]:
     """Calculates and returns the ranking of a player or a leaderboard.
 
     Args:
@@ -315,7 +315,7 @@ def rank(user: User=None, guild: Guild=None) -> Union[(int, int), list]:
         guild: The Discord guild user is in
 
     Returns:
-        Union[(int, int), list]: Either a user's local/global ranking with total number of local/global players (if user is specified) or a local/global leaderboard
+        Union[tuple, list]: Either a user's local/global ranking with total number of local/global players (if user is specified) or a local/global leaderboard
     """
 
     scores = []  # Stores the scores of players
