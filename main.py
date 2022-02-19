@@ -1,8 +1,10 @@
+# Import statements
 import asyncio
 import discord
 import json
 import boto3
 import sys
+from typing import Union
 from os import getenv
 from treelib import Tree
 from math import comb, e
@@ -22,10 +24,11 @@ from datetime import datetime
 from random import sample, choice
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
+from discord import ApplicationContext, User, Member, Guild, TextChannel
 
-prefix = '/u-'
-client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
-client.remove_command('help')
+prefix = '/u-'  # Prefix used in bot commands
+client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())  # Instantiates a Discord bot class
+client.remove_command('help')  # Removes the default help command in Pycord
 default_dgs = {
     "DrawUntilMatch": False,
     "QuickStart": False,
@@ -188,24 +191,34 @@ flip_cards = [('blue1', 'purpleskip'), ('blue2', 'pink6'), ('blue3', 'purple8'),
               ('yellowflip', 'pink4'),
               ('wild', 'pinkflip'), ('wild', 'purple7'), ('wild', 'pink5'), ('wild', 'teal3'), ('+2', 'orange4'),
               ('+2', 'pink2'), ('+2', 'purple9'), ('+2', 'orange7')]
-resets = []
-cooldowns = {}
-games = {}
-stack = {}
-ending = []
+resets = []  # List of guilds who wish to reset their data but have not yet confirmed
+cooldowns = {}  # Dictionary of command cooldowns
+games = {}  # Dictionary of ongoing games' data
+stack = {}  # Remembers guilds' card stacking
+ending = []  # List of guilds whose games are ending
 last_run = datetime.now()
+# Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
 s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                          aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
-sys.setrecursionlimit(10**5)
+sys.setrecursionlimit(10**5)  # Changes the system recursion limit to 100,000 for the AI
 
 
 def main():
+    """
+    Runs the Discord bot.
+    """
+
     client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
+    """
+    Initializes the bot.
+    """
+
+    # Load default game settings of guilds
     try:
         s3_resource.Object('unobot-bucket', 'dgs.json').load()
     except ClientError:
@@ -213,6 +226,7 @@ async def initialize():
     dgs_file = s3_resource.Object('unobot-bucket', 'dgs.json')
     dgs = json.loads(dgs_file.get()['Body'].read().decode('utf-8'))
 
+    # Load user settings
     try:
         s3_resource.Object('unobot-bucket', 'users.json').load()
     except ClientError:
@@ -220,6 +234,7 @@ async def initialize():
     users_file = s3_resource.Object('unobot-bucket', 'users.json')
     user_stuff = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
+    # Load command settings in guilds
     try:
         s3_resource.Object('unobot-bucket', 'commands.json').load()
     except ClientError:
@@ -227,8 +242,8 @@ async def initialize():
     commands_file = s3_resource.Object('unobot-bucket', 'commands.json')
     commands = json.loads(commands_file.get()['Body'].read().decode('utf-8'))
 
+    # Initializes or updates the configuration files
     if client.guilds:
-
         if not dgs:
             for guild in client.guilds:
                 dgs[str(guild.id)] = default_dgs
@@ -283,17 +298,31 @@ async def initialize():
         users_file.put(Body=b'{}')
         commands_file.put(Body=b'{}')
 
+    # Create the UNO Spectator role if it does not exist in a guild
     for guild in client.guilds:
         if not discord.utils.get(guild.roles, name='UNO Spectator'):
             await guild.create_role(name='UNO Spectator', color=discord.Color.red())
 
+    # Change the bot's presence
     await client.change_presence(activity=discord.Game(name=f'UNO | Use {prefix}help'))
 
 
-def rank(user=None, guild=None):
-    scores = []
+def rank(user: User=None, guild: Guild=None) -> Union[(int, int), list]:
+    """Calculates and returns the ranking of a player or a leaderboard.
+
+    Args:
+        user: The player whose ranking is to be returned
+        guild: The Discord guild user is in
+
+    Returns:
+        Union[(int, int), list]: Either a user's local/global ranking with total number of local/global players (if user is specified) or a local/global leaderboard
+    """
+
+    scores = []  # Stores the scores of players
+    # Load users' data
     users = json.loads(s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
 
+    # Calculate and append the scores into the scores list
     if guild:
         for id in [x for x in list(users.keys()) if guild.get_member(int(x))]:
             scores.append(users[id][str(guild.id)]['Score'])
@@ -306,7 +335,9 @@ def rank(user=None, guild=None):
             scores.append(s)
             s = 0
 
+    # Create a leaderboard
     leaderboard = len(scores) - rankdata(scores, method='max') + 1
+    # Return the player's ranking with total number of players or the leaderboard
     if user:
         if guild:
             return round(leaderboard[[x for x in list(users.keys()) if guild.get_member(int(x))].index(str(user.id))]), len(leaderboard)
@@ -316,7 +347,13 @@ def rank(user=None, guild=None):
         return [round(x) for x in leaderboard]
 
 
-def has_played(user):
+def has_played(user: User):
+    """Checks if a user has ever played an UNO game using UNOBot.
+
+    Args:
+        user: A Discord user
+    """
+
     for guild in [x for x in client.guilds if x.get_member(user.id)]:
         if json.loads(s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))[
             str(user.id)][str(guild.id)]['Played'] > 0:
@@ -325,11 +362,27 @@ def has_played(user):
     return False
 
 
-def no_guild(user):
+def no_guild(user: User):
+    """Checks if a user does not belong to any guild.
+
+    Args:
+        user: A Discord user
+    """
+
     return any(guild.get_member(user.id) for guild in client.guilds)
 
 
-def list_duplicates_of(seq, item):
+def list_duplicates_of(seq: list, item: int) -> list:
+    """Lists the indexes of duplicates in an integer sequence.
+
+    Args:
+        seq: An integer sequence
+        item: The target item in seq
+
+    Returns:
+        list: a list of the indexes of the duplicates of item
+    """
+
     start_at = -1
     locs = []
 
@@ -345,7 +398,14 @@ def list_duplicates_of(seq, item):
     return locs
 
 
-async def cmd_info(ctx, cmd):
+async def cmd_info(ctx: ApplicationContext, cmd: str):
+    """Sends a Discord embed of the information of a command.
+
+    Args:
+        ctx: The context in which the command that called this function is being invoked under
+        cmd: The command whose information is to be sent
+    """
+
     message = discord.Embed(title=prefix + 'settings commands ' + cmd, color=discord.Color.red())
     message.add_field(name=':level_slider: Toggle ' + cmd.capitalize(),
                       value='Turns a specific command on or off.\n\n`' + prefix + 'settings commands ' + cmd + ' <on|off>`\n' + chr(
@@ -363,18 +423,28 @@ async def cmd_info(ctx, cmd):
     await ctx.respond(embed=message)
 
 
-async def game_setup(ctx, d, bot):
-    guild = ctx.guild
+async def game_setup(ctx: ApplicationContext, d: dict, bot: bool):
+    """Sets up an UNO game.
 
+    Args:
+        ctx: The context in which the command that called this function is being invoked under
+        d: The data storage of the game being created
+        bot: Whether UNOBot is playing
+    """
+
+    guild = ctx.guild
     flip = d['settings']['Flip']
 
+    # Create a channel category for UNO
     category = await guild.create_category('UNO-GAME')
 
-    if d['settings']['Flip']:
+    # Assign cards to the game
+    if flip:
         d['cards'] = flip_cards
     else:
         d['cards'] = cards
 
+    # Assign a hand from the deck to UNOBot if UNOBot is playing
     if bot:
         hand = sample(d['cards'], d['settings']['StartingCards'])
         b = Bot(ctx.guild, games, hand)
@@ -383,14 +453,22 @@ async def game_setup(ctx, d, bot):
 
     player_ids = list(d['players'].keys())
 
+    # Determine the order of play
     order = sample(player_ids, len(player_ids))
     ordered_dict = OrderedDict()
     for x in order:
         ordered_dict[x] = d['players'][x]
 
+    # Assign the player list to the game
     d['players'] = dict(ordered_dict)
 
-    async def set_channel(id):
+    async def set_channel(id: str):
+        """Creates a channel for a player.
+
+        Args:
+            id (str): The ID of the player
+        """
+
         player = guild.get_member(int(id))
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -420,8 +498,10 @@ async def game_setup(ctx, d, bot):
         gsettings = await channel.send(content=gcontents)
         await gsettings.pin()
 
+    # Create player channels for UNO
     await asyncio.gather(*[asyncio.create_task(set_channel(x)) for x in player_ids if x != str(client.user.id)])
 
+    # Create a spectator channel if the game allows spectating
     if d['settings']['SpectateGame']:
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -430,20 +510,24 @@ async def game_setup(ctx, d, bot):
         }
         await category.create_text_channel('Spectator-UNO-Channel', overwrites=overwrites)
 
+    # Let UNOBot know which channels to send messages to if UNOBot is playing
     if bot:
         b.channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
 
     for id in [x for x in player_ids if x != str(client.user.id)]:
+        # Assign more cards to the deck while the deck is not enough
         while len(d['cards']) <= d['settings']['StartingCards']:
             if flip:
                 d['cards'] += flip_cards
             else:
                 d['cards'] += cards
 
+        # Assign a hand from the deck to a player
         hand = sample(d['cards'], d['settings']['StartingCards'])
         d['players'][id]['cards'] = hand
         d['cards'] = [card for card in d['cards'] if card not in hand]
 
+        # Craft and send an embed message that displays the opening hand of a player
         m = discord.Embed(title='Your cards:', color=discord.Color.red())
 
         if not flip:
@@ -495,6 +579,7 @@ async def game_setup(ctx, d, bot):
                                                                                         '-')) + '-uno-channel').send(
             file=file, embed=m)
 
+    # Assign the top card of the game
     if flip:
         c = choice(
             [card for card in d['cards'] if
@@ -507,6 +592,7 @@ async def game_setup(ctx, d, bot):
         d['current'] = choice(
             [card for card in d['cards'] if card != 'wild' and card != '+4'])
 
+    # Craft and send a message that displays the top card of the game to every player (except UNOBot)
     if d['settings']['Flip']:
         color = search(r'red|blue|green|yellow', d['current'][0]).group(0)
     else:
@@ -537,25 +623,34 @@ async def game_setup(ctx, d, bot):
         message.set_image(url='attachment://topcard.png')
         await channel.send(file=file, embed=message)
 
+    # Specify the first player
     d['player'] = int(order[0])
     cplayer = order[0]
 
+    # Light side first if Flip
     if flip:
         d['dark'] = False
 
+    # Clear the guild's stack data if not done
     try:
         del stack[str(guild.id)]
     except KeyError:
         pass
 
+    # Print a message to the console stating a game has successfully started in the guild
     print(
         '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(guild) + '.')
 
+    # Handle the case where the top card is a draw card
+    # Get the hand of the first player
     if cplayer != str(client.user.id):
         hand = d['players'][cplayer]['cards']
     else:
         hand = d['players'][cplayer].cards
 
+    # Check if the first player has any draw cards that can be used to stack
+    # If they have, allow them to stack
+    # If they do not, draw them
     if not d['settings']['Flip']:
         if '+2' in d['current']:
             if d['settings']['StackCards'] and any('+2' in card for card in hand) or any('+4' in card for card in hand):
@@ -606,16 +701,28 @@ async def game_setup(ctx, d, bot):
                 await display_cards(guild.get_member(int(cplayer)))
 
 
-async def game_shutdown(d, winner: discord.Member = None, guild=None):
+async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
+    """Shuts down a game.
+
+    Args:
+        d: The data storage of the game being shut down
+        winner: The winner of the game
+        guild: The Discord guild where the game is happening
+    """
+
     player_ids = list(d['players'].keys())
 
+    # If there is a winner
     if winner and not guild:
         guild = winner.guild
 
+        # Load users' data
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
+        # Initialize the score the winner gets to 0
         score = 0
+        # Calculate winner's score and losers' penalties (if they are not UNOBot)
         for key in [x for x in player_ids if x != str(winner.id)]:
             if key != str(client.user.id):
                 cards = games[str(guild.id)]['players'][key]['cards']
@@ -670,6 +777,7 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
 
             score += temp
 
+        # Craft a message that displays who won and their score (if they are not UNOBot)
         if winner.id != client.user.id:
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
@@ -696,10 +804,12 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
 
         await asyncio.sleep(10)
 
+    # Delete the UNO channels and category
     for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
         await channel.delete()
     await discord.utils.get(guild.categories, name='UNO-GAME').delete()
 
+    # Clear the game's data
     del games[str(guild.id)]
     ending.remove(str(guild.id))
     try:
@@ -707,22 +817,36 @@ async def game_shutdown(d, winner: discord.Member = None, guild=None):
     except KeyError:
         pass
 
+    # Print a message to the console stating the game has been successfully shut down
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has ended in ' + str(guild))
 
 
-async def draw(player: discord.Member, number, DUM=False, color=False):
+async def draw(player: Member, number: int, DUM: bool=False, color: bool=False):
+    """Draws a player in a game.
+
+    Args:
+        player: The player to be drawn
+        number: The number of cards the player is to draw
+        DUM: Whether the player needs to draw until match
+        color: Whether the player is subject to Wild Draw Color's effect
+    """
+
     guild = player.guild
     bot = None
 
     if player.id == client.user.id:
         bot = games[str(guild.id)]['players'][str(client.user.id)]
 
+    # Wild Draw Color case
     if color:
-        draw = []
+        draw = []  # A list to keep track of the drawn cards
 
+        # Get the color of the Wild Draw Color
         current_color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
+        # Randomly pick a card from the deck
         c = choice(games[str(guild.id)]['cards'])
 
+        # Add the card from the deck to the player's hand
         if not bot:
             games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
             games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
@@ -731,15 +855,22 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
             bot.cards.append(c)
             games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if card not in bot.cards]
 
+        # Replenish the deck if no card is left
         if not games[str(guild.id)]['cards']:
-            games[str(guild.id)]['cards'] += cards
+            if not games[str(guild.id)]['settings']['Flip']:
+                games[str(guild.id)]['cards'] += cards
+            else:
+                games[str(guild.id)]['cards'] += flip_cards
 
+        # Append the card to the draw list
         draw.append(c)
 
+        # Keep drawing the player while he does not get a card of the specified color
         color = search(r'pink|teal|orange|purple', c[1])
         while not color or color.group(0) != current_color:
             c = choice(games[str(guild.id)]['cards'])
 
+            # Add the card from the deck to the player's hand
             if not bot:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
                 games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
@@ -749,18 +880,84 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                 games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
                                                  card not in bot.cards]
 
+            # Replenish the deck if no card is left
             if not games[str(guild.id)]['cards']:
-                games[str(guild.id)]['cards'] += cards
+                if not games[str(guild.id)]['settings']['Flip']:
+                    games[str(guild.id)]['cards'] += cards
+                else:
+                    games[str(guild.id)]['cards'] += flip_cards
 
+            # Append the card to the draw list
             draw.append(c)
 
             color = search(r'pink|teal|orange|purple', c[1])
 
-    else:
-        if not DUM:
-            draw = []
+    # Normal case
+    elif not DUM:
+        draw = []  # A list to keep track of the drawn cards
 
-            for i in range(number):
+        # Draw the player {number} cards
+        for i in range(number):
+            # Randomly pick a card from the deck
+            c = choice(games[str(guild.id)]['cards'])
+
+            # Add the card from the deck to the player's hand
+            if not bot:
+                games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
+                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                                 card not in games[str(guild.id)]['players'][str(player.id)][
+                                                     'cards']]
+            else:
+                bot.cards.append(c)
+                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                             card not in bot.cards]
+
+            # Replenish the deck if no card is left
+            if not games[str(guild.id)]['cards']:
+                if not games[str(guild.id)]['settings']['Flip']:
+                    games[str(guild.id)]['cards'] += cards
+                else:
+                    games[str(guild.id)]['cards'] += flip_cards
+
+            # Append the card to the draw list
+            draw.append(c)
+
+    # Draw Until Match case
+    else:
+        draw = []  # A list to keep track of the drawn cards
+        # Randomly pick a card from the deck
+        c = choice(games[str(guild.id)]['cards'])
+
+        # Add the card from the deck to the player's hand
+        if not bot:
+            games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
+            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                             card not in games[str(guild.id)]['players'][str(player.id)][
+                                                 'cards']]
+        else:
+            bot.cards.append(c)
+            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                             card not in bot.cards]
+
+        # Replenish the deck if no card is left
+        if not games[str(guild.id)]['cards']:
+            if not games[str(guild.id)]['settings']['Flip']:
+                games[str(guild.id)]['cards'] += cards
+            else:
+                games[str(guild.id)]['cards'] += flip_cards
+
+        # Append the card to the draw list
+        draw.append(c)
+
+        # Keep drawing the player while he does not get a playable card
+        if not games[str(guild.id)]['settings']['Flip']:
+            current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
+            current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current']).group(0)
+
+            color = search(r'red|blue|green|yellow', c).group(0)
+            value = search(r'\+[42]|wild|skip|reverse|\d', c).group(0)
+
+            while color != current_color and value != current_value or not any(x in c for x in ('+4', 'wild')):
                 c = choice(games[str(guild.id)]['cards'])
 
                 if not bot:
@@ -771,49 +968,33 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                 else:
                     bot.cards.append(c)
                     games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in bot.cards]
+                                                     card not in bot.cards]
 
                 if not games[str(guild.id)]['cards']:
-                    if not games[str(guild.id)]['settings']['Flip']:
-                        games[str(guild.id)]['cards'] += cards
-                    else:
-                        games[str(guild.id)]['cards'] += flip_cards
+                    games[str(guild.id)]['cards'] += cards
 
                 draw.append(c)
-
-        else:
-            draw = []
-            c = choice(games[str(guild.id)]['cards'])
-
-            if not bot:
-                games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in games[str(guild.id)]['players'][str(player.id)][
-                                                     'cards']]
-            else:
-                bot.cards.append(c)
-                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in bot.cards]
-
-            if not games[str(guild.id)]['cards']:
-                games[str(guild.id)]['cards'] += cards
-
-            draw.append(c)
-
-            if not games[str(guild.id)]['settings']['Flip']:
-                current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
-                current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current']).group(0)
 
                 color = search(r'red|blue|green|yellow', c).group(0)
                 value = search(r'\+[42]|wild|skip|reverse|\d', c).group(0)
 
-                while color != current_color and value != current_value or not any(x in c for x in ('+4', 'wild')):
+        else:
+            if not games[str(guild.id)]['dark']:
+                current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
+                current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current'][0]).group(0)
+
+                color = search(r'red|blue|green|yellow', c[0]).group(0)
+                value = search(r'\+[42]|wild|skip|reverse|\d', c[0]).group(0)
+
+                while color != current_color and value != current_value or not any(
+                        x in c[0] for x in ('+2', 'wild')):
                     c = choice(games[str(guild.id)]['cards'])
 
                     if not bot:
                         games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
                         games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in games[str(guild.id)]['players'][str(player.id)][
+                                                         card not in
+                                                         games[str(guild.id)]['players'][str(player.id)][
                                                              'cards']]
                     else:
                         bot.cards.append(c)
@@ -825,70 +1006,40 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
 
                     draw.append(c)
 
-                    color = search(r'red|blue|green|yellow', c).group(0)
-                    value = search(r'\+[42]|wild|skip|reverse|\d', c).group(0)
-
-            else:
-                if not games[str(guild.id)]['dark']:
-                    current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
-                    current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current'][0]).group(0)
-
                     color = search(r'red|blue|green|yellow', c[0]).group(0)
                     value = search(r'\+[42]|wild|skip|reverse|\d', c[0]).group(0)
 
-                    while color != current_color and value != current_value or not any(
-                            x in c[0] for x in ('+2', 'wild')):
-                        c = choice(games[str(guild.id)]['cards'])
+            else:
+                current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][1]).group(0)
+                current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current'][1]).group(0)
 
-                        if not bot:
-                            games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                             card not in
-                                                             games[str(guild.id)]['players'][str(player.id)][
-                                                                 'cards']]
-                        else:
-                            bot.cards.append(c)
-                            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                             card not in bot.cards]
+                color = search(r'pink|teal|orange|purple', c[1]).group(0)
+                value = search(r'\+([251]|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
 
-                        if not games[str(guild.id)]['cards']:
-                            games[str(guild.id)]['cards'] += cards
+                while color != current_color and value != current_value or not any(
+                        x in c[1] for x in ('+color', 'wild')):
+                    c = choice(games[str(guild.id)]['cards'])
 
-                        draw.append(c)
+                    if not bot:
+                        games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
+                        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                                         card not in
+                                                         games[str(guild.id)]['players'][str(player.id)][
+                                                             'cards']]
+                    else:
+                        bot.cards.append(c)
+                        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
+                                                         card not in bot.cards]
 
-                        color = search(r'red|blue|green|yellow', c[0]).group(0)
-                        value = search(r'\+[42]|wild|skip|reverse|\d', c[0]).group(0)
+                    if not games[str(guild.id)]['cards']:
+                        games[str(guild.id)]['cards'] += cards
 
-                else:
-                    current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][1]).group(0)
-                    current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current'][1]).group(0)
+                    draw.append(c)
 
-                    color = search(r'pink|teal|orange|purple', c[1]).group(0)
-                    value = search(r'\+([251]|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
+                    color = search(r'red|blue|green|yellow', c[1]).group(0)
+                    value = search(r'\+[42]|wild|skip|reverse|\d', c[1]).group(0)
 
-                    while color != current_color and value != current_value or not any(
-                            x in c[1] for x in ('+color', 'wild')):
-                        c = choice(games[str(guild.id)]['cards'])
-
-                        if not bot:
-                            games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                             card not in
-                                                             games[str(guild.id)]['players'][str(player.id)][
-                                                                 'cards']]
-                        else:
-                            bot.cards.append(c)
-                            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                             card not in bot.cards]
-
-                        if not games[str(guild.id)]['cards']:
-                            games[str(guild.id)]['cards'] += cards
-
-                        draw.append(c)
-
-                        color = search(r'red|blue|green|yellow', c[1]).group(0)
-                        value = search(r'\+[42]|wild|skip|reverse|\d', c[1]).group(0)
-
+    # Craft a message that displays the details of the drawn card(s) to every player (except UNOBot)
     message = None
     if not bot:
         description = 'You drew '
@@ -1007,11 +1158,23 @@ async def draw(player: discord.Member, number, DUM=False, color=False):
                     x.category.name == 'UNO-GAME'])
 
 
-async def display_cards(player: discord.Member):
+async def display_cards(player: Member):
+    """Displays the current player's hand to every player except UNOBot.
+
+    Args:
+        player: The current player
+    """
+
     guild = player.guild
 
     if str(guild.id) not in ending:
-        async def send_cards(channel):
+        async def send_cards(channel: TextChannel):
+            """Sends a player's hand to every UNO channel.
+
+            Args:
+                channel (TextChannel): The channel of the current player
+            """
+
             if channel.name == sub(r'[^\w -]', '',
                                    player.name.lower().replace(' ', '-')) + '-uno-channel':
                 if not games[str(guild.id)]['settings']['Flip']:
@@ -1290,23 +1453,33 @@ async def display_cards(player: discord.Member):
             except ClientOSError:
                 pass
 
+        # Send the current player's hand to every UNO channel
         await asyncio.gather(
             *[asyncio.create_task(send_cards(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
+        # Change the current player of the game
         games[str(guild.id)]['player'] = player.id
 
+        # Tell UNOBot to play if UNOBot is the current player
         if player.id == client.user.id:
             await games[str(guild.id)]['players'][str(client.user.id)].play()
 
-    else:
-        ending.remove(str(guild.id))
 
-        return
+def get_hands(guild: Guild, player: Member, n: Member) -> Select:
+    """Returns the hands of every player except the current player in the form of a Discord select menu
+    for when a 7 card is played under 7-0 game rule.
 
+    Args:
+        guild: The guild where the game is happening
+        player: The player that wants to see hands of every other player
+        n: The next player
 
-def get_hands(guild, player: discord.Member, n: discord.Member):
-    options = []
+    Returns:
+        Select: a Discord select menu containing the details of all other players' hands
+    """
+    options = []  # A list of options for the select menu
 
+    # Create the select menu options
     for key in [x for x in games[str(guild.id)]['players'] if x != str(player.id)]:
         if key != str(client.user.id):
             options.append(SelectOption(
@@ -1319,6 +1492,7 @@ def get_hands(guild, player: discord.Member, n: discord.Member):
                 description=f'{len(games[str(guild.id)]["players"][key].cards)} cards'
             ))
 
+    # Create and return the select menu if player is not UNOBot
     if player.id != client.user.id:
         select = Select(placeholder='Choose a player...',
                         min_values=1,
@@ -1353,13 +1527,22 @@ def get_hands(guild, player: discord.Member, n: discord.Member):
         return select
 
 
-async def play_card(card, player: discord.Member):
+async def play_card(card: str, player: Member):
+    """Plays a card on behalf of a player.
+
+    Args:
+        card: The card played by the player
+        player: The player who played the card
+    """
+
     guild = player.guild
     bot = None
 
+    # Check if player is UNOBot
     if player.id == client.user.id:
         bot = games[str(guild.id)]['players'][str(client.user.id)]
 
+    # Removes the played card from player's hand and puts it back to the deck
     if not games[str(guild.id)]['settings']['Flip']:
         if not bot:
             if '+4' in card:
@@ -1440,8 +1623,10 @@ async def play_card(card, player: discord.Member):
 
         games[str(guild.id)]['cards'].append(games[str(guild.id)]['current'])
 
+    # Make the played card the first card on the discard pile
     games[str(guild.id)]['current'] = card
 
+    # Craft an embed message that displays the played card to all players except UNOBot
     if games[str(guild.id)]['settings']['Flip']:
         if not games[str(guild.id)]['dark']:
             color = search(r'red|blue|green|yellow', card[0]).group(0)
@@ -1491,7 +1676,13 @@ async def play_card(card, player: discord.Member):
          round(image.size[1] / 6.0123456790123456790123456790123)),
         Image.ANTIALIAS)
 
-    async def send_card(channel):
+    async def send_card(channel: TextChannel):
+        """Sends the played card to a channel.
+
+        Args:
+            channel: The channel to receive the message
+        """
+
         with BytesIO() as image_binary:
             refined.save(image_binary, format='PNG', quality=100)
             image_binary.seek(0)
@@ -1501,9 +1692,11 @@ async def play_card(card, player: discord.Member):
 
         await channel.send(file=file, embed=message)
 
+    # Send the played card to all UNO channels
     await asyncio.gather(
         *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
+    # Get the next player
     n = None
     p = list(games[str(guild.id)]['players'].keys())
 
@@ -1513,9 +1706,12 @@ async def play_card(card, player: discord.Member):
             n = guild.get_member(int(next(temp, next(iter(p)))))
             break
 
+    # If the player has no card left
     if player.id != client.user.id and not games[str(guild.id)]['players'][str(player.id)]['cards'] or bot and not bot.cards:
+        # Make the game ending
         ending.append(str(guild.id))
 
+        # If the last card is a draw card, draw the next player
         if any('+' in x for x in (card, card[0], card[1])):
             if '4' in card:
                 if str(guild.id) in stack:
@@ -1549,14 +1745,37 @@ async def play_card(card, player: discord.Member):
             elif 'color' in card[1] and games[str(guild.id)]['dark']:
                 await draw(n, 1, False, True)
 
+        # If the last card is a flip card, flip everything
         elif 'flip' in card[0] and not games[str(guild.id)]['dark'] or 'flip' in card[1] and games[str(guild.id)]['dark']:
             games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
 
+        # Shut down the game where the player wins
         await game_shutdown(games[str(guild.id)], player)
 
 
 class Bot:
+    """The AI that plays UNO by the name of UNOBot.
+
+    When a user mentions UNOBot in the StartGame (/u-sg) command, UNOBot will join the game and play using this AI.
+    This AI is NOT trained. However, machine learning elements (e.g. neural network, weights & biases) are present in
+    the code and it adopts what is considered the optimal strategy for UNO. Since UNO is based substantially on luck,
+    trained AI is only 3% more likely to win against a random player. Training an AI for UNO is thereby worthless.
+    A player can beat this AI quite easily. DO NOT expect perfection from this AI or any other UNO AI.
+
+    Attributes:
+        name: The name of the AI, which is UNOBot
+        id: The ID of UNOBot
+        guild: The guild where UNOBot is playing in
+        channels: A list of text channels UNOBot sends messages in
+        member: A member instance of UNOBot
+        cards: The hand of UNOBot
+        reccount: Number of recursion(s) done by the AI
+        losing_colors: A color that will guarantee a loss for UNOBot
+    """
+
     def __init__(self, guild, games, cards):
+        """Initializes the AI."""
+
         self.name = 'UNOBot'
         self.id = client.user.id
         self.guild = guild
@@ -1567,7 +1786,16 @@ class Bot:
         self.reccount = 0
         self.losing_colors = []
 
-    def __get_color_and_value(self, card):
+    def __get_color_and_value(self, card: Union[str, tuple]) -> (str, str):
+        """Returns the color and value of an UNO card.
+
+        Args:
+            card: An UNO card
+
+        Returns:
+            (str, str): The color and value of the UNO card
+        """
+
         d = self.games[str(self.guild.id)]
 
         if not d['settings']['Flip']:
@@ -1590,13 +1818,40 @@ class Bot:
 
         return color, value
 
-    def __get_color(self, card):
+    def __get_color(self, card: Union[str, tuple]) -> str:
+        """Returns the color of an UNO card.
+
+        Args:
+            card: An UNO card
+
+        Returns:
+            str: The color of the UNO card
+        """
+
         return self.__get_color_and_value(card)[0]
 
-    def __get_value(self, card):
+    def __get_value(self, card: Union[str, tuple]) -> str:
+        """Returns the value of an UNO card.
+
+        Args:
+            card: An UNO card
+
+        Returns:
+            str: The value of the UNO card
+        """
+
         return self.__get_color_and_value(card)[1]
 
-    def __get_score(self, value):
+    def __get_score(self, value: str) -> int:
+        """Returns the score (i.e. weight/bias) of an UNO card of a value.
+
+        Args:
+            value: The value of an UNO card
+
+        Returns:
+            The score (i.e. weight/bias) of an UNO card of the value
+        """
+
         d = self.games[str(self.guild.id)]
 
         if not d['settings']['Flip']:
@@ -1731,13 +1986,30 @@ class Bot:
             else:
                 return int(value)
 
-    def __is_similar(self, x, y):
+    def __is_similar(self, x: Union[str, tuple], y: Union[str, tuple]) -> bool:
+        """Checks if cards x and y are similar.
+
+        Args:
+            x: An UNO card
+            y: Another UNO card
+
+        Returns:
+            bool: Whether x and y are similar
+        """
+
         return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(
             y) or any(t in ('+4', 'wild') or t[0] in ('+2', 'wild') and not
         self.games[str(self.guild.id)]['dark'] or t[1] in ('+color', 'wild') and self.games[str(self.guild.id)]['dark']
                       for t in (x, y))
 
-    def __build_tree(self, tree, root):
+    def __build_tree(self, tree: Tree, root: str):
+        """Builds a tree (i.e. neural network) according to the optimal strategy.
+
+        Args:
+            tree: A tree to be built
+            root: The root to which children will be added
+        """
+
         self.reccount += 1
 
         d = self.games[str(self.guild.id)]
@@ -1797,7 +2069,13 @@ class Bot:
                 if self.reccount <= 1000:
                     self.__build_tree(tree, card[0] + '|' + card[1] + str(count))
 
-    async def __execute_card(self, value):
+    async def __execute_card(self, value: str):
+        """Executes an UNO card according to its value.
+
+        Args:
+            value: The value of an UNO card
+        """
+
         n = None
         p = list(self.games[str(self.guild.id)]['players'].keys())
 
@@ -2063,6 +2341,8 @@ class Bot:
                 await display_cards(n)
 
     async def play(self):
+        """Plays an UNO card."""
+
         d = self.games[str(self.guild.id)]
 
         if not d['settings']['Flip']:
@@ -2244,17 +2524,22 @@ class Bot:
                 await display_cards(n)
 
 
+# Events
 @client.event
 async def on_ready():
+    # Initialize UNOBot
     await initialize()
 
+    # Print a ready message to the console once initialization is complete
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot is ready.')
 
 
 @client.event
 async def on_guild_join(guild):
+    # Update the configuration files
     await initialize()
 
+    # Print a success message to the console
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot has joined the guild ' + str(
         guild) + '.')
     await guild.text_channels[0].send(
@@ -2264,13 +2549,17 @@ async def on_guild_join(guild):
 
 @client.event
 async def on_guild_remove(guild):
+    # Update the configuration files
     await initialize()
+
+    # Print a success message to the console
     print(
         '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot has left the guild ' + str(guild) + '.')
 
 
 @client.event
 async def on_member_join(member):
+    # Add user data to user configuration file if the user is not a bot
     if not member.bot:
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         user_stuff = json.loads(users_file.get()['Body'].read().decode('utf-8'))
@@ -2296,6 +2585,7 @@ async def on_member_join(member):
 
 @client.event
 async def on_member_remove(member):
+    # Remove user data from user configuration file if the user is not a bot
     if not member.bot:
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         user_stuff = json.loads(users_file.get()['Body'].read().decode('utf-8'))
@@ -2312,6 +2602,13 @@ async def on_member_remove(member):
 
 @client.event
 async def on_message(message):
+    """Handles resetting and all the card playing
+
+    Args:
+        message: The message sent by a Discord user
+    """
+
+
     global last_run
     timestamp = datetime.now()
 
@@ -3591,6 +3888,7 @@ async def on_message(message):
             await client.process_commands(message)
 
 
+# Commands
 @client.slash_command(name='u-help', description='Shows the command usage, an in-depth guide on using UNOBot and a link to the rules of UNO.')
 @has_permissions(read_messages=True)
 async def help(ctx):
