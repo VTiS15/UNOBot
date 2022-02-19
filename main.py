@@ -3896,7 +3896,7 @@ async def stats(ctx, user: Option(discord.User, 'The user whose local stats you 
                                           round(dict['Wins'] / dict['Played'] * 100)) + '%** of games',
                                       inline=False)
                     if dict['Played'] == 1:
-                        message.add_field(name='Total Games', value='**1 game played',
+                        message.add_field(name='Total Games', value='**1** game played',
                                           inline=False)
                     else:
                         message.add_field(name='Total Games', value='**' + str(dict['Played']) + '** games played',
