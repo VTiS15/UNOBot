@@ -1750,8 +1750,13 @@ async def play_card(card: str, player: Member):
             games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
 
         # Edit the game invitation message in order to show who the winner is
-        print(games[str(guild.id)]['message'])
-        m = await player.fetch_message(games[str(guild.id)]['message'])
+        for channel in guild.channels:
+            try:
+                m = await channel.fetch_message(games[str(guild.id)]['message'])
+            except discord.NotFound:
+                continue
+            else:
+                break
         m_dict = m.embeds[0].to_dict()
         m_value = None
         for field in m_dict['fields']:
