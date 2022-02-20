@@ -1749,6 +1749,18 @@ async def play_card(card: str, player: Member):
         elif 'flip' in card[0] and not games[str(guild.id)]['dark'] or 'flip' in card[1] and games[str(guild.id)]['dark']:
             games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
 
+        # Edit the game invitation message in order to show who the winner is
+        m = await player.fetch_message(games[str(guild.id)]['message'])
+        m_dict = m.embeds[0].to_dict()
+        m_value = None
+        for field in m_dict['fields']:
+            if field['name'] == 'Players:':
+                m_value = field['value']
+                break
+
+        m_value.replace(f':small_blue_diamond: {player.name}', f':crown: {player.name}')
+        await m.edit(embed=discord.Embed.from_dict(m_dict))
+
         # Shut down the game where the player wins
         await game_shutdown(games[str(guild.id)], player)
 
@@ -5295,8 +5307,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 else:
 
                                     if str(guild.id) in games and 'current' not in games[str(guild.id)]:
-                                        message_dict = message.embeds[0].to_dict()
-
                                         del games[str(guild.id)]['players'][str(user.id)]
 
                                         if len(games[str(guild.id)]['players'].keys()) == 0:
@@ -5316,7 +5326,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                             message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
 
-                                        await message.edit(embed=discord.Embed.from_dict(message_dict))
+                                        await message.edit(embed=message.embeds[0])
                             join.callback = join_callback
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
@@ -5386,8 +5396,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             response = await ctx.respond(embed=message, view=view)
                             e = await response.original_message()
-                            games[str(ctx.guild.id)]['message'] = e
                             eid = e.id
+                            games[str(ctx.guild.id)]['message'] = eid
 
                             while True:
                                 if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
