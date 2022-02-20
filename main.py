@@ -1750,7 +1750,7 @@ async def play_card(card: str, player: Member):
             games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
 
         # Edit the game invitation message in order to show who the winner is
-        for channel in guild.channels:
+        for channel in guild.text_channels:
             try:
                 m = await channel.fetch_message(games[str(guild.id)]['message'])
             except discord.NotFound:
