@@ -5270,8 +5270,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 guild = interaction.guild
                                 user = interaction.user
 
-                                message_dict = message.embeds[0].to_dict()
-
                                 if str(user.id) not in games[str(guild.id)]['players']:
 
                                     for g in client.guilds:
@@ -5292,8 +5290,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                 int(key)).name + '\n')
 
                                         message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
-
-                                    await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
 
                                 else:
 
@@ -5389,6 +5385,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             response = await ctx.respond(embed=message, view=view)
                             e = await response.original_message()
+                            games[str(ctx.guild.id)]['message'] = e
                             eid = e.id
 
                             while True:
