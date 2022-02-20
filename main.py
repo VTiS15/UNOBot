@@ -5271,7 +5271,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 user = interaction.user
 
                                 if str(user.id) not in games[str(guild.id)]['players']:
-
                                     for g in client.guilds:
                                         user_options[str(user.id)].pop(str(g.id), None)
 
@@ -5290,6 +5289,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                 int(key)).name + '\n')
 
                                         message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
+
+                                    await message.edit(embed=message.embeds[0])
 
                                 else:
 
