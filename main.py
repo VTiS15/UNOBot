@@ -5361,7 +5361,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                             await game_setup(await client.get_context(interaction.message),
                                                              games[str(interaction.guild.id)], bot)
-                                        except discord.errors.NotFound:
+                                        except discord.NotFound:
                                             pass
                             start.callback = start_callback
 
