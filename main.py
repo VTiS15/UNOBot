@@ -1761,10 +1761,9 @@ async def play_card(card: str, player: Member):
         m_value = None
         for field in m_dict['fields']:
             if field['name'] == 'Players:':
-                m_value = field['value']
+                field['value'] = field['value'].replace(f':small_blue_diamond: {player.name}', f':crown: {player.name}')
                 break
 
-        m_value.replace(f':small_blue_diamond: {player.name}', f':crown: {player.name}')
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
         # Shut down the game where the player wins
