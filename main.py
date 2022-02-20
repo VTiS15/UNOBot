@@ -1753,7 +1753,7 @@ async def play_card(card: str, player: Member):
         for channel in guild.text_channels:
             try:
                 m = await channel.fetch_message(games[str(guild.id)]['message'])
-            except discord.NotFound:
+            except discord.NotFound or discord.Forbidden:
                 continue
             else:
                 break
