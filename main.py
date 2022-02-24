@@ -1693,8 +1693,11 @@ async def play_card(card: str, player: Member):
         await channel.send(file=file, embed=message)
 
     # Send the played card to all UNO channels
-    await asyncio.gather(
-        *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+    try:
+        await asyncio.gather(
+            *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+    except discord.NotFound:
+        pass
 
     # Get the next player
     n = None
