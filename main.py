@@ -5769,18 +5769,23 @@ async def kick(ctx, user):
 
                     if len(games[str(ctx.guild.id)]['players']) >= 2:
                         if player.id != client.user.id:
-                            await discord.utils.get(ctx.guild.text_channels,
+                            channel = discord.utils.get(ctx.guild.text_channels,
                                                     name=sub(r'[^\w -]', '',
                                                              player.name.lower().replace(' ',
-                                                                                         '-')) + '-uno-channel').delete()
+                                                                                         '-')) + '-uno-channel')
+
+                            await channel.delete()
+
+                            if str(client.user.id) in games[str(ctx.guild.id)]['players']:
+                                games[str(ctx.guild.id)]['players'][str(client.user.id)].channels.remove(channel)
 
                             await asyncio.gather(*[asyncio.create_task(x.send(
-                                discord.Embed(description=':warning: **' + player.name + '** was kicked.'))) for x in
+                                embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.'))) for x in
                                 ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
                         else:
                             await asyncio.gather(*[asyncio.create_task(x.send(
-                                discord.Embed(description=':warning: **UNOBot** was kicked.'))) for x in
+                                embed=discord.Embed(description=':warning: **UNOBot** was kicked.'))) for x in
                                 ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
                         if player.id == games[str(ctx.guild.id)]['player']:
