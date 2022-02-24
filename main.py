@@ -5670,11 +5670,11 @@ async def leavegame(ctx):
                         del games[str(ctx.guild.id)]['players'][str(ctx.author.id)]
 
                         if len(games[str(ctx.guild.id)]['players']) >= 2:
-                            await ctx.channel.delete()
-
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 discord.Embed(description=':warning: **' + ctx.author.name + '** left.'))) for x
                                 in ctx.message.category.text_channels])
+
+                            await ctx.channel.delete()
 
                             if ctx.author.id == games[str(ctx.guild.id)]['player']:
                                 await display_cards(n)
@@ -5788,7 +5788,7 @@ async def kick(ctx, user):
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 embed=discord.Embed(description=':warning: **UNOBot** was kicked.',
                                                     color=discord.Color.red()))) for x in
-                                ctx.guild.text_channels if x.category.name == 'UNO-GAME'], )
+                                ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
                         if player.id == games[str(ctx.guild.id)]['player']:
                             await display_cards(n)
