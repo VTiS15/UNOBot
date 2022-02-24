@@ -5671,7 +5671,7 @@ async def leavegame(ctx):
 
                         if len(games[str(ctx.guild.id)]['players']) >= 2:
                             await asyncio.gather(*[asyncio.create_task(x.send(
-                                discord.Embed(description=':warning: **' + ctx.author.name + '** left.'))) for x
+                                embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.'))) for x
                                 in ctx.channel.category.text_channels])
 
                             await ctx.channel.delete()
