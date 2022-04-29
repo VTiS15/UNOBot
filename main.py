@@ -5312,7 +5312,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict = m.to_dict()
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
-                                            'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
+                                            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict))
 
@@ -5344,7 +5344,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         else:
                             if len(games[str(ctx.guild.id)]['players']) > 1:
                                 m = discord.Embed(title='A game of UNO has started!',
-                                                        description=':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.',
+                                                        description=':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.',
                                                         color=discord.Color.red())
 
                                 p = ""
