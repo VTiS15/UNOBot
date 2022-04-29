@@ -2615,7 +2615,6 @@ async def on_message(message):
         message: The message sent by a Discord user
     """
 
-
     global last_run
     timestamp = datetime.now()
 
