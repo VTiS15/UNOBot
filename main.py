@@ -1,5 +1,6 @@
 # Import statements
 import asyncio
+import aiohttp
 import discord
 import json
 import boto3
@@ -119,14 +120,6 @@ default_command_settings = {
         'BlacklistEnabled': True,
         'Blacklist': None
     },
-    'allowalerts': {
-        'Enabled': True,
-        'Cooldown': 0,
-        'WhitelistEnabled': False,
-        'Whitelist': None,
-        'BlacklistEnabled': True,
-        'Blacklist': None
-    },
     'settings': {
         'Enabled': True,
         'Cooldown': 0,
@@ -137,7 +130,7 @@ default_command_settings = {
     }
 }
 cmds = ('startgame', 'endgame', 'joingame', 'leavegame', 'kick', 'spectate', 'stats', 'globalstats', 'leaderboard',
-        'globalleaderboard', 'options', 'commands', 'allowalerts')
+        'globalleaderboard', 'options', 'commands')
 cards = ['blue0', 'blue1', 'blue2', 'blue3', 'blue4', 'blue5', 'blue6', 'blue7', 'blue8', 'blue9', 'bluereverse',
          'blueskip', 'blue+2',
          'blue1', 'blue2', 'blue3', 'blue4', 'blue5', 'blue6', 'blue7', 'blue8', 'blue9', 'bluereverse', 'blueskip',
@@ -198,10 +191,10 @@ stack = {}  # Remembers guilds' card stacking
 ending = []  # List of guilds whose games are ending
 last_run = datetime.now()
 # Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
-s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
-                         aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
-s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
-                             aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+s3_client = boto3.client('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
+                         aws_secret_access_key='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')
+s3_resource = boto3.resource('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
+                             aws_secret_access_key='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')
 sys.setrecursionlimit(10**5)  # Changes the system recursion limit to 100,000 for the AI
 
 
@@ -210,7 +203,7 @@ def main():
     Runs the Discord bot.
     """
 
-    client.run(getenv('BOT_TOKEN'))
+    client.run('OTM4Mzg3Njk4OTA4MDM3MTUw.YfpjpQ.G_zVKGtIXfSeKydHJUQ7ONbjE5k')
 
 
 async def initialize():
@@ -257,7 +250,7 @@ async def initialize():
 
         if not user_stuff:
             for member in [x for x in client.get_all_members() if x.id != client.user.id and not x.bot]:
-                default_user_stuff = {"AllowAlerts": True}
+                default_user_stuff = {}
                 for guild in [x for x in client.guilds if x.get_member(member.id)]:
                     default_user_stuff[str(guild.id)] = {
                         'Wins': 0,
@@ -270,7 +263,6 @@ async def initialize():
             for member in [x for x in client.get_all_members() if
                            str(x.id) not in user_stuff and x.id != client.user.id and not x.bot]:
                 for guild in [x for x in client.guilds if x.get_member(member.id)]:
-                    user_stuff[str(member.id)] = {"AllowAlerts": True}
                     user_stuff[str(member.id)][str(guild.id)] = {
                         'Wins': 0,
                         'Score': 0,
@@ -720,65 +712,62 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
-        # Initialize the score the winner gets to 0
-        score = 0
-        # Calculate winner's score and losers' penalties (if they are not UNOBot)
-        for key in [x for x in player_ids if x != str(winner.id)]:
-            if key != str(client.user.id):
-                cards = games[str(guild.id)]['players'][key]['cards']
-            else:
+        # Scores are only calculated when UNOBot is not playing
+        if str(client.user.id) not in player_ids:
+            # Initialize the score the winner gets to 0
+            score = 0
+            # Calculate winner's score and losers' penalties (if they are not UNOBot)
+            for key in [x for x in player_ids if x != str(winner.id)]:
                 cards = games[str(guild.id)]['players'][key].cards
 
-            temp = 0
-            for card in cards:
-                if not games[str(guild.id)]['settings']['Flip']:
-                    value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+                temp = 0
+                for card in cards:
+                    if not games[str(guild.id)]['settings']['Flip']:
+                        value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
 
-                    if value in ('+2', 'skip', 'reverse'):
-                        temp += 20
-                    elif value in ('+4', 'wild'):
-                        temp += 50
+                        if value in ('+2', 'skip', 'reverse'):
+                            temp += 20
+                        elif value in ('+4', 'wild'):
+                            temp += 50
+                        else:
+                            temp += int(value)
+
+                    elif not games[str(guild.id)]['dark']:
+                        value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+
+                        if value == '+1':
+                            temp += 10
+                        elif value in ('reverse', 'flip', 'skip'):
+                            temp += 20
+                        elif value == 'wild':
+                            temp += 40
+                        elif value == '+2':
+                            temp += 50
+                        else:
+                            temp += int(value)
+
                     else:
-                        temp += int(value)
+                        value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
 
-                elif not games[str(guild.id)]['dark']:
-                    value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+                        if value in ('+5', 'reverse', 'flip'):
+                            temp += 20
+                        elif value == 'skip':
+                            temp += 30
+                        elif value == 'wild':
+                            temp += 40
+                        elif value == '+c':
+                            temp += 60
+                        else:
+                            temp += int(value)
 
-                    if value == '+1':
-                        temp += 10
-                    elif value in ('reverse', 'flip', 'skip'):
-                        temp += 20
-                    elif value == 'wild':
-                        temp += 40
-                    elif value == '+2':
-                        temp += 50
-                    else:
-                        temp += int(value)
-
-                else:
-                    value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
-
-                    if value in ('+5', 'reverse', 'flip'):
-                        temp += 20
-                    elif value == 'skip':
-                        temp += 30
-                    elif value == 'wild':
-                        temp += 40
-                    elif value == '+c':
-                        temp += 60
-                    else:
-                        temp += int(value)
-
-            if key != str(client.user.id):
                 if users[key][str(guild.id)]['Score'] < temp:
                     users[key][str(guild.id)]['Score'] = 0
                 else:
                     users[key][str(guild.id)]['Score'] -= temp
 
-            score += temp
+                score += temp
 
-        # Craft a message that displays who won and their score (if they are not UNOBot)
-        if winner.id != client.user.id:
+            # Craft a message that displays who won and their score
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
             else:
@@ -786,22 +775,29 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
             message.set_image(url=winner.display_avatar.url)
 
             await asyncio.gather(
-                *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+                *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
+                  x.category.name == 'UNO-GAME'])
 
             users[str(winner.id)][str(guild.id)]['Score'] += score
+
+        else:
+            # Craft a message that displays who won
+            message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳', color=discord.Color.red())
+            message.set_image(url=winner.display_avatar.url)
+
+            await asyncio.gather(
+                *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
+                  x.category.name == 'UNO-GAME'])
+
+        # Increment winner's Win count and every player's Played count
+        if winner.id != client.user.id:
             users[str(winner.id)][str(guild.id)]['Wins'] += 1
             for i in [x for x in player_ids if x != str(client.user.id)]:
                 users[i][str(guild.id)]['Played'] += 1
 
-        else:
-            message = discord.Embed(title=f'UNOBot Won! 🎉 🥳', color=discord.Color.red())
-            message.set_image(url=client.user.display_avatar.url)
+            users_file.put(Body=json.dumps(users).encode('utf-8'))
 
-            await asyncio.gather(
-                *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
-
-        users_file.put(Body=json.dumps(users).encode('utf-8'))
-
+        # Wait 10 seconds before deleting UNO channels
         await asyncio.sleep(10)
 
     # Delete the UNO channels and category
@@ -1170,7 +1166,6 @@ async def display_cards(player: Member):
     if str(guild.id) not in ending:
         async def send_cards(channel: TextChannel):
             """Sends a player's hand to every UNO channel.
-
             Args:
                 channel (TextChannel): The channel of the current player
             """
@@ -1761,7 +1756,6 @@ async def play_card(card: str, player: Member):
             else:
                 break
         m_dict = m.embeds[0].to_dict()
-        m_value = None
         for field in m_dict['fields']:
             if field['name'] == 'Players:':
                 field['value'] = field['value'].replace(f':small_blue_diamond: {player.name}', f':crown: {player.name}')
@@ -2367,9 +2361,7 @@ class Bot:
 
         if not d['settings']['Flip']:
             if str(self.guild.id) not in stack:
-                self.playables = list(set(x for x in self.cards if
-                                          self.__is_similar(x, d['current']) or self.__get_value(x) in (
-                                              '+4', 'wild')))
+                self.playables = list(set(x for x in self.cards if self.__is_similar(x, d['current'])))
             elif '+2' in d['current']:
                 self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+2'))
                 if not self.playables:
@@ -2379,9 +2371,7 @@ class Bot:
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
         elif not d['dark']:
             if str(self.guild.id) not in stack:
-                self.playables = [x for x in self.cards if
-                                          self.__is_similar(x, d['current']) or self.__get_value(x) in (
-                                              '+2', 'wild')]
+                self.playables = [x for x in self.cards if self.__is_similar(x, d['current'])]
             elif '+1' in d['current']:
                 self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+1'))
                 if not self.playables:
@@ -2391,9 +2381,7 @@ class Bot:
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
         else:
             if str(self.guild.id) not in stack:
-                self.playables = [x for x in self.cards if
-                                          self.__is_similar(x, d['current']) or self.__get_value(x) in (
-                                              '+color', 'wild')]
+                self.playables = [x for x in self.cards if self.__is_similar(x, d['current'])]
             else:
                 self.playables = list(set(x for x in self.cards if self.__get_value(x) == '+5'))
             self.playables.sort(key=lambda x: self.__get_score(self.__get_value(x)), reverse=True)
@@ -2593,7 +2581,6 @@ async def on_member_join(member):
 
         else:
             user_stuff[str(member.id)] = {
-                "AllowAlerts": True,
                 str(member.guild.id): {
                     'Wins': 0,
                     'Score': 0,
@@ -2768,28 +2755,19 @@ async def on_message(message):
                         current_player = message.guild.get_member(int(games[str(message.guild.id)]['player']))
 
                         if current_player != message.author:
-                            users = json.loads(
-                                s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
+                            await discord.utils.get(message.channel.category.text_channels,
+                                                    name=sub(r'[^\w -]', '',
+                                                             current_player.name.lower().replace(' ',
+                                                                                                 '-')) + '-uno-channel').send(
+                                embed=discord.Embed(
+                                    description=':warning: **' + current_player.mention + '! ' + message.author.name + ' alerted you!**',
+                                    color=discord.Color.red()))
 
-                            if users[str(current_player.id)]['AllowAlerts']:
-                                await discord.utils.get(message.channel.category.text_channels,
-                                                        name=sub(r'[^\w -]', '',
-                                                                 current_player.name.lower().replace(' ',
-                                                                                                     '-')) + '-uno-channel').send(
-                                    embed=discord.Embed(
-                                        description=':warning: **' + current_player.mention + '! ' + message.author.name + ' alerted you!**',
-                                        color=discord.Color.red()))
+                            await message.add_reaction('\N{THUMBS UP SIGN}')
 
-                                await message.add_reaction('\N{THUMBS UP SIGN}')
-
-                                cooldowns[str(message.guild.id)].append('alert')
-                                await asyncio.sleep(30)
-                                cooldowns[str(message.guild.id)].remove('alert')
-
-                            else:
-                                await message.channel.send(
-                                    embed=discord.Embed(description=':x: The current player has disabled alerts.',
-                                                        color=discord.Color.red()))
+                            cooldowns[str(message.guild.id)].append('alert')
+                            await asyncio.sleep(30)
+                            cooldowns[str(message.guild.id)].remove('alert')
 
                         else:
                             await message.channel.send(
@@ -3932,19 +3910,18 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
         message = discord.Embed(title='UNO Bot Commands', color=discord.Color.red())
         message.set_thumbnail(url='attachment://bot.png')
-        message.add_field(name=prefix + 'startgame', value='Starts a game of UNO.\n' + chr(173))
-        message.add_field(name=prefix + 'endgame', value='Ends the ongoing UNO game.\n' + chr(173))
-        message.add_field(name=prefix + 'leavegame', value='Lets you leave the UNO game.\n' + chr(173))
+        message.add_field(name=prefix + 'sg', value='Starts a game of UNO.\n' + chr(173))
+        message.add_field(name=prefix + 'eg', value='Ends the ongoing UNO game.\n' + chr(173))
+        message.add_field(name=prefix + 'leave', value='Lets you leave the UNO game.\n' + chr(173))
         message.add_field(name=prefix + 'kick', value='Kicks a player from an UNO game.\n' + chr(173))
         message.add_field(name=prefix + 'spectate', value='Spectate games of UNO.\n' + chr(173))
         message.add_field(name=prefix + 'stats',
                           value='Gives you a user\'s stats from this Discord server.\n' + chr(173))
-        message.add_field(name=prefix + 'globalstats', value='Gives you a user\'s stats from all servers.\n' + chr(173))
-        message.add_field(name=prefix + 'leaderboard',
+        message.add_field(name=prefix + 'gstats', value='Gives you a user\'s stats from all servers.\n' + chr(173))
+        message.add_field(name=prefix + 'lb',
                           value='Gives you a leaderboard only from this Discord server.\n' + chr(173))
-        message.add_field(name=prefix + 'globalleaderboard',
+        message.add_field(name=prefix + 'glb',
                           value='Gives you a leaderboard for all servers.\n' + chr(173))
-        message.add_field(name=prefix + 'allowalerts', value='Allows alerts just for you.\n' + chr(173))
         message.add_field(name=prefix + 'settings',
                           value='Adjusts how UNOBot works for the entire server.\n' + chr(173))
         message.set_footer(text='• Use ' + prefix + 'commands <command> to get more help on that command.')
@@ -4034,14 +4011,6 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
             message = discord.Embed(title=prefix + 'glb', color=discord.Color.red())
             message.add_field(name='Description:', value='Gives you a leaderboard for all servers.', inline=False)
             message.add_field(name='Usage:', value='`' + prefix + 'glb`', inline=False)
-
-            await ctx.respond(embed=message)
-
-        elif command == 'alerts':
-            message = discord.Embed(title=prefix + 'alerts', color=discord.Color.red())
-            message.add_field(name='Description:', value='Allows alerts just for you.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'alerts <on|off|view>`', inline=False)
-            message.add_field(name='Examples:', value='• `' + prefix + 'aa on`')
 
             await ctx.respond(embed=message)
 
@@ -4542,86 +4511,6 @@ async def globalleaderboard(ctx):
     else:
         await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
             commands[str(ctx.guild.id)]['globalleaderboard']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
-
-
-@client.slash_command(name='u-alerts', description='Turns your alerts on or off.')
-@has_permissions(read_messages=True)
-async def allowalerts(ctx, option: Option(str, 'on, off, or view', required=True)):
-    commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
-
-    if 'allowalerts' not in cooldowns[str(ctx.guild.id)]:
-        if commands[str(ctx.guild.id)]['allowalerts']['Enabled']:
-            if ((not commands[str(ctx.guild.id)]['allowalerts']['BlacklistEnabled'] or not
-            commands[str(ctx.guild.id)]['allowalerts']['Blacklist'])
-                or ctx.author.id not in commands[str(ctx.guild.id)]['allowalerts']['Blacklist']) \
-                    and (not commands[str(ctx.guild.id)]['allowalerts']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['allowalerts']['Whitelist'] and ctx.author.id in
-                         commands[str(ctx.guild.id)]['allowalerts'][
-                             'Whitelist']) or ctx.author == ctx.guild.owner:
-                users_file = s3_resource.Object('unobot-bucket', 'users.json')
-                users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
-
-                if option in ('view', 'list'):
-                    if users[str(ctx.author.id)]['AllowAlerts']:
-                        description = 'Enabled :white_check_mark:'
-                    else:
-                        description = 'Disabled :x:'
-
-                    await ctx.respond(embed=discord.Embed(title=ctx.author.name + '\'s alerts', description=description,
-                                            color=discord.Color.red()))
-
-                elif option.lower() == 'on':
-                    users[str(ctx.author.id)]['AllowAlerts'] = True
-
-                    users_file.put(Body=json.dumps(users).encode('utf-8'))
-
-                    await ctx.respond(embed=discord.Embed(description=':thumbsup: **Your alerts have been enabled.**',
-                                            color=discord.Color.red()))
-
-                elif option.lower() == 'off':
-                    users[str(ctx.author.id)]['AllowAlerts'] = False
-
-                    users_file.put(Body=json.dumps(users).encode('utf-8'))
-
-                    await ctx.respond(embed=discord.Embed(description=':thumbsup: **Your alerts have been disabled.**',
-                                                          color=discord.Color.red()))
-
-                if commands[str(ctx.guild.id)]['allowalerts']['Cooldown'] > 0:
-                    cooldowns[str(ctx.guild.id)].append('allowalerts')
-
-                    def check(message):
-                        return len(message.content.split()) == 6 \
-                               and message.content.split()[0] in (
-                                   prefix + 'settings', prefix + 'set', prefix + 'sett', prefix + 'stngs',
-                                   prefix + 'setting',
-                                   prefix + 'stng') \
-                               and message.content.split()[1].lower() == 'commands' \
-                               and message.content.split()[2].lower() == 'allowalerts' \
-                               and message.content.split()[3].lower() == 'cooldown' \
-                               and message.content.split()[4].lower() == 'set'
-
-                    try:
-                        m = await client.wait_for('message', check=check,
-                                                  timeout=float(commands[str(ctx.guild.id)]['allowalerts']['Cooldown']))
-                        await client.process_commands(m)
-                        cooldowns[str(ctx.guild.id)].remove('allowalerts')
-
-                    except asyncio.TimeoutError:
-                        cooldowns[str(ctx.guild.id)].remove('allowalerts')
-
-            else:
-                await ctx.respond(
-                    embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
-                                        color=discord.Color.red()))
-
-        else:
-            await ctx.respond(
-                embed=discord.Embed(description=':x: **The command is disabled.**',
-                                    color=discord.Color.red()))
-
-    else:
-        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
-            commands[str(ctx.guild.id)]['options']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
 
 @client.slash_command(name='u-settings', description='Allows you to change the settings of UNOBot.')
@@ -5178,12 +5067,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 try:
                                     user = await user_converter.convert(ctx, a[i])
 
-                                    if user != client.user:
-                                        for guild in client.guilds:
-                                            user_options[str(user.id)].pop(str(guild.id), None)
-                                        games[str(ctx.guild.id)]['players'][str(user.id)] = user_options[str(user.id)]
-                                        games[str(ctx.guild.id)]['players'][str(user.id)]['cards'] = []
-                                    elif not games[str(ctx.guild.id)]['settings']['7-0']:
+                                    if user == client.user and not games[str(ctx.guild.id)]['settings']['7-0']:
                                         bot = True
 
                                 except BadArgument:
@@ -5357,7 +5241,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
-                                            'description'] = ':white_check_mark: A game of UNO has started. Go to your UNO channel titled with your username.'
+                                            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
 
                                         try:
                                             await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
