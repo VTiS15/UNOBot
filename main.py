@@ -191,9 +191,9 @@ stack = {}  # Remembers guilds' card stacking
 ending = []  # List of guilds whose games are ending
 last_run = datetime.now()
 # Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
-s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY'),
+s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                          aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
-s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY'),
+s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 sys.setrecursionlimit(10**5)  # Changes the system recursion limit to 100,000 for the AI
 
