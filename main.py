@@ -792,10 +792,10 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
         # Increment winner's Win count and every player's Played count
         if winner.id != client.user.id:
             users[str(winner.id)][str(guild.id)]['Wins'] += 1
-            for i in [x for x in player_ids if x != str(client.user.id)]:
-                users[i][str(guild.id)]['Played'] += 1
+        for i in [x for x in player_ids if x != str(client.user.id)]:
+            users[i][str(guild.id)]['Played'] += 1
 
-            users_file.put(Body=json.dumps(users).encode('utf-8'))
+        users_file.put(Body=json.dumps(users).encode('utf-8'))
 
         # Wait 10 seconds before deleting UNO channels
         await asyncio.sleep(10)
