@@ -718,7 +718,7 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
             score = 0
             # Calculate winner's score and losers' penalties (if they are not UNOBot)
             for key in [x for x in player_ids if x != str(winner.id)]:
-                cards = games[str(guild.id)]['players'][key].cards
+                cards = games[str(guild.id)]['players'][key]['cards']
 
                 temp = 0
                 for card in cards:
