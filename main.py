@@ -590,13 +590,13 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Messa
         color = search(r'red|blue|green|yellow', d['current']).group(0)
 
     if color == 'red':
-        message = discord.Embed(title='Top card:', color=discord.Color.red())
+        m = discord.Embed(title='Top card:', color=discord.Color.red())
     elif color == 'blue':
-        message = discord.Embed(title='Top card:', color=discord.Color.blue())
+        m = discord.Embed(title='Top card:', color=discord.Color.blue())
     elif color == 'green':
-        message = discord.Embed(title='Top card:', color=discord.Color.green())
+        m = discord.Embed(title='Top card:', color=discord.Color.green())
     else:
-        message = discord.Embed(title='Top card:', color=discord.Color.from_rgb(255, 255, 0))
+        m = discord.Embed(title='Top card:', color=discord.Color.from_rgb(255, 255, 0))
 
     if flip:
         image = Image.open('images/' + d['current'][0] + '.png')
@@ -611,8 +611,8 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Messa
             image_binary.seek(0)
             file = discord.File(fp=image_binary, filename='topcard.png')
 
-        message.set_image(url='attachment://topcard.png')
-        await channel.send(file=file, embed=message)
+        m.set_image(url='attachment://topcard.png')
+        await channel.send(file=file, embed=m)
 
     # Specify the first player
     d['player'] = int(order[0])
