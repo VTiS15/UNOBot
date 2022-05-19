@@ -99,4 +99,4 @@ The scoring for the cards is as follows:
 | Wild Draw Color | 60 pts |
 
 # Similar Project📑
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, the fact of which is what motivated me to create this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which is what motivated me to create this bot.
