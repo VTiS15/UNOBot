@@ -1,6 +1,5 @@
 # Import statements
 import asyncio
-import aiohttp
 import discord
 import json
 import boto3
@@ -25,7 +24,7 @@ from datetime import datetime
 from random import sample, choice
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
-from discord import ApplicationContext, User, Member, Guild, TextChannel
+from discord import ApplicationContext, User, Member, Guild, TextChannel, Message
 
 prefix = '/u-'  # Prefix used in bot commands
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())  # Instantiates a Discord bot class
@@ -189,7 +188,6 @@ cooldowns = {}  # Dictionary of command cooldowns
 games = {}  # Dictionary of ongoing games' data
 stack = {}  # Remembers guilds' card stacking
 ending = []  # List of guilds whose games are ending
-last_run = datetime.now()
 # Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
 s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                          aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
@@ -415,16 +413,32 @@ async def cmd_info(ctx: ApplicationContext, cmd: str):
     await ctx.respond(embed=message)
 
 
-async def game_setup(ctx: ApplicationContext, d: dict, bot: bool):
+async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Message=None):
     """Sets up an UNO game.
 
     Args:
         ctx: The context in which the command that called this function is being invoked under
         d: The data storage of the game being created
         bot: Whether UNOBot is playing
+        message: the invitation message of the game
     """
 
     guild = ctx.guild
+
+    if message:
+        message_dict = message.embeds[0].to_dict()
+
+        games[str(guild.id)]['seconds'] = -2
+
+        message_dict['title'] = 'A game of UNO has started!'
+        message_dict[
+            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
+
+        try:
+            await message.edit(embed=discord.Embed.from_dict(message_dict))
+        except discord.NotFound:
+            pass
+
     flip = d['settings']['Flip']
 
     # Create a channel category for UNO
@@ -5232,7 +5246,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
 
                                             await game_setup(await client.get_context(interaction.message),
-                                                             games[str(interaction.guild.id)], bot)
+                                                             games[str(interaction.guild.id)], bot, interaction.message)
                                         except discord.NotFound:
                                             pass
                             start.callback = start_callback
@@ -5302,7 +5316,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict))
 
-                                        await game_setup(ctx, games[str(ctx.guild.id)], bot)
+                                        await game_setup(ctx, games[str(ctx.guild.id)], bot, e)
 
                                     else:
                                         message_dict = m.to_dict()
