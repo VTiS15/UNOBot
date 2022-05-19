@@ -24,7 +24,7 @@ from datetime import datetime
 from random import sample, choice
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
-from discord import ApplicationContext, User, Member, Guild, TextChannel, Message
+from discord import ApplicationContext, User, Member, Guild, TextChannel
 
 prefix = '/u-'  # Prefix used in bot commands
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())  # Instantiates a Discord bot class
@@ -531,7 +531,7 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool):
             for i in range(len(d['players'][id]['cards'])):
                 card = Image.open('images/' + d['players'][id]['cards'][i] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                       round(card.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
+                                       round(card.size[1] / 6.0123456790123456790123456790123)))
                 image.paste(refined, (i * refined.size[0], 0))
         else:
             image = Image.new('RGBA', (
@@ -545,16 +545,14 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool):
                     'images/' + d['players'][id]['cards'][i][
                         0] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                       round(card.size[1] / 6.0123456790123456790123456790123)),
-                                      Image.ANTIALIAS)
+                                       round(card.size[1] / 6.0123456790123456790123456790123)))
                 image.paste(refined, (i * refined.size[0], 0))
 
                 card = Image.open(
                     'images/' + d['players'][id]['cards'][
                         i][1] + '.png')
                 refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                       round(card.size[1] / 6.0123456790123456790123456790123)),
-                                      Image.ANTIALIAS)
+                                       round(card.size[1] / 6.0123456790123456790123456790123)))
                 image.paste(refined, (i * refined.size[0], refined.size[1]))
 
         with BytesIO() as image_binary:
@@ -603,7 +601,7 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool):
     else:
         image = Image.open('images/' + d['current'] + '.png')
     refined = image.resize((round(image.size[0] / 6.0123456790123456790123456790123),
-                            round(image.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
+                            round(image.size[1] / 6.0123456790123456790123456790123)))
 
     for channel in category.text_channels:
         with BytesIO() as image_binary:
@@ -1085,8 +1083,7 @@ async def draw(player: Member, number: int, DUM: bool=False, color: bool=False):
                 card = Image.open('images/' + draw[i] + '.png')
                 refined = card.resize(
                     (round(card.size[0] / 6.0123456790123456790123456790123),
-                     round(card.size[1] / 6.0123456790123456790123456790123)),
-                    Image.ANTIALIAS)
+                     round(card.size[1] / 6.0123456790123456790123456790123)))
                 image.paste(refined, (i * refined.size[0], 0))
         else:
             if not games[str(guild.id)]['dark']:
@@ -1094,16 +1091,14 @@ async def draw(player: Member, number: int, DUM: bool=False, color: bool=False):
                     card = Image.open('images/' + draw[i][0] + '.png')
                     refined = card.resize(
                         (round(card.size[0] / 6.0123456790123456790123456790123),
-                         round(card.size[1] / 6.0123456790123456790123456790123)),
-                        Image.ANTIALIAS)
+                         round(card.size[1] / 6.0123456790123456790123456790123)))
                     image.paste(refined, (i * refined.size[0], 0))
             else:
                 for i in range(len(draw)):
                     card = Image.open('images/' + draw[i][1] + '.png')
                     refined = card.resize(
                         (round(card.size[0] / 6.0123456790123456790123456790123),
-                         round(card.size[1] / 6.0123456790123456790123456790123)),
-                        Image.ANTIALIAS)
+                         round(card.size[1] / 6.0123456790123456790123456790123)))
                     image.paste(refined, (i * refined.size[0], 0))
 
         with BytesIO() as image_binary:
@@ -1204,8 +1199,7 @@ async def display_cards(player: Member):
                     for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
                         card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i] + '.png')
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
                         image.paste(refined, (i * refined.size[0], 0))
 
                     with BytesIO() as image_binary:
@@ -1280,8 +1274,7 @@ async def display_cards(player: Member):
                             card = Image.open('images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i][1] + '.png')
 
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
 
                         image.paste(refined, (i * refined.size[0], 0))
 
@@ -1385,7 +1378,7 @@ async def display_cards(player: Member):
                             card = Image.open('images/back.png')
 
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
 
                         image.paste(refined, (i * refined.size[0], 0))
 
@@ -1408,8 +1401,7 @@ async def display_cards(player: Member):
                             card = Image.open('images/back.png')
 
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
 
                         image.paste(refined, (i * refined.size[0], 0))
 
@@ -1667,8 +1659,7 @@ async def play_card(card: str, player: Member):
             image = Image.open('images/' + card[1] + '.png')
     refined = image.resize(
         (round(image.size[0] / 6.0123456790123456790123456790123),
-         round(image.size[1] / 6.0123456790123456790123456790123)),
-        Image.ANTIALIAS)
+         round(image.size[1] / 6.0123456790123456790123456790123)))
 
     async def send_card(channel: TextChannel):
         """Sends the played card to a channel.
@@ -2792,24 +2783,21 @@ async def on_message(message):
                         card = Image.open(
                             'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][i] + '.png')
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
                         image.paste(refined, (i * refined.size[0], 0))
                     else:
                         card = Image.open(
                             'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][i][
                                 0] + '.png')
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
                         image.paste(refined, (i * refined.size[0], 0))
 
                         card = Image.open(
                             'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
                                 i][1] + '.png')
                         refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
+                                               round(card.size[1] / 6.0123456790123456790123456790123)))
                         image.paste(refined, (i * refined.size[0], refined.size[1]))
 
                 with BytesIO() as image_binary:
