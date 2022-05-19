@@ -5208,9 +5208,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
                             async def start_callback(interaction):
-                                await asyncio.sleep(3)
-
                                 await interaction.response.defer()
+
+                                await asyncio.sleep(3)
 
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == str(
                                         interaction.guild.get_member(games[str(interaction.guild.id)]['creator'])):
