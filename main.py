@@ -424,28 +424,6 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Messa
     """
 
     guild = ctx.guild
-
-    # Correct the invitation message if some players were not displayed
-    if message:
-        message_dict = message.embeds[0].to_dict()
-
-        message_dict['title'] = 'A game of UNO has started!'
-        message_dict[
-            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
-
-        p = ""
-        for key in games[str(ctx.guild.id)]['players']:
-            p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
-        if bot:
-            p += ':small_blue_diamond: UNOBot\n'
-
-        message.embeds[0].set_field_at(0, name='Players:', value=p, inline=False)
-
-        try:
-            await message.edit(embed=discord.Embed.from_dict(message_dict))
-        except discord.NotFound:
-            pass
-
     flip = d['settings']['Flip']
 
     # Create a channel category for UNO
@@ -660,6 +638,27 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Messa
         hand = d['players'][cplayer]['cards']
     else:
         hand = d['players'][cplayer].cards
+
+    # Correct the invitation message if some players were not displayed
+    if message:
+        message_dict = message.embeds[0].to_dict()
+
+        message_dict['title'] = 'A game of UNO has started!'
+        message_dict[
+            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
+
+        p = ""
+        for key in games[str(ctx.guild.id)]['players']:
+            p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
+        if bot:
+            p += ':small_blue_diamond: UNOBot\n'
+
+        message.embeds[0].set_field_at(0, name='Players:', value=p, inline=False)
+
+        try:
+            await message.edit(embed=discord.Embed.from_dict(message_dict))
+        except discord.NotFound:
+            pass
 
     # Check if the first player has any draw cards that can be used to stack
     # If they have, allow them to stack
