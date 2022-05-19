@@ -429,6 +429,10 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Messa
     if message:
         message_dict = message.embeds[0].to_dict()
 
+        message_dict['title'] = 'A game of UNO has started!'
+        message_dict[
+            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
+
         p = ""
         for key in games[str(ctx.guild.id)]['players']:
             p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
