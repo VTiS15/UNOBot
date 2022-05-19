@@ -413,7 +413,7 @@ async def cmd_info(ctx: ApplicationContext, cmd: str):
     await ctx.respond(embed=message)
 
 
-async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Message=None):
+async def game_setup(ctx: ApplicationContext, d: dict, bot: bool):
     """Sets up an UNO game.
 
     Args:
@@ -638,23 +638,6 @@ async def game_setup(ctx: ApplicationContext, d: dict, bot: bool, message: Messa
         hand = d['players'][cplayer]['cards']
     else:
         hand = d['players'][cplayer].cards
-
-    # Correct the invitation message if some players were not displayed
-    if message:
-        message_dict = message.embeds[0].to_dict()
-
-        p = ""
-        for key in games[str(ctx.guild.id)]['players']:
-            p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
-        if bot:
-            p += ':small_blue_diamond: UNOBot\n'
-
-        message.embeds[0].set_field_at(0, name='Players:', value=p, inline=False)
-
-        try:
-            await message.edit(embed=discord.Embed.from_dict(message_dict))
-        except discord.NotFound:
-            pass
 
     # Check if the first player has any draw cards that can be used to stack
     # If they have, allow them to stack
@@ -5235,20 +5218,29 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     if n > 1:
                                         await interaction.message.edit(view=None)
 
-                                        message_dict = interaction.message.embeds[0].to_dict()
-
                                         games[str(interaction.guild.id)]['seconds'] = -2
-                                        games[str(interaction.guild.id)]['creator'] = interaction.user.id
+
+                                        message_dict = interaction.message.embeds[0].to_dict()
 
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
                                             'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
 
+                                        p = ""
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
+                                        if bot:
+                                            p += ':small_blue_diamond: UNOBot\n'
+
+                                        interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
+                                                                                   inline=False)
+
                                         try:
-                                            await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+                                            await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
+                                                                           view=None)
 
                                             await game_setup(await client.get_context(interaction.message),
-                                                             games[str(interaction.guild.id)], bot, interaction.message)
+                                                             games[str(interaction.guild.id)], bot)
                                         except discord.NotFound:
                                             pass
                             start.callback = start_callback
