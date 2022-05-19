@@ -5216,15 +5216,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         n += 1
 
                                     if n > 1:
-                                        await interaction.message.edit(view=None)
-
                                         games[str(interaction.guild.id)]['seconds'] = -2
-
-                                        message_dict = interaction.message.embeds[0].to_dict()
-
-                                        message_dict['title'] = 'A game of UNO has started!'
-                                        message_dict[
-                                            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
 
                                         p = ""
                                         for key in games[str(ctx.guild.id)]['players']:
@@ -5234,6 +5226,14 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
                                                                                    inline=False)
+
+                                        await interaction.message.edit(embed=interaction.message.embeds[0])
+
+                                        message_dict = interaction.message.embeds[0].to_dict()
+
+                                        message_dict['title'] = 'A game of UNO has started!'
+                                        message_dict[
+                                            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
 
                                         try:
                                             await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
