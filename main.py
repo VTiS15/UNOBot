@@ -5208,7 +5208,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
                             async def start_callback(interaction):
-                                asyncio.create_task(asyncio.sleep(1.5))
+                                await asyncio.sleep(3)
 
                                 await interaction.response.defer()
 
