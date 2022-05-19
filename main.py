@@ -5155,6 +5155,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
                             async def join_callback(interaction):
+                                await interaction.response.defer()
+
                                 message = interaction.message
                                 guild = interaction.guild
                                 user = interaction.user
