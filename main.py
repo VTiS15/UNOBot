@@ -5310,7 +5310,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict))
 
-                                        await game_setup(ctx, games[str(ctx.guild.id)], bot, e)
+                                        await game_setup(ctx, games[str(ctx.guild.id)], bot)
 
                                     else:
                                         message_dict = m.to_dict()
