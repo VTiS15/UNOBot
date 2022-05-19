@@ -5169,48 +5169,26 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
                             async def join_callback(interaction):
-                                message = interaction.message
-                                guild = interaction.guild
-                                user = interaction.user
 
-                                if str(user.id) not in games[str(guild.id)]['players']:
-                                    for g in client.guilds:
-                                        user_options[str(user.id)].pop(str(g.id), None)
+                                async def fn_to_wait_for():
+                                    message = interaction.message
+                                    guild = interaction.guild
+                                    user = interaction.user
 
-                                    games[str(guild.id)]['players'][str(user.id)] = user_options[
-                                        str(user.id)]
-                                    games[str(guild.id)]['players'][str(user.id)]['cards'] = []
+                                    if str(user.id) not in games[str(guild.id)]['players']:
+                                        for g in client.guilds:
+                                            user_options[str(user.id)].pop(str(g.id), None)
 
-                                    if len(games[str(guild.id)]['players'].keys()) > 0:
-                                        if bot:
-                                            value = ':small_blue_diamond: UNOBot\n'
-                                        else:
-                                            value = ''
+                                        games[str(guild.id)]['players'][str(user.id)] = user_options[
+                                            str(user.id)]
+                                        games[str(guild.id)]['players'][str(user.id)]['cards'] = []
 
-                                        for key in games[str(guild.id)]['players']:
-                                            value += (':small_blue_diamond: ' + guild.get_member(
-                                                int(key)).name + '\n')
-
-                                        message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
-
-                                    await message.edit(embed=message.embeds[0])
-
-                                else:
-
-                                    if str(guild.id) in games and 'current' not in games[str(guild.id)]:
-                                        del games[str(guild.id)]['players'][str(user.id)]
-
-                                        if len(games[str(guild.id)]['players'].keys()) == 0:
+                                        if len(games[str(guild.id)]['players'].keys()) > 0:
                                             if bot:
-                                                message.embeds[0].set_field_at(0, name='Players:',
-                                                                               value=':small_blue_diamond: UNOBot\n',
-                                                                               inline=False)
+                                                value = ':small_blue_diamond: UNOBot\n'
                                             else:
-                                                message.embeds[0].set_field_at(0, name='Players:', value='None')
-                                        else:
-                                            value = ''
-                                            if bot:
-                                                value += ':small_blue_diamond: UNOBot\n'
+                                                value = ''
+
                                             for key in games[str(guild.id)]['players']:
                                                 value += (':small_blue_diamond: ' + guild.get_member(
                                                     int(key)).name + '\n')
@@ -5218,6 +5196,31 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
 
                                         await message.edit(embed=message.embeds[0])
+
+                                    else:
+                                        if str(guild.id) in games and 'current' not in games[str(guild.id)]:
+                                            del games[str(guild.id)]['players'][str(user.id)]
+
+                                            if len(games[str(guild.id)]['players'].keys()) == 0:
+                                                if bot:
+                                                    message.embeds[0].set_field_at(0, name='Players:',
+                                                                                   value=':small_blue_diamond: UNOBot\n',
+                                                                                   inline=False)
+                                                else:
+                                                    message.embeds[0].set_field_at(0, name='Players:', value='None')
+                                            else:
+                                                value = ''
+                                                if bot:
+                                                    value += ':small_blue_diamond: UNOBot\n'
+                                                for key in games[str(guild.id)]['players']:
+                                                    value += (':small_blue_diamond: ' + guild.get_member(
+                                                        int(key)).name + '\n')
+
+                                                message.embeds[0].set_field_at(0, name='Players:', value=value, inline=False)
+
+                                            await message.edit(embed=message.embeds[0])
+
+                                await asyncio.wait_for(fn_to_wait_for(), None)
                             join.callback = join_callback
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
