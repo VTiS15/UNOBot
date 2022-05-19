@@ -5209,10 +5209,10 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         games[str(interaction.guild.id)]['seconds'] = -2
 
                                         p = ""
-                                        for key in games[str(ctx.guild.id)]['players']:
-                                            p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
                                         if bot:
                                             p += ':small_blue_diamond: UNOBot\n'
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            p += (':small_blue_diamond: ' + (client.get_user(int(key))).name + "\n")
 
                                         interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
                                                                                    inline=False)
@@ -5367,10 +5367,10 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message.add_field(name='Players:', value='None', inline=False)
                                 else:
                                     p = ""
-                                    for key in games[str(ctx.guild.id)]['players']:
-                                        p += (str(await client.fetch_user(int(key))) + "\n")
                                     if bot:
                                         p += ':small_blue_diamond: UNOBot\n'
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        p += (str(await client.fetch_user(int(key))) + "\n")
 
                                     message.add_field(name='Players:', value=p, inline=False)
 
