@@ -12,7 +12,7 @@ It allows Discord servers to play the game completely within text channels. Chal
 * Play UNO! with your friends completely within text channels on Discord!
 * Various optional game rules, including **StackCards** and **7-0**
 * Two fun game modes - Original **UNO!** and **UNO FLIP!**
-* **Play with UNOBot**
+* **Play with UNOBot** (disables point calculation)
 * Local and global **leaderboards**
 * Check and show off your **stats**.
 * Highly customizable player options, game and command settings
@@ -99,4 +99,4 @@ The scoring for the cards is as follows:
 | Wild Draw Color | 60 pts |
 
 # Similar Project📑
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, the fact of which is what motivated me to create this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which is what motivated me to develop this bot.
