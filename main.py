@@ -715,48 +715,55 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
             score = 0
             # Calculate winner's score and losers' penalties (if they are not UNOBot)
             tasks = []
-            for key in [x for x in player_ids if x != str(winner.id)]:
+
+            def get_score(player_id: int) -> int:
                 cards = games[str(guild.id)]['players'][key]['cards']
 
-                temp = 0
+                score = 0
                 for card in cards:
                     if not games[str(guild.id)]['settings']['Flip']:
                         value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
 
                         if value in ('+2', 'skip', 'reverse'):
-                            temp += 20
+                            score += 20
                         elif value in ('+4', 'wild'):
-                            temp += 50
+                            score += 50
                         else:
-                            temp += int(value)
+                            score += int(value)
 
                     elif not games[str(guild.id)]['dark']:
                         value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
 
                         if value == '+1':
-                            temp += 10
+                            score += 10
                         elif value in ('reverse', 'flip', 'skip'):
-                            temp += 20
+                            score += 20
                         elif value == 'wild':
-                            temp += 40
+                            score += 40
                         elif value == '+2':
-                            temp += 50
+                            score += 50
                         else:
-                            temp += int(value)
+                            score += int(value)
 
                     else:
                         value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
 
                         if value in ('+5', 'reverse', 'flip'):
-                            temp += 20
+                            score += 20
                         elif value == 'skip':
-                            temp += 30
+                            score += 30
                         elif value == 'wild':
-                            temp += 40
+                            score += 40
                         elif value == '+c':
-                            temp += 60
+                            score += 60
                         else:
-                            temp += int(value)
+                            score += int(value)
+
+                return score
+
+            # Calculate the winner's score
+            for key in [x for x in player_ids if x != str(winner.id)]:
+                temp = get_score(int(key))
 
                 if users[key][str(guild.id)]['Score'] < temp:
                     users[key][str(guild.id)]['Score'] = 0
@@ -765,23 +772,27 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
 
                 score += temp
 
-                # Craft a message that displays who won , the winner's score, and how many pts the losers lost
+            # Craft a message that displays who won , the winner's score, and how many pts every loser lost
+            for key in [x for x in player_ids if x != str(winner.id)]:
+                temp = get_score(int(key))
+
                 if score == 1:
                     if temp == 1:
-                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', description=f"You lost 1 pt.",
+                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
+                                                description=f"You lost **1** pt.",
                                                 color=discord.Color.red())
                     else:
                         message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
-                                                description=f"You lost {temp} pts.",
+                                                description=f"You lost **{temp}** pts.",
                                                 color=discord.Color.red())
                 else:
                     if temp == 1:
                         message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
-                                                description=f"You lost 1 pt.",
+                                                description=f"You lost **1** pt.",
                                                 color=discord.Color.red())
                     else:
                         message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
-                                                description=f"You lost {temp} pts.",
+                                                description=f"You lost **{temp}** pts.",
                                                 color=discord.Color.red())
                 message.set_image(url=winner.display_avatar.url)
 
