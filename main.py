@@ -2636,7 +2636,7 @@ async def on_user_update(before, after):
     for guild_id in games:
         guild = client.get_guild(int(guild_id))
 
-        if guild.get_member(after):
+        if guild.get_member(before.id):
             channel = discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '', before.name.lower().replace(' ',
                                                                                                                   '-')) + '-uno-channel')
 
