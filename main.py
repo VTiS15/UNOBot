@@ -804,17 +804,16 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
                     embed=message)))
 
             if score == 1:
-                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
-                                                                                                 winner.name.lower().replace(
-                                                                                                     ' ',
-                                                                                                     '-')) + '-uno-channel').send(
-                    embed=discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red()))))
+                message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
             else:
-                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
-                                                                                                 winner.name.lower().replace(
-                                                                                                     ' ',
-                                                                                                     '-')) + '-uno-channel').send(
-                    embed=discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts', color=discord.Color.red()))))
+                message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts', color=discord.Color.red())
+            message.set_image(url=winner.display_avatar.url)
+
+            tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
+                                                                                             winner.name.lower().replace(
+                                                                                                 ' ',
+                                                                                                 '-')) + '-uno-channel').send(
+                embed=message)))
 
             await asyncio.gather(*tasks)
 
