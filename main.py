@@ -714,6 +714,7 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
             # Initialize the score the winner gets to 0
             score = 0
             # Calculate winner's score and losers' penalties (if they are not UNOBot)
+            tasks = []
             for key in [x for x in player_ids if x != str(winner.id)]:
                 cards = games[str(guild.id)]['players'][key]['cards']
 
@@ -764,16 +765,47 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
 
                 score += temp
 
-            # Craft a message that displays who won and their score
-            if score == 1:
-                message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
-            else:
-                message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts', color=discord.Color.red())
-            message.set_image(url=winner.display_avatar.url)
+                # Craft a message that displays who won , the winner's score, and how many pts the losers lost
+                if score == 1:
+                    if temp == 1:
+                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', description=f"You lost 1 pt.",
+                                                color=discord.Color.red())
+                    else:
+                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
+                                                description=f"You lost {temp} pts.",
+                                                color=discord.Color.red())
+                else:
+                    if temp == 1:
+                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
+                                                description=f"You lost 1 pt.",
+                                                color=discord.Color.red())
+                    else:
+                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
+                                                description=f"You lost {temp} pts.",
+                                                color=discord.Color.red())
+                message.set_image(url=winner.display_avatar.url)
 
-            await asyncio.gather(
-                *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
-                  x.category.name == 'UNO-GAME'])
+                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
+                                                                                                 guild.get_member(
+                                                                                                     int(key)).name.lower().replace(
+                                                                                                     ' ',
+                                                                                                     '-')) + '-uno-channel').send(
+                    embed=message)))
+
+            if score == 1:
+                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
+                                                                                                 winner.name.lower().replace(
+                                                                                                     ' ',
+                                                                                                     '-')) + '-uno-channel').send(
+                    embed=discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red()))))
+            else:
+                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
+                                                                                                 winner.name.lower().replace(
+                                                                                                     ' ',
+                                                                                                     '-')) + '-uno-channel').send(
+                    embed=discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts', color=discord.Color.red()))))
+
+            await asyncio.gather(*tasks)
 
             users[str(winner.id)][str(guild.id)]['Score'] += score
 
@@ -2595,6 +2627,37 @@ async def on_member_remove(member):
                 del user_stuff[str(member.id)]
 
         users_file.put(Body=json.dumps(user_stuff).encode('utf-8'))
+
+
+@client.event
+async def on_user_update(before, after):
+    # Change the names of a player's UNO channels and the player's name in the game invitation message
+    # if they modify their name mid-game
+    for guild_id in games:
+        guild = client.get_guild(int(guild_id))
+
+        if guild.get_member(before):
+            channel = discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '', before.name.lower().replace(' ',
+                                                                                                                  '-')) + '-uno-channel')
+
+            if channel:
+                await channel.edit(name=sub(r'[^\w -]', '', after.name.lower().replace(' ', '-')))
+
+        for channel in guild.text_channels:
+            try:
+                m = await channel.fetch_message(games[str(guild.id)]['message'])
+            except (discord.NotFound, discord.Forbidden):
+                continue
+            else:
+                break
+        m_dict = m.embeds[0].to_dict()
+        for field in m_dict['fields']:
+            if field['name'] == 'Players:':
+                field['value'] = field['value'].replace(f':small_blue_diamond: {before.name}',
+                                                        f':small_blue_diamond: {after.name}')
+                break
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict))
 
 
 @client.event
@@ -5225,7 +5288,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
-                                            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
+                                            'description'] = ':white_check_mark: A game of UNO has started.\n\nGo to your UNO channel titled with your username.'
 
                                         try:
                                             await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
@@ -5298,7 +5361,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict = m.to_dict()
                                         message_dict['title'] = 'A game of UNO has started!'
                                         message_dict[
-                                            'description'] = ':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.'
+                                            'description'] = ':white_check_mark: A game of UNO has started.\n\nGo to your UNO channel titled with your username.'
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict))
 
@@ -5330,7 +5393,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         else:
                             if len(games[str(ctx.guild.id)]['players']) > 1:
                                 m = discord.Embed(title='A game of UNO has started!',
-                                                        description=':white_check_mark: A game of UNO has started.\nGo to your UNO channel titled with your username.',
+                                                        description=':white_check_mark: A game of UNO has started.\n\nGo to your UNO channel titled with your username.',
                                                         color=discord.Color.red())
 
                                 p = ""
