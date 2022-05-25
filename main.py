@@ -716,8 +716,8 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
             # Calculate winner's score and losers' penalties (if they are not UNOBot)
             tasks = []
 
-            def get_score(player_id: int) -> int:
-                cards = games[str(guild.id)]['players'][key]['cards']
+            def get_score(player_id: str) -> int:
+                cards = games[str(guild.id)]['players'][player_id]['cards']
 
                 score = 0
                 for card in cards:
@@ -763,7 +763,7 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
 
             # Calculate the winner's score
             for key in [x for x in player_ids if x != str(winner.id)]:
-                temp = get_score(int(key))
+                temp = get_score(key)
 
                 if users[key][str(guild.id)]['Score'] < temp:
                     users[key][str(guild.id)]['Score'] = 0
@@ -774,7 +774,7 @@ async def game_shutdown(d: dict, winner: Member=None, guild: Guild=None):
 
             # Craft a message that displays who won , the winner's score, and how many pts every loser lost
             for key in [x for x in player_ids if x != str(winner.id)]:
-                temp = get_score(int(key))
+                temp = get_score(key)
 
                 if score == 1:
                     if temp == 1:
