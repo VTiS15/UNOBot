@@ -2641,7 +2641,7 @@ async def on_user_update(before, after):
                                                                                                                   '-')) + '-uno-channel')
 
             if channel:
-                await channel.edit(name=sub(r'[^\w -]', '', after.name.lower().replace(' ', '-')))
+                await channel.edit(name=sub(r'[^\w -]', '', after.name.lower().replace(' ', '-')) + '-uno-channel')
 
         for channel in guild.text_channels:
             try:
