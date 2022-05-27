@@ -447,6 +447,12 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     # Assign a hand from the deck to bot(s) if they are playing
     for bot in [x for x in player_ids if not str.isdigit(x)]:
+        while len(d['cards']) <= d['settings']['StartingCards']:
+            if flip:
+                d['cards'] += flip_cards
+            else:
+                d['cards'] += cards
+
         hand = sample(d['cards'], d['settings']['StartingCards'])
         d['players'][bot] = Bot(bot, guild, games, hand)
         d['cards'] = [card for card in d['cards'] if card not in hand]
