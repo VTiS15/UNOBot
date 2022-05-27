@@ -3957,8 +3957,7 @@ async def on_message(message):
 
                                             elif isinstance(n, str) and games[str(message.guild.id)]['settings']['StackCards'] and any(
                                                         card[0] == '+2' for card in
-                                                        games[str(message.guild.id)]['players'][
-                                                            str(n.id)].cards):
+                                                        games[str(message.guild.id)]['players'][n].cards):
                                                 await asyncio.gather(
                                                     *[asyncio.create_task(x.send(embed=discord.Embed(
                                                         description='**' + n + ' can choose to stack cards or draw ' + str(
