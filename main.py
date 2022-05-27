@@ -193,10 +193,10 @@ games = {}  # Dictionary of ongoing games' data
 stack = {}  # Remembers guilds' card stacking
 ending = []  # List of guilds whose games are ending
 # Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
-s3_client = boto3.client('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
-                         aws_secret_access_key='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')
-s3_resource = boto3.resource('s3', aws_access_key_id='AKIASK5OVKOY5ZBSGLWG',
-                             aws_secret_access_key='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')
+s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
+                         aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
+                             aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 sys.setrecursionlimit(10**6)  # Changes the system recursion limit to 1,000,000 for the AI
 
 
@@ -205,7 +205,7 @@ def main():
     Runs the Discord bot.
     """
 
-    client.run('OTM4Mzg3Njk4OTA4MDM3MTUw.GYA7zz.zeD6h9yQiYP4HbgWjksRW0mVGPLmH2QwfSjoEE')
+    client.run(getenv('BOT_TOKEN'))
 
 
 async def initialize():
