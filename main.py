@@ -2793,7 +2793,7 @@ class Bot:
                 if not d['settings']['Flip']:
                     if not all(t == '+4' for t in self.playables):
                         self.playables = [x for x in self.playables if x != '+4']
-                    if not all(t[1] == 'wild' for t in self.playables):
+                    if not all(t == 'wild' for t in self.playables):
                         self.playables = [x for x in self.playables if x != 'wild']
 
                     if len(self.cards) == 1:
