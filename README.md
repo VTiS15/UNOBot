@@ -12,7 +12,7 @@ It allows Discord servers to play the game completely within text channels. Chal
 * Play UNO! with your friends completely within text channels on Discord!
 * Various optional game rules, including **StackCards** and **7-0**
 * Two fun game modes - Original **UNO!** and **UNO FLIP!**
-* **Play with UNOBot** (disables point calculation)
+* **Play with bots** (disables point calculation)
 * Local and global **leaderboards**
 * Check and show off your **stats**.
 * Highly customizable player options, game and command settings
