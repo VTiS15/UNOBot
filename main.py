@@ -266,11 +266,13 @@ async def initialize():
             for member in [x for x in client.get_all_members() if
                            str(x.id) not in user_stuff and x.id != client.user.id and not x.bot]:
                 for guild in [x for x in client.guilds if x.get_member(member.id)]:
-                    user_stuff[str(member.id)][str(guild.id)] = {
-                        'Wins': 0,
-                        'Score': 0,
-                        'Played': 0
-                    }
+                    if str(member.id) not in user_stuff:
+                        user_stuff[str(member.id)] = {}
+                        user_stuff[str(member.id)][str(guild.id)] = {
+                            'Wins': 0,
+                            'Score': 0,
+                            'Played': 0
+                        }
 
         users_file.put(Body=json.dumps(user_stuff).encode('utf-8'))
 
