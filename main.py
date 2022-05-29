@@ -702,20 +702,20 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
                 if str.isdigit(cplayer):
                     await asyncio.gather(
-                        *[asyncio.create_task(x.send(embed=discord.Embed(description='**' + guild.get_member(
-                            int(cplayer)).name + ' can choose to stack cards or draw 1 card.**',
-                                                                         color=discord.Color.red()))) for x in
-                          category.text_channels])
-
-                    await display_cards(cplayer, guild)
-                else:
-                    await asyncio.gather(
                         *[asyncio.create_task(x.send(embed=discord.Embed(
                             description='**' + cplayer + ' can choose to stack cards or draw 1 card.**',
                             color=discord.Color.red()))) for x in
                             category.text_channels])
 
                     await display_cards(guild.get_member(int(cplayer)), guild)
+                else:
+                    await asyncio.gather(
+                        *[asyncio.create_task(x.send(embed=discord.Embed(description='**' + guild.get_member(
+                            int(cplayer)).name + ' can choose to stack cards or draw 1 card.**',
+                                                                         color=discord.Color.red()))) for x in
+                          category.text_channels])
+
+                    await display_cards(cplayer, guild)
 
             else:
                 if not str.isdigit(cplayer):
