@@ -700,7 +700,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
             if d['settings']['StackCards'] and any('+2' in card for card in hand):
                 stack[str(guild.id)] = 1
 
-                if not str.isdigit(cplayer):
+                if str.isdigit(cplayer):
                     await asyncio.gather(
                         *[asyncio.create_task(x.send(embed=discord.Embed(description='**' + guild.get_member(
                             int(cplayer)).name + ' can choose to stack cards or draw 1 card.**',
