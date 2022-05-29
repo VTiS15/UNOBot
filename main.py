@@ -3177,10 +3177,11 @@ async def on_message(message):
 
             elif color in ('a', 'alert'):
                 if 'alert' not in cooldowns[str(message.guild.id)]:
+                    current_player = None
                     if isinstance(games[str(message.guild.id)]['player'], int):
                         current_player = message.guild.get_member(games[str(message.guild.id)]['player'])
 
-                    if current_player != message.author:
+                    if message.author != current_player:
                         await discord.utils.get(message.channel.category.text_channels,
                                                 name=sub(r'[^\w -]', '',
                                                          current_player.name.lower().replace(' ',
@@ -3570,7 +3571,7 @@ async def on_message(message):
                                 for key in temp:
                                     if key == str(message.author.id):
                                         m = next(temp, next(iter(p)))
-                                        if str.isdigit(n):
+                                        if str.isdigit(m):
                                             m = message.guild.get_member(int(m))
                                         break
 
