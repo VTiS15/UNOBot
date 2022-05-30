@@ -2273,7 +2273,7 @@ class Bot:
                             d['players'][min]['cards']):
                             min_pos = i
 
-            return score * ceil(1 - e**(abs(bot_pos - min_pos)*((1 - len(d['players'][min_pos].keys()))/5)))
+            return score * ceil(1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min_pos].keys()))/5))
 
         return score
 
