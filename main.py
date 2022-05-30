@@ -3018,7 +3018,7 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best)) > 0.1:
+                if self.__get_score(self.__get_value(best)) > 0.1 or self.__get_value(best) == 'flip' and len(self.cards) == 1:
                     await play_card(best, self.name, self.guild)
                     await self.__execute_card(self.__get_value(best))
                 else:
