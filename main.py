@@ -2167,7 +2167,10 @@ class Bot:
                                                                            total - i) / comb(
                                 108 * (total % 108 + 1) - len(self.cards), total)
 
-                score = 10 * prob
+                if prob > 0.3:
+                    score = 10 * prob
+                else:
+                    score = 0
             elif value in {'wild', '+4'}:
                 return 1
             else:
@@ -2193,7 +2196,10 @@ class Bot:
                                                                            total - i) / comb(
                                 112 * (total % 112 + 1) - len(self.cards), total)
 
-                score = 10 * prob
+                if prob > 0.3:
+                    score = 10 * prob
+                else:
+                    score = 0
             elif value in {'reverse', 'skip'}:
                 if len(d['players']) == 2 or value == 'skip':
                     score = 20
@@ -2242,7 +2248,10 @@ class Bot:
                                                                       total - i) / comb(
                             112 * (total % 112 + 1) - len(self.cards), total)
 
-                score = 10 * prob
+                if prob > 0.3:
+                    score = 10 * prob
+                else:
+                    score = 0
             elif value == 'skip':
                 score = 20
             elif value in {'wild', 'flip', '+color'}:
