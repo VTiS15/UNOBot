@@ -2057,7 +2057,7 @@ class Bot:
         self.reccount = 0
         self.losing_colors, self.losing_values = set(), set()
 
-    def __get_color_and_value(self, card: Union[str, tuple]) -> (str, str):
+    def __get_color_and_value(self, card: Union[str, tuple], dark: bool=None) -> (str, str):
         """Returns the color and value of an UNO card.
 
         Args:
@@ -2072,13 +2072,13 @@ class Bot:
         except KeyError:
             return
 
-        if not d['settings']['Flip']:
+        if not d['settings']['Flip'] and not dark:
             color = search(r'red|blue|green|yellow', card)
             if color:
                 color = color.group(0)
             value = search(r'\+[24]|wild|skip|reverse|\d', card).group(0)
 
-        elif not d['dark']:
+        elif not d['dark'] and not dark:
             color = search(r'red|blue|green|yellow', card[0])
             if color:
                 color = color.group(0)
@@ -2092,7 +2092,7 @@ class Bot:
 
         return color, value
 
-    def __get_color(self, card: Union[str, tuple]) -> str:
+    def __get_color(self, card: Union[str, tuple], dark: bool=None) -> str:
         """Returns the color of an UNO card.
 
         Args:
@@ -2103,11 +2103,11 @@ class Bot:
         """
 
         try:
-            return self.__get_color_and_value(card)[0]
+            return self.__get_color_and_value(card, dark)[0]
         except TypeError:
             pass
 
-    def __get_value(self, card: Union[str, tuple]) -> str:
+    def __get_value(self, card: Union[str, tuple], dark: bool=None) -> str:
         """Returns the value of an UNO card.
 
         Args:
@@ -2118,7 +2118,7 @@ class Bot:
         """
 
         try:
-            return self.__get_color_and_value(card)[1]
+            return self.__get_color_and_value(card, dark)[1]
         except TypeError:
             pass
 
@@ -2212,7 +2212,29 @@ class Bot:
                         score = 0
                     else:
                         score = 20
-            elif value in {'wild', 'flip', '+2'}:
+            elif value == 'flip':
+                max_ratio = 0
+
+                for player in [x for x in d['players'] if x != self.name]:
+                    ratio = 0
+
+                    if str.isdigit(player):
+                        for c in d['players'][player]['cards']:
+                            ratio += self.__get_value(c, True)
+                        ratio /= len(d['players'][player]['cards'])
+                    else:
+                        for c in d['players'][player].cards:
+                            ratio += self.__get_value(c, True)
+                        ratio /= len(d['players'][player].cards)
+
+                    if ratio > max_ratio:
+                        max_ratio = ratio
+
+                if max_ratio < 30:
+                    score = 1
+                else:
+                    score = 0
+            elif value in {'wild', '+2'}:
                 score = 1
             else:
                 score = int(value)
@@ -2254,7 +2276,29 @@ class Bot:
                     score = 0
             elif value == 'skip':
                 score = 20
-            elif value in {'wild', 'flip', '+color'}:
+            elif value == 'flip':
+                max_ratio = 0
+
+                for player in [x for x in d['players'] if x != self.name]:
+                    ratio = 0
+
+                    if str.isdigit(player):
+                        for c in d['players'][player]['cards']:
+                            ratio += self.__get_value(c, False)
+                        ratio /= len(d['players'][player]['cards'])
+                    else:
+                        for c in d['players'][player].cards:
+                            ratio += self.__get_value(c, False)
+                        ratio /= len(d['players'][player].cards)
+
+                    if ratio > max_ratio:
+                        max_ratio = ratio
+
+                if max_ratio < 30:
+                    score = 1
+                else:
+                    score = 0
+            elif value in {'wild' '+color'}:
                 score = 1
             else:
                 score = int(value)
@@ -2282,7 +2326,7 @@ class Bot:
                             d['players'][min]['cards']):
                             min_pos = i
 
-            return score * ceil(1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min_pos].keys()))/5))
+            return score * (1 - ceil(e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min_pos].keys()))/5)))
 
         return score
 
