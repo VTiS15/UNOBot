@@ -2134,7 +2134,10 @@ class Bot:
         """
 
         def get_pts(player_id: str, dark: bool) -> int:
-            cards = games[str(self.guild.id)]['players'][player_id]['cards']
+            if str.isdigit(player_id):
+                cards = games[str(self.guild.id)]['players'][player_id]['cards']
+            else:
+                cards = games[str(self.guild.id)]['players'][player_id].cards
 
             score = 0
             for card in cards:
@@ -2261,16 +2264,7 @@ class Bot:
                 max_ratio = 0
 
                 for player in [x for x in d['players'] if x != self.name]:
-                    ratio = 0
-
-                    if str.isdigit(player):
-                        for c in d['players'][player]['cards']:
-                            ratio += get_pts(c, True)
-                        ratio /= len(d['players'][player]['cards'])
-                    else:
-                        for c in d['players'][player].cards:
-                            ratio += get_pts(c, True)
-                        ratio /= len(d['players'][player].cards)
+                    ratio = get_pts(player, False) / len(d['players'][player].cards)
 
                     if ratio > max_ratio:
                         max_ratio = ratio
@@ -2325,16 +2319,7 @@ class Bot:
                 max_ratio = 0
 
                 for player in [x for x in d['players'] if x != self.name]:
-                    ratio = 0
-
-                    if str.isdigit(player):
-                        for c in d['players'][player]['cards']:
-                            ratio += get_pts(c, False)
-                        ratio /= len(d['players'][player]['cards'])
-                    else:
-                        for c in d['players'][player].cards:
-                            ratio += get_pts(c, False)
-                        ratio /= len(d['players'][player].cards)
+                    ratio = get_pts(player, False)/len(d['players'][player].cards)
 
                     if ratio > max_ratio:
                         max_ratio = ratio
