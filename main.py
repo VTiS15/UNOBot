@@ -2275,7 +2275,7 @@ class Bot:
                 if max_ratio < 30:
                     score = 1
                 else:
-                    score = 0
+                    score = -1
             elif value in {'wild', '+2'}:
                 score = 1
             else:
@@ -2333,7 +2333,7 @@ class Bot:
                 if max_ratio < 30:
                     score = 1
                 else:
-                    score = 0
+                    score = -1
             elif value in {'wild', '+color'}:
                 score = 1
             else:
@@ -3018,7 +3018,7 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best)) > 0.1 or self.__get_value(best) == 'flip' and len(self.cards) == 1:
+                if self.__get_score(self.__get_value(best)) >= 0 or self.__get_value(best) == 'flip' and len(self.cards) == 1:
                     await play_card(best, self.name, self.guild)
                     await self.__execute_card(self.__get_value(best))
                 else:
