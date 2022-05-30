@@ -2275,7 +2275,8 @@ class Bot:
                 if max_ratio < 30:
                     score = 1
                 else:
-                    score = -1
+                    score = -20
+
             elif value in {'wild', '+2'}:
                 score = 1
             else:
@@ -2333,7 +2334,7 @@ class Bot:
                 if max_ratio < 30:
                     score = 1
                 else:
-                    score = -1
+                    score = -20
             elif value in {'wild', '+color'}:
                 score = 1
             else:
