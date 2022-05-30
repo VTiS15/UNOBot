@@ -8,7 +8,7 @@ import sys
 from typing import Union
 from os import getenv
 from treelib import Tree
-from math import comb, e
+from math import comb, e, ceil
 from botocore.exceptions import ClientError
 from aiohttp.client_exceptions import ClientOSError
 from treelib.exceptions import DuplicatedNodeIdError
@@ -2251,16 +2251,29 @@ class Bot:
                 score = int(value)
 
         if (color in self.losing_colors or value in self.losing_values) and score >= 0:
-            total = 0
-            n = 0
-            for player in [x for x in d['players'] if x != self.name]:
-                if str.isdigit(player):
-                    total += len(d['players'][player]['cards'])
+            bot_pos = None
+            min_pos = 0
+            for i in range(len(d['players'].keys())):
+                if list(d['players'].keys())[i] == self.name:
+                    bot_pos = i
                 else:
-                    total += len(d['players'][player].cards)
-                n += 1
+                    item, min = list(d['players'].keys())[i], list(d['players'].keys())[min_pos]
+                    min_is_bot = not str.isdigit(min)
+                    item_is_bot = not str.isdigit(item)
 
-            return score * (1 - e ** ((n - total) / n ** 2))
+                    if item_is_bot:
+                        if min_is_bot and len(d['players'][item].cards) < len(
+                                d['players'][min].cards) or not min_is_bot and len(d['players'][item].cards) < len(
+                            d['players'][min]['cards']):
+                            min_pos = i
+                    else:
+                        if min_is_bot and len(d['players'][item].cards) < len(
+                                d['players'][min]['cards']) or not min_is_bot and len(
+                            d['players'][item]['cards']) < len(
+                            d['players'][min]['cards']):
+                            min_pos = i
+
+            return score * ceil(1 - e**(abs(bot_pos - min_pos)*((1 - len(d['players'][min_pos].keys()))/5)))
 
         return score
 
