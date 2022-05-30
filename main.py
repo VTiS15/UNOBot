@@ -2208,12 +2208,13 @@ class Bot:
                     n += 1
 
                 prob = 0
-                if n * least <= 12 * (len(cards) % 108 + 1):
+                hands = total + len(self.cards)
+                if n * least <= 12 * ((total + len(self.cards)) % 108 + 1):
                     for i in range(n * least):
                         if i <= total:
-                            prob += comb(12 * (total // 108 + 1) - least, i) * comb(96 * (total // 108 + 1) - len(self.cards) + least,
+                            prob += comb(12 * (hands // 108 + 1) - least, i) * comb(96 * (hands // 108 + 1) - len(self.cards) + least,
                                                                            total - i) / comb(
-                                108 * (total // 108 + 1) - len(self.cards), total)
+                                108 * (hands // 108 + 1) - len(self.cards), total)
 
                 if prob > 0.3:
                     score = 10 * prob
@@ -2237,12 +2238,13 @@ class Bot:
                     n += 1
 
                 prob = 0
-                if n * least <= 12 * (total % 112 + 1):
+                hands = total + len(self.cards)
+                if n * least <= 12 * (hands % 112 + 1):
                     for i in range(n * least):
                         if i <= total:
-                            prob += comb(12 * (total // 112 + 1) - least, i) * comb(100 * (total // 112 + 1) - len(self.cards) + least,
+                            prob += comb(12 * (hands // 112 + 1) - least, i) * comb(100 * (hands // 112 + 1) - len(self.cards) + least,
                                                                            total - i) / comb(
-                                112 * (total // 112 + 1) - len(self.cards), total)
+                                112 * (hands // 112 + 1) - len(self.cards), total)
 
                 if prob > 0.5:
                     score = 10 * prob
@@ -2309,11 +2311,13 @@ class Bot:
                     n += 1
 
                 prob = 0
-                if n * least <= 8 * (total % 112 + 1):
+                hands = total + len(self.cards)
+                if n * least <= 8 * (hands % 112 + 1):
                     for i in range(n * least):
-                        prob += comb(8 * (total // 112 + 1) - least, i) * comb(104 * (total // 112 + 1) - len(self.cards) + least,
-                                                                      total - i) / comb(
-                            112 * (total // 112 + 1) - len(self.cards), total)
+                        if i <= total:
+                            prob += comb(8 * (hands // 112 + 1) - least, i) * comb(104 * (hands // 112 + 1) - len(self.cards) + least,
+                                                                          total - i) / comb(
+                                112 * (hands // 112 + 1) - len(self.cards), total)
 
                 if prob > 0.5:
                     score = 10 * prob
