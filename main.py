@@ -2103,7 +2103,7 @@ class Bot:
         """
 
         try:
-            return self.__get_color_and_value(card, dark)[0]
+            return self.__get_color_and_value(card)[0]
         except TypeError:
             pass
 
@@ -2118,7 +2118,7 @@ class Bot:
         """
 
         try:
-            return self.__get_color_and_value(card, dark)[1]
+            return self.__get_color_and_value(card)[1]
         except TypeError:
             pass
 
