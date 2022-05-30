@@ -90,7 +90,7 @@ Play a Wild Draw Color Card by entering `<color>+color`.
 The scoring for the cards is as follows:
 | Card Type | Score |
 | --------- | ----- |
-| Numbered cards (0-9) | Face value |
+| Numbered cards (1-9) | Face value |
 | Draw 1 | 10 pts |
 | Draw 5/Skip/Reverse/Flip | 20 pts |
 | Skip Everyone | 30 pts |
