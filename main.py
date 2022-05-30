@@ -2265,14 +2265,16 @@ class Bot:
 
                 for player in [x for x in d['players'] if x != self.name]:
                     if str.isdigit(player):
-                        ratio = get_pts(player, False) / len(d['players'][player]['cards'])
+                        ratio = get_pts(player, True) / len(d['players'][player]['cards'])
                     else:
-                        ratio = get_pts(player, False) / len(d['players'][player].cards)
+                        ratio = get_pts(player, True) / len(d['players'][player].cards)
 
                     if ratio > max_ratio:
                         max_ratio = ratio
 
-                if max_ratio < 30:
+                if get_pts(self.name, True) / len(self.cards) > max_ratio:
+                    score = 20
+                elif max_ratio < 30:
                     score = 1
                 else:
                     score = -1
@@ -2331,7 +2333,9 @@ class Bot:
                     if ratio > max_ratio:
                         max_ratio = ratio
 
-                if max_ratio < 30:
+                if get_pts(self.name, False) / len(self.cards) > max_ratio:
+                    score = 20
+                elif max_ratio < 30:
                     score = 1
                 else:
                     score = -1
