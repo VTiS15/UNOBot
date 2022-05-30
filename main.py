@@ -2163,7 +2163,7 @@ class Bot:
                 if n * least <= 12 * (len(cards) % 108 + 1):
                     for i in range(n * least):
                         if i <= total:
-                            prob += comb(12 * (total // 108 + 1) - least, i) * comb(96 * (total // 108 + 1) - len(self.cards),
+                            prob += comb(12 * (total // 108 + 1) - least, i) * comb(96 * (total // 108 + 1) - len(self.cards) + least,
                                                                            total - i) / comb(
                                 108 * (total // 108 + 1) - len(self.cards), total)
 
@@ -2192,7 +2192,7 @@ class Bot:
                 if n * least <= 12 * (total % 112 + 1):
                     for i in range(n * least):
                         if i <= total:
-                            prob += comb(12 * (total // 112 + 1) - least, i) * comb(100 * (total // 112 + 1) - len(self.cards),
+                            prob += comb(12 * (total // 112 + 1) - least, i) * comb(100 * (total // 112 + 1) - len(self.cards) + least,
                                                                            total - i) / comb(
                                 112 * (total // 112 + 1) - len(self.cards), total)
 
@@ -2244,7 +2244,7 @@ class Bot:
                 prob = 0
                 if n * least <= 8 * (total % 112 + 1):
                     for i in range(n * least):
-                        prob += comb(8 * (total // 112 + 1) - least, i) * comb(104 * (total // 112 + 1) - len(self.cards),
+                        prob += comb(8 * (total // 112 + 1) - least, i) * comb(104 * (total // 112 + 1) - len(self.cards) + least,
                                                                       total - i) / comb(
                             112 * (total // 112 + 1) - len(self.cards), total)
 
