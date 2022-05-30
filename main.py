@@ -5876,6 +5876,18 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict[
                                             'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
+                                        p = ""
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            if str.isdigit(key):
+                                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                            else:
+                                                p += (':small_blue_diamond:' + key + "\n")
+
+                                        for field in message_dict['fields']:
+                                            if field['name'] == 'Players:':
+                                                field['value'] = p
+                                                break
+
                                         await e.edit(embed=discord.Embed.from_dict(message_dict))
 
                                         await game_setup(ctx, games[str(ctx.guild.id)])
