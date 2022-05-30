@@ -2274,7 +2274,7 @@ class Bot:
 
                 if get_pts(self.name, True) / len(self.cards) > max_ratio:
                     score = 20
-                elif max_ratio < 30:
+                elif max_ratio < 25:
                     score = 1
                 else:
                     score = -1
@@ -2335,7 +2335,7 @@ class Bot:
 
                 if get_pts(self.name, False) / len(self.cards) > max_ratio:
                     score = 20
-                elif max_ratio < 30:
+                elif max_ratio < 25:
                     score = 1
                 else:
                     score = -1
