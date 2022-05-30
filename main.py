@@ -2244,7 +2244,7 @@ class Bot:
                                                                            total - i) / comb(
                                 112 * (total // 112 + 1) - len(self.cards), total)
 
-                if prob > 0.3:
+                if prob > 0.5:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2315,7 +2315,7 @@ class Bot:
                                                                       total - i) / comb(
                             112 * (total // 112 + 1) - len(self.cards), total)
 
-                if prob > 0.3:
+                if prob > 0.5:
                     score = 10 * prob
                 else:
                     score = 0
