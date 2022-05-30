@@ -2133,7 +2133,7 @@ class Bot:
             The score (i.e. weight/bias) of an UNO card of the value
         """
 
-        def get_pts(player_id: str, dark: bool=None) -> int:
+        def get_pts(player_id: str, dark: bool) -> int:
             cards = games[str(self.guild.id)]['players'][player_id]['cards']
 
             score = 0
