@@ -2334,7 +2334,7 @@ class Bot:
                     score = 1
                 else:
                     score = 0
-            elif value in {'wild' '+color'}:
+            elif value in {'wild', '+color'}:
                 score = 1
             else:
                 score = int(value)
