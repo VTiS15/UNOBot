@@ -2275,7 +2275,7 @@ class Bot:
                 if max_ratio < 30:
                     score = 1
                 else:
-                    score = -20
+                    score = -1
 
             elif value in {'wild', '+2'}:
                 score = 1
@@ -2334,7 +2334,7 @@ class Bot:
                 if max_ratio < 30:
                     score = 1
                 else:
-                    score = -20
+                    score = -1
             elif value in {'wild', '+color'}:
                 score = 1
             else:
@@ -2938,6 +2938,8 @@ class Bot:
                 elif not d['dark']:
                     if not all(t[0] == '+2' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != '+2']
+                    if not all(t[0] == 'flip' for t in self.playables):
+                        self.playables = [x for x in self.playables if x[0] != 'flip']
                     if not all(t[0] == 'wild' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != 'wild']
 
@@ -2975,6 +2977,8 @@ class Bot:
                 else:
                     if not all(t[1] == '+color' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != '+color']
+                    if not all(t[1] == 'flip' for t in self.playables):
+                        self.playables = [x for x in self.playables if x[1] != 'flip']
                     if not all(t[1] == 'darkwild' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != 'darkwild']
 
