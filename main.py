@@ -2057,7 +2057,7 @@ class Bot:
         self.reccount = 0
         self.losing_colors, self.losing_values = set(), set()
 
-    def __get_color_and_value(self, card: Union[str, tuple], dark: bool=None) -> (str, str):
+    def __get_color_and_value(self, card: Union[str, tuple]) -> (str, str):
         """Returns the color and value of an UNO card.
 
         Args:
@@ -2092,7 +2092,7 @@ class Bot:
 
         return color, value
 
-    def __get_color(self, card: Union[str, tuple], dark: bool=None) -> str:
+    def __get_color(self, card: Union[str, tuple]) -> str:
         """Returns the color of an UNO card.
 
         Args:
@@ -2107,7 +2107,7 @@ class Bot:
         except TypeError:
             pass
 
-    def __get_value(self, card: Union[str, tuple], dark: bool=None) -> str:
+    def __get_value(self, card: Union[str, tuple]) -> str:
         """Returns the value of an UNO card.
 
         Args:
@@ -2132,6 +2132,51 @@ class Bot:
         Returns:
             The score (i.e. weight/bias) of an UNO card of the value
         """
+
+        def get_pts(player_id: str, dark: bool=None) -> int:
+            cards = games[str(self.guild.id)]['players'][player_id]['cards']
+
+            score = 0
+            for card in cards:
+                if not games[str(self.guild.id)]['settings']['Flip'] and not dark:
+                    value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+
+                    if value in ('+2', 'skip', 'reverse'):
+                        score += 20
+                    elif value in ('+4', 'wild'):
+                        score += 50
+                    else:
+                        score += int(value)
+
+                elif not games[str(self.guild.id)]['dark'] and not dark:
+                    value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+
+                    if value == '+1':
+                        score += 10
+                    elif value in ('reverse', 'flip', 'skip'):
+                        score += 20
+                    elif value == 'wild':
+                        score += 40
+                    elif value == '+2':
+                        score += 50
+                    else:
+                        score += int(value)
+
+                else:
+                    value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
+
+                    if value in ('+5', 'reverse', 'flip'):
+                        score += 20
+                    elif value == 'skip':
+                        score += 30
+                    elif value == 'wild':
+                        score += 40
+                    elif value == '+c':
+                        score += 60
+                    else:
+                        score += int(value)
+
+            return score
 
         d = self.games[str(self.guild.id)]
 
@@ -2220,11 +2265,11 @@ class Bot:
 
                     if str.isdigit(player):
                         for c in d['players'][player]['cards']:
-                            ratio += self.__get_value(c, True)
+                            ratio += get_pts(c, True)
                         ratio /= len(d['players'][player]['cards'])
                     else:
                         for c in d['players'][player].cards:
-                            ratio += self.__get_value(c, True)
+                            ratio += get_pts(c, True)
                         ratio /= len(d['players'][player].cards)
 
                     if ratio > max_ratio:
@@ -2284,11 +2329,11 @@ class Bot:
 
                     if str.isdigit(player):
                         for c in d['players'][player]['cards']:
-                            ratio += self.__get_value(c, False)
+                            ratio += get_pts(c, False)
                         ratio /= len(d['players'][player]['cards'])
                     else:
                         for c in d['players'][player].cards:
-                            ratio += self.__get_value(c, False)
+                            ratio += get_pts(c, False)
                         ratio /= len(d['players'][player].cards)
 
                     if ratio > max_ratio:
