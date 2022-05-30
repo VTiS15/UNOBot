@@ -2072,13 +2072,13 @@ class Bot:
         except KeyError:
             return
 
-        if not d['settings']['Flip'] and not dark:
+        if not d['settings']['Flip']:
             color = search(r'red|blue|green|yellow', card)
             if color:
                 color = color.group(0)
             value = search(r'\+[24]|wild|skip|reverse|\d', card).group(0)
 
-        elif not d['dark'] and not dark:
+        elif not d['dark']:
             color = search(r'red|blue|green|yellow', card[0])
             if color:
                 color = color.group(0)
