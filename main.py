@@ -252,6 +252,7 @@ async def initialize():
             for guild_id in dgs:
                 if guild_id not in map(lambda x: x.id, client.guilds):
                     del dgs[guild_id]
+                    break
 
         dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
@@ -280,6 +281,7 @@ async def initialize():
             for user_id in user_stuff:
                 if user_id not in map(lambda x: x.id, client.users):
                     del user_stuff[user_id]
+                    break
 
         users_file.put(Body=json.dumps(user_stuff).encode('utf-8'))
 
@@ -295,6 +297,7 @@ async def initialize():
             for guild_id in commands:
                 if guild_id not in map(lambda x: x.id, client.guilds):
                     del commands[guild_id]
+                    break
 
         commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
