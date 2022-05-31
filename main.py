@@ -187,7 +187,7 @@ flip_cards = [('blue1', 'purpleskip'), ('blue2', 'pink6'), ('blue3', 'purple8'),
               ('yellowflip', 'pink4'),
               ('wild', 'pinkflip'), ('wild', 'purple7'), ('wild', 'pink5'), ('wild', 'teal3'), ('+2', 'orange4'),
               ('+2', 'pink2'), ('+2', 'purple9'), ('+2', 'orange7')]
-bot_names = ['Clyde', 'Doggo', 'Urdim', 'Phibi', 'Locke', 'Mallow', 'Nelly', 'Cap', 'Graggle', 'Arame', 'Renwill', 'Mushroom', 'Chin', 'Dragon', 'Crab', 'Matt', 'Susan', 'Carrie', 'Panda', 'Joe']  # Possible names of a bot
+bot_names = ['Clyde', 'Doggo', 'Urdim', 'Phibi', 'Locke', 'Mallow', 'Nelly', 'Cap', 'Graggle', 'Arame', 'Renwill', 'Mushroom', 'Chin', 'Dragon', 'Crab', 'Matt', 'Susan', 'Carrie', 'Richard', 'Joe']  # Possible names of a bot
 resets = []  # List of guilds who wish to reset their data but have not yet confirmed
 cooldowns = {}  # Dictionary of command cooldowns
 games = {}  # Dictionary of ongoing games' data
