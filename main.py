@@ -3054,7 +3054,7 @@ async def on_ready():
 
     print("Guilds:")
     for guild in client.guilds:
-        print(f'{guild.name}\n')
+        print(f'{guild.name}')
     # Print a ready message to the console once initialization is complete
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot is ready.')
 
