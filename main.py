@@ -249,6 +249,10 @@ async def initialize():
                 if str(guild.id) not in dgs:
                     dgs[str(guild.id)] = default_dgs
 
+            for guild_id in dgs:
+                if guild_id not in map(lambda x: x.id, client.guilds):
+                    del dgs[guild_id]
+
         dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
         if not user_stuff:
@@ -273,6 +277,10 @@ async def initialize():
                             'Played': 0
                         }
 
+            for user_id in user_stuff:
+                if user_id not in map(lambda x: x.id, client.users):
+                    del user_stuff[user_id]
+
         users_file.put(Body=json.dumps(user_stuff).encode('utf-8'))
 
         if not commands:
@@ -283,6 +291,10 @@ async def initialize():
             for guild in client.guilds:
                 if str(guild.id) not in commands:
                     commands[str(guild.id)] = default_command_settings
+
+            for guild_id in commands:
+                if guild_id not in map(lambda x: x.id, client.guilds):
+                    del commands[guild_id]
 
         commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
