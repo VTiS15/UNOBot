@@ -324,12 +324,11 @@ def rank(user: User = None, guild: Guild = None) -> Union[tuple, list]:
             scores.append(users[id][str(guild.id)]['Score'])
 
     else:
-        s = 0
         for id in users:
+            s = 0
             for g in [x for x in client.guilds if x.get_member(int(id))]:
                 s += users[id][str(g.id)]['Score']
             scores.append(s)
-            s = 0
 
     # Create a leaderboard
     leaderboard = len(scores) - rankdata(scores, method='max') + 1
@@ -643,6 +642,13 @@ async def game_setup(ctx: ApplicationContext, d: dict):
     except KeyError:
         pass
 
+    # Increment every player's Played count by 1
+    users_file = s3_resource.Object('unobot-bucket', 'users.json')
+    users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
+    for i in [x for x in player_ids if str.isdigit(x)]:
+        users[i][str(guild.id)]['Played'] += 1
+    users_file.put(Body=json.dumps(users).encode('utf-8'))
+
     # Print a message to the console stating a game has successfully started in the guild
     print(
         '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(guild) + '.')
@@ -877,8 +883,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         # Increment winner's Win count and every player's Played count
         if isinstance(winner, Member):
             users[str(winner.id)][str(guild.id)]['Wins'] += 1
-        for i in [x for x in player_ids if str.isdigit(x)]:
-            users[i][str(guild.id)]['Played'] += 1
 
         users_file.put(Body=json.dumps(users).encode('utf-8'))
 
@@ -3048,6 +3052,9 @@ async def on_ready():
     # Initialize UNOBot
     await initialize()
 
+    print("Guilds:")
+    for guild in client.guilds:
+        print(f'{guild.name}\n')
     # Print a ready message to the console once initialization is complete
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot is ready.')
 
@@ -6237,27 +6244,20 @@ async def kick(ctx, user):
                     del games[str(ctx.guild.id)]['players'][str(player.id)]
 
                     if len(games[str(ctx.guild.id)]['players']) >= 2:
-                        if player.id != client.user.id:
-                            channel = discord.utils.get(ctx.guild.text_channels,
-                                                        name=sub(r'[^\w -]', '',
-                                                                 player.name.lower().replace(' ',
-                                                                                             '-')) + '-uno-channel')
+                        channel = discord.utils.get(ctx.guild.text_channels,
+                                                    name=sub(r'[^\w -]', '',
+                                                             player.name.lower().replace(' ',
+                                                                                         '-')) + '-uno-channel')
 
-                            if str(client.user.id) in games[str(ctx.guild.id)]['players']:
-                                games[str(ctx.guild.id)]['players'][str(client.user.id)].channels.remove(channel)
+                        for bot in [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)]:
+                            games[str(ctx.guild.id)]['players'][bot].channels.remove(channel)
 
-                            await channel.delete()
+                        await channel.delete()
 
-                            await asyncio.gather(*[asyncio.create_task(x.send(
-                                embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.',
-                                                    color=discord.Color.red()))) for x in
-                                ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
-
-                        else:
-                            await asyncio.gather(*[asyncio.create_task(x.send(
-                                embed=discord.Embed(description=':warning: **UNOBot** was kicked.',
-                                                    color=discord.Color.red()))) for x in
-                                ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
+                        await asyncio.gather(*[asyncio.create_task(x.send(
+                            embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.',
+                                                color=discord.Color.red()))) for x in
+                            ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
                         if player.id == games[str(ctx.guild.id)]['player']:
                             await display_cards(n, ctx.guild)
