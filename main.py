@@ -3437,8 +3437,7 @@ async def on_message(message):
                             if color + value in games[str(message.guild.id)]['players'][str(message.author.id)][
                                 'cards']:
                                 if (current_color == color or current_value == value) and not (
-                                        '+' in current_value and games[str(message.guild.id)]['settings'][
-                                    'StackCards'] and str(message.guild.id) in stack):
+                                        '+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + value, message.author, message.guild)
 
                                     if games[str(message.guild.id)]['settings']['7-0']:
@@ -3505,8 +3504,7 @@ async def on_message(message):
                                                      games[str(message.guild.id)]['players'][str(message.author.id)][
                                                          'cards']]:
                                     if (current_color == color or current_value == value) and not (
-                                            '+' in current_value and games[str(message.guild.id)]['settings'][
-                                        'StackCards'] and str(message.guild.id) in stack):
+                                            '+' in current_value and str(message.guild.id) in stack):
                                         await play_card(
                                             choice([x for x in games[str(message.guild.id)]['players'][
                                                 str(message.author.id)]['cards'] if x[0] == color + value]),
@@ -3547,8 +3545,7 @@ async def on_message(message):
                                                      games[str(message.guild.id)]['players'][str(message.author.id)][
                                                          'cards']]:
                                     if (current_color == color or current_value == value) and not (
-                                            '+' in current_value and games[str(message.guild.id)]['settings'][
-                                        'StackCards'] and str(message.guild.id) in stack):
+                                            '+' in current_value and str(message.guild.id) in stack):
                                         await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                             str(message.author.id)]['cards'] if x[1] == color + value]),
                                                         message.author, message.guild)
@@ -3588,8 +3585,7 @@ async def on_message(message):
                             if color + 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)][
                                 'cards']:
                                 if (current_color == color or current_value == 'reverse') and not (
-                                        '+' in current_value and games[str(message.guild.id)]['settings'][
-                                    'StackCards'] and str(message.guild.id) in stack):
+                                        '+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + 'reverse', message.author, message.guild)
 
                                 else:
@@ -3621,8 +3617,7 @@ async def on_message(message):
                                                              str(message.author.id)][
                                                              'cards']]:
                                     if (current_color == color or current_value == 'reverse') and not (
-                                            '+' in current_value and games[str(message.guild.id)]['settings'][
-                                        'StackCards'] and str(message.guild.id) in stack):
+                                            '+' in current_value and str(message.guild.id) in stack):
                                         await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                             str(message.author.id)]['cards'] if x[0] == color + 'reverse']),
                                                         message.author, message.guild)
@@ -3743,8 +3738,7 @@ async def on_message(message):
                             if color + 'skip' in games[str(message.guild.id)]['players'][str(message.author.id)][
                                 'cards']:
                                 if (current_color == color or current_value == 'skip') and not (
-                                        '+' in current_value and games[str(message.guild.id)]['settings'][
-                                    'StackCards'] and str(message.guild.id) in stack):
+                                        '+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + 'skip', message.author, message.guild)
 
                                     if str(message.guild.id) in games:
@@ -3789,8 +3783,7 @@ async def on_message(message):
                                                       games[str(message.guild.id)]['players'][str(message.author.id)][
                                                           'cards']]:
                                     if (current_color == color or current_value == 'skip') and not (
-                                            '+' in current_value and games[str(message.guild.id)]['settings'][
-                                        'StackCards'] and str(message.guild.id) in stack):
+                                            '+' in current_value and str(message.guild.id) in stack):
                                         await play_card(choice([x for x in games[str(message.guild.id)]['players'][
                                             str(message.author.id)]['cards'] if x[0] == color + 'skip']),
                                                         message.author, message.guild)
@@ -3865,8 +3858,7 @@ async def on_message(message):
                     elif value in ('w', 'wild'):
                         if not games[str(message.guild.id)]['settings']['Flip']:
                             if 'wild' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
-                                if not ('+' in current_value and games[str(message.guild.id)]['settings'][
-                                    'StackCards'] and str(message.guild.id) in stack):
+                                if not ('+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + 'wild', message.author, message.guild)
 
                                     if str(message.guild.id) in games:
@@ -4304,9 +4296,7 @@ async def on_message(message):
 
                     elif search(r'[+d](raw)* *c(olor)*', value):
                         if games[str(message.guild.id)]['settings']['Flip'] and games[str(message.guild.id)][
-                            'dark'] or not (
-                                '+' in current_value and games[str(message.guild.id)]['settings'][
-                            'StackCards'] and str(message.guild.id) in stack):
+                            'dark'] and not ('+' in current_value and str(message.guild.id) in stack):
                             if any('+color' in x[1] for x in
                                    games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
                                 await play_card((choice([x for x in games[str(message.guild.id)]['players'][
