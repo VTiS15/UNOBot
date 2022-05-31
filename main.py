@@ -4340,9 +4340,8 @@ async def on_message(message):
                                     color=discord.Color.red()))
 
                     elif value in ('f', 'flip'):
-                        if games[str(message.guild.id)]['settings']['Flip'] or not (
-                                '+' in current_value and games[str(message.guild.id)]['settings'][
-                            'StackCards'] and str(message.guild.id) in stack):
+                        if games[str(message.guild.id)]['settings']['Flip'] and not (
+                                '+' in current_value and str(message.guild.id) in stack):
                             if not games[str(message.guild.id)]['dark']:
                                 if color + 'flip' in [x[0] for x in
                                                       games[str(message.guild.id)]['players'][str(message.author.id)][
