@@ -5692,7 +5692,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
                             join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
-
                             async def join_callback(interaction):
                                 await interaction.response.defer()
 
@@ -5708,14 +5707,16 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         str(user.id)]
                                     games[str(guild.id)]['players'][str(user.id)]['cards'] = []
 
-                                    if len(games[str(guild.id)]['players']) == 1:
-                                        message.embeds[0].set_field_at(0, name='Players:',
-                                                                       value=f':small_blue_diamond:{user.name}',
-                                                                       inline=False)
-                                    else:
-                                        message.embeds[0].set_field_at(0, name='Players:',
-                                                                       value=f'{message.embeds[0].to_dict()["fields"][0]["value"]}\n:small_blue_diamond:{user.name}',
-                                                                       inline=False)
+                                    p = ""
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        if str.isdigit(key):
+                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                        else:
+                                            p += (':small_blue_diamond:' + key + "\n")
+
+                                    message.embeds[0].set_field_at(0, name='Players:',
+                                                                   value=p,
+                                                                   inline=False)
 
                                     await message.edit(embed=message.embeds[0])
 
@@ -5735,7 +5736,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             join.callback = join_callback
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
-
                             async def start_callback(interaction):
                                 await interaction.response.defer()
 
@@ -5772,11 +5772,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                              games[str(interaction.guild.id)])
                                         except discord.NotFound:
                                             pass
-
                             start.callback = start_callback
 
                             cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
-
                             async def cancel_callback(interaction):
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == \
                                         interaction.message.embeds[0].to_dict()['fields'][2][
@@ -5805,11 +5803,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     print('[' + datetime.now().strftime(
                                         '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
                                         interaction.guild) + '.')
-
                             cancel.callback = cancel_callback
 
                             add = Button(label='Add bot', emoji='➕')
-
                             async def add_callback(interaction):
                                 if interaction.user == interaction.guild.owner or str(interaction.user) == \
                                         interaction.message.embeds[0].to_dict()['fields'][2][
@@ -5839,7 +5835,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                                        value=f'{field["value"]}\n:small_blue_diamond:{bot}')
 
                                     await message.edit(embed=message.embeds[0])
-
                             add.callback = add_callback
 
                             view = View()
