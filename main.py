@@ -250,7 +250,7 @@ async def initialize():
                     dgs[str(guild.id)] = default_dgs
 
             for guild_id in dgs:
-                if guild_id not in map(lambda x: x.id, client.guilds):
+                if guild_id not in map(lambda x: str(x.id), client.guilds):
                     del dgs[guild_id]
                     break
 
@@ -279,7 +279,7 @@ async def initialize():
                         }
 
             for user_id in user_stuff:
-                if user_id not in map(lambda x: x.id, client.users):
+                if user_id not in map(lambda x: str(x.id), client.users):
                     del user_stuff[user_id]
                     break
 
@@ -295,7 +295,7 @@ async def initialize():
                     commands[str(guild.id)] = default_command_settings
 
             for guild_id in commands:
-                if guild_id not in map(lambda x: x.id, client.guilds):
+                if guild_id not in map(lambda x: str(x.id), client.guilds):
                     del commands[guild_id]
                     break
 
