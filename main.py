@@ -6138,8 +6138,8 @@ async def leavegame(ctx):
                                                     color=discord.Color.red()))) for x
                                 in ctx.channel.category.text_channels])
 
-                            if str(client.user.id) in games[str(ctx.guild.id)]['players']:
-                                games[str(ctx.guild.id)]['players'][str(client.user.id)].channels.remove(ctx.channel)
+                            for bot in [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)]:
+                                games[str(ctx.guild.id)]['players'][bot].channels.remove(ctx.channel)
 
                             await ctx.channel.delete()
 
