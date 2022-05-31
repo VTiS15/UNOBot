@@ -5838,14 +5838,16 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     games[str(interaction.guild.id)]['players'][bot] = None
 
-                                    if len(games[str(interaction.guild.id)]['players']) == 1:
-                                        message.embeds[0].set_field_at(0, name='Players:',
-                                                                       value=f':small_blue_diamond:{bot}')
-                                    else:
-                                        message.embeds[0].set_field_at(0, name='Players:',
-                                                                       value=f'{field["value"]}\n:small_blue_diamond:{bot}')
+                                    p = ""
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        if str.isdigit(key):
+                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                        else:
+                                            p += (':small_blue_diamond:' + key + "\n")
 
-                                    await message.edit(embed=message.embeds[0])
+                                    message.embeds[0].set_field_at(0, name='Players:',
+                                                                   value=p,
+                                                                   inline=False)
                             add.callback = add_callback
 
                             view = View()
