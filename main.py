@@ -269,7 +269,7 @@ async def initialize():
 
         else:
             for member in [x for x in client.get_all_members() if
-                           str(x.id) not in user_stuff and x.id != client.user.id and not x.bot]:
+                           str(x.id) not in user_stuff and not x.bot]:
                 for guild in [x for x in client.guilds if x.get_member(member.id)]:
                         user_stuff[str(member.id)] = {}
                         user_stuff[str(member.id)][str(guild.id)] = {
@@ -3069,7 +3069,7 @@ async def on_ready():
 
     print("Guilds:")
     for guild in client.guilds:
-        print(f'{guild.name}')
+        print(f'{guild.id}')
     # Print a ready message to the console once initialization is complete
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] UNOBot is ready.')
 
