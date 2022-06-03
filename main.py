@@ -6192,8 +6192,6 @@ async def leavegame(ctx):
 
                             return
 
-                        del games[str(ctx.guild.id)]['players'][str(ctx.author.id)]
-
                         if len(games[str(ctx.guild.id)]['players']) >= 2:
                             n = None
                             p = list(games[str(ctx.guild.id)]['players'].keys())
@@ -6205,6 +6203,8 @@ async def leavegame(ctx):
                                     if str.isdigit(n):
                                         n = ctx.guild.get_member(int(n))
                                     break
+
+                            del games[str(ctx.guild.id)]['players'][str(ctx.author.id)]
 
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.',
@@ -6305,8 +6305,6 @@ async def kick(ctx, user):
 
                         return
 
-                    del games[str(ctx.guild.id)]['players'][str(player.id)]
-
                     if len(games[str(ctx.guild.id)]['players']) >= 2:
                         n = None
                         p = list(games[str(ctx.guild.id)]['players'].keys())
@@ -6318,6 +6316,8 @@ async def kick(ctx, user):
                                 if str.isdigit(n):
                                     n = ctx.guild.get_member(int(n))
                                 break
+
+                        del games[str(ctx.guild.id)]['players'][str(player.id)]
 
                         channel = discord.utils.get(ctx.guild.text_channels,
                                                     name=sub(r'[^\w -]', '',
