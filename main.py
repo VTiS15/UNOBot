@@ -205,8 +205,10 @@ def main():
     """
     Runs the Discord bot.
     """
-
-    client.run(getenv('BOT_TOKEN'))
+    try:
+        client.run(getenv('BOT_TOKEN'))
+    except discord.ext.commands.CommandNotFound:
+        pass
 
 
 async def initialize():
