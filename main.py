@@ -5762,32 +5762,21 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         str(user.id)]
                                     games[str(guild.id)]['players'][str(user.id)]['cards'] = []
 
-                                    p = ""
-                                    for key in games[str(ctx.guild.id)]['players']:
-                                        if str.isdigit(key):
-                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                        else:
-                                            p += (':small_blue_diamond:' + key + "\n")
-
-                                    message.embeds[0].set_field_at(0, name='Players:',
-                                                                   value=p,
-                                                                   inline=False)
-
-                                    await message.edit(embed=message.embeds[0])
-
                                 else:
                                     del games[str(guild.id)]['players'][str(user.id)]
 
-                                    if len(games[str(guild.id)]['players'].keys()) == 0:
-                                        message.embeds[0].set_field_at(0, name='Players:', value='None')
+                                p = ""
+                                for key in games[str(ctx.guild.id)]['players']:
+                                    if str.isdigit(key):
+                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
                                     else:
-                                        message.embeds[0].set_field_at(0, name='Players:',
-                                                                       value=message.embeds[0].to_dict()['fields'][0][
-                                                                                 'value'] - f'\n:small_blue_diamond:{user.name}',
-                                                                       inline=False)
+                                        p += (':small_blue_diamond:' + key + "\n")
 
-                                    await message.edit(embed=message.embeds[0])
+                                message.embeds[0].set_field_at(0, name='Players:',
+                                                               value=p,
+                                                               inline=False)
 
+                                await message.edit(embed=message.embeds[0])
                             join.callback = join_callback
 
                             start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
