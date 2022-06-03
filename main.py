@@ -2045,6 +2045,48 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         # Shut down the game where the player wins
         await game_shutdown(games[str(guild.id)], guild, player)
 
+    # If the next player left
+    if games[str(guild.id)]['players'][str(n.id)] == 'left':
+        del games[str(guild.id)]['players'][str(n.id)]
+
+        if len(games[str(guild.id)]['players']) >= 2:
+            m = None
+            p = list(games[str(guild.id)]['players'].keys())
+
+            temp = iter(p)
+            for key in temp:
+                if key == str(n.id):
+                    m = next(temp, next(iter(p)))
+                    if str.isdigit(m):
+                        m = guild.get_member(int(m))
+                    break
+
+            await asyncio.gather(*[asyncio.create_task(x.send(
+                embed=discord.Embed(description=':warning: **' + n.name + '** left.',
+                                    color=discord.Color.red()))) for x
+                in guild.text_channels if x.category.name == 'UNO-GAME'])
+
+            channel = discord.utils.get(guild.text_channels,
+                                        name=sub(r'[^\w -]', '',
+                                                 n.name.lower().replace(' ',
+                                                                        '-')) + '-uno-channel')
+
+            for bot in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
+                games[str(guild.id)]['players'][bot].channels.remove(channel)
+
+            await channel.delete()
+
+            await display_cards(m, guild)
+
+        else:
+            await asyncio.gather(*[asyncio.create_task(x.send(
+                embed=discord.Embed(
+                    description=':x: Since not enough players are left, ending game...',
+                    color=discord.Color.red()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+
+            ending.append(str(guild.id))
+            await game_shutdown(games[str(guild.id)], guild, None)
+
 
 class Bot:
     """The AI that plays UNO by the name of UNOBot.
@@ -6152,20 +6194,30 @@ async def leavegame(ctx):
                              'Whitelist']) or ctx.author == ctx.guild.owner:
                 if ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
-                        n = None
-                        p = list(games[str(ctx.guild.id)]['players'].keys())
+                        if games[str(ctx.guild.id)]['player'] != ctx.author.id:
+                            games[str(ctx.guild.id)]['players'][str(ctx.author.id)] = 'left'
 
-                        temp = iter(p)
-                        for key in temp:
-                            if key == str(ctx.author.id):
-                                n = next(temp, next(iter(p)))
-                                if str.isdigit(n):
-                                    n = ctx.guild.get_member(int(n))
-                                break
+                            await ctx.respond(embed=discord.Embed(
+                                description='**:thumbsup: You will leave once it is your turn.**\n'
+                                            'While you are waiting, you can enter "**CANCEL**" to cancel your leave.',
+                                color=discord.Color.red()))
+
+                            return
 
                         del games[str(ctx.guild.id)]['players'][str(ctx.author.id)]
 
                         if len(games[str(ctx.guild.id)]['players']) >= 2:
+                            n = None
+                            p = list(games[str(ctx.guild.id)]['players'].keys())
+
+                            temp = iter(p)
+                            for key in temp:
+                                if key == str(ctx.author.id):
+                                    n = next(temp, next(iter(p)))
+                                    if str.isdigit(n):
+                                        n = ctx.guild.get_member(int(n))
+                                    break
+
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.',
                                                     color=discord.Color.red()))) for x
@@ -6256,20 +6308,29 @@ async def kick(ctx, user):
 
                 if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)]['players'] and str(
                         ctx.guild.id) not in ending:
-                    n = None
-                    p = list(games[str(ctx.guild.id)]['players'].keys())
+                    if games[str(ctx.guild.id)]['player'] != player.id:
+                        games[str(ctx.guild.id)]['players'][str(player.id)] = 'left'
 
-                    temp = iter(p)
-                    for key in temp:
-                        if key == str(player.id):
-                            n = next(temp, next(iter(p)))
-                            if str.isdigit(n):
-                                n = ctx.guild.get_member(int(n))
-                            break
+                        await ctx.respond(embed=discord.Embed(
+                            description='**You will be kicked once it is your turn.**',
+                            color=discord.Color.red()))
+
+                        return
 
                     del games[str(ctx.guild.id)]['players'][str(player.id)]
 
                     if len(games[str(ctx.guild.id)]['players']) >= 2:
+                        n = None
+                        p = list(games[str(ctx.guild.id)]['players'].keys())
+
+                        temp = iter(p)
+                        for key in temp:
+                            if key == str(player.id):
+                                n = next(temp, next(iter(p)))
+                                if str.isdigit(n):
+                                    n = ctx.guild.get_member(int(n))
+                                break
+
                         channel = discord.utils.get(ctx.guild.text_channels,
                                                     name=sub(r'[^\w -]', '',
                                                              player.name.lower().replace(' ',
