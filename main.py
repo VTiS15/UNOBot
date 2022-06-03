@@ -878,6 +878,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                                                  ' ',
                                                                                                  '-')) + '-uno-channel').send(
                 embed=message)))
+            tasks.append(asyncio.create_task(
+                discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
 
             await asyncio.gather(*tasks)
 
@@ -5804,6 +5806,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         'value']:
                                         message_dict['description'] = ':x: The game creator cancelled the game.'
 
+                                    p = ""
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        if str.isdigit(key):
+                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                        else:
+                                            p += (':small_blue_diamond:' + key + "\n")
+
+                                    message_dict['fields'][0]['value'] = p
+
                                     await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
 
                                     try:
@@ -5906,9 +5917,18 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict[
                                             'description'] = ':x: Not enough players! At least 2 players are needed (Bots do not count).'
 
-                                        del games[str(ctx.guild.id)]
+                                        p = ""
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            if str.isdigit(key):
+                                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                            else:
+                                                p += (':small_blue_diamond:' + key + "\n")
+
+                                        message_dict['fields'][0]['value'] = p
 
                                         await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+
+                                        del games[str(ctx.guild.id)]
 
                                         print('[' + datetime.now().strftime(
                                             '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(
