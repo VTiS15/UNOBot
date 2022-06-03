@@ -1293,7 +1293,6 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
             for bot in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
                 games[str(guild.id)]['players'][bot].channels.remove(channel)
-
             await channel.delete()
 
             await display_cards(m, guild)
@@ -1306,6 +1305,8 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
             ending.append(str(guild.id))
             await game_shutdown(games[str(guild.id)], guild, None)
+
+        return
 
     if str(guild.id) not in ending:
         async def send_cards(channel: TextChannel):
@@ -4454,13 +4455,10 @@ async def on_message(message):
                                     description=':x: **You aren\'t playing UNO Flip!**',
                                     color=discord.Color.red()))
 
-                except IndexError as e:
-                    raise e
-                except TypeError as e:
-                    await message.channel.send(
-                        embed=discord.Embed(
-                            description=':x: **I don\'t understand your command.**',
-                            color=discord.Color.red()))
+                except IndexError:
+                    pass
+                except TypeError:
+                    pass
 
                 overwrite.send_messages = True
                 try:
