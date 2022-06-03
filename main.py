@@ -1268,7 +1268,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
     """
 
     # If the player left
-    if isinstance(player, Member) and games[str(guild.id)]['players'][str(player.id)] == 'left':
+    if isinstance(player, Member) and games[str(guild.id)]['players'][str(player.id)]['left']:
         del games[str(guild.id)]['players'][str(player.id)]
 
         if len(games[str(guild.id)]['players']) >= 2:
@@ -6184,7 +6184,7 @@ async def leavegame(ctx):
                 if ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         if games[str(ctx.guild.id)]['player'] != ctx.author.id:
-                            games[str(ctx.guild.id)]['players'][str(ctx.author.id)] = 'left'
+                            games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
 
                             await ctx.respond(embed=discord.Embed(
                                 description='**:thumbsup: You will leave once it is your turn.**',
@@ -6297,7 +6297,7 @@ async def kick(ctx, user):
                 if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)]['players'] and str(
                         ctx.guild.id) not in ending:
                     if games[str(ctx.guild.id)]['player'] != player.id:
-                        games[str(ctx.guild.id)]['players'][str(player.id)] = 'left'
+                        games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
 
                         await ctx.respond(embed=discord.Embed(
                             description='**You will be kicked once it is your turn.**',
