@@ -6198,8 +6198,7 @@ async def leavegame(ctx):
                             games[str(ctx.guild.id)]['players'][str(ctx.author.id)] = 'left'
 
                             await ctx.respond(embed=discord.Embed(
-                                description='**:thumbsup: You will leave once it is your turn.**\n'
-                                            'While you are waiting, you can enter "**CANCEL**" to cancel your leave.',
+                                description='**:thumbsup: You will leave once it is your turn.**',
                                 color=discord.Color.red()))
 
                             return
