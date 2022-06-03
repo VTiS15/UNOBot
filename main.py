@@ -1269,9 +1269,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
     # If the player left
     if isinstance(player, Member) and 'left' in games[str(guild.id)]['players'][str(player.id)]:
-        del games[str(guild.id)]['players'][str(player.id)]
-
-        if len(games[str(guild.id)]['players']) >= 2:
+        if len(games[str(guild.id)]['players']) - 1 >= 2:
             m = None
             p = list(games[str(guild.id)]['players'].keys())
 
@@ -1282,6 +1280,8 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                     if str.isdigit(m):
                         m = guild.get_member(int(m))
                     break
+
+            del games[str(guild.id)]['players'][str(player.id)]
 
             await asyncio.gather(*[asyncio.create_task(x.send(
                 embed=discord.Embed(description=':warning: **' + player.name + '** left.',
