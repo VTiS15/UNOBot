@@ -1269,6 +1269,11 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
     # If the player left
     if isinstance(player, Member) and 'left' in games[str(guild.id)]['players'][str(player.id)]:
+        await asyncio.gather(*[asyncio.create_task(x.send(
+            embed=discord.Embed(description=':warning: **' + player.name + '** left.',
+                                color=discord.Color.red()))) for x
+            in guild.text_channels if x.category.name == 'UNO-GAME'])
+
         if len(games[str(guild.id)]['players']) - 1 >= 2:
             m = None
             p = list(games[str(guild.id)]['players'].keys())
@@ -1283,11 +1288,6 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
             del games[str(guild.id)]['players'][str(player.id)]
 
-            await asyncio.gather(*[asyncio.create_task(x.send(
-                embed=discord.Embed(description=':warning: **' + player.name + '** left.',
-                                    color=discord.Color.red()))) for x
-                in guild.text_channels if x.category.name == 'UNO-GAME'])
-
             channel = discord.utils.get(guild.text_channels,
                                         name=sub(r'[^\w -]', '',
                                                  player.name.lower().replace(' ',
@@ -1300,10 +1300,13 @@ async def display_cards(player: Union[Member, str], guild: Guild):
             await display_cards(m, guild)
 
         else:
-            await asyncio.gather(*[asyncio.create_task(x.send(
-                embed=discord.Embed(
-                    description=':x: Since not enough players are left, ending game...',
-                    color=discord.Color.red()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+            try:
+                await asyncio.gather(*[asyncio.create_task(x.send(
+                    embed=discord.Embed(
+                        description=':x: Since not enough players are left, ending game...',
+                        color=discord.Color.red()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+            except discord.NotFound:
+                pass
 
             ending.append(str(guild.id))
             await game_shutdown(games[str(guild.id)], guild, None)
@@ -6192,7 +6195,7 @@ async def leavegame(ctx):
 
                             return
 
-                        if len(games[str(ctx.guild.id)]['players']) >= 2:
+                        if len(games[str(ctx.guild.id)]['players']) - 1 >= 2:
                             n = None
                             p = list(games[str(ctx.guild.id)]['players'].keys())
 
@@ -6305,7 +6308,7 @@ async def kick(ctx, user):
 
                         return
 
-                    if len(games[str(ctx.guild.id)]['players']) >= 2:
+                    if len(games[str(ctx.guild.id)]['players']) - 1 >= 2:
                         n = None
                         p = list(games[str(ctx.guild.id)]['players'].keys())
 
