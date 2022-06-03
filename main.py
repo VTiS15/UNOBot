@@ -1268,7 +1268,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
     """
 
     # If the player left
-    if isinstance(player, Member) and games[str(guild.id)]['players'][str(player.id)]['left']:
+    if isinstance(player, Member) and 'left' in games[str(guild.id)]['players'][str(player.id)]:
         del games[str(guild.id)]['players'][str(player.id)]
 
         if len(games[str(guild.id)]['players']) >= 2:
