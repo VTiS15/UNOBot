@@ -5886,7 +5886,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         message_dict = m.to_dict()
                                         message_dict['title'] = 'A game of UNO failed to start!'
                                         message_dict[
-                                            'description'] = ':x: Not enough players! At least 2 players are needed (Bots do not count).'
+                                            'description'] = ':x: Not enough players! At least 2 players are needed.'
 
                                         p = ""
                                         for key in games[str(ctx.guild.id)]['players']:
@@ -5950,7 +5950,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             else:
                                 message = discord.Embed(title='A game of UNO failed to start!',
-                                                        description=':x: Not enough players! At least 2 players are needed (Bots do not count).',
+                                                        description=':x: Not enough players! At least 2 players are needed.',
                                                         color=discord.Color.red())
 
                                 if not games[str(ctx.guild.id)]['players']:
