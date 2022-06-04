@@ -3272,12 +3272,13 @@ async def on_message(message):
                 if str(message.guild.id) in stack:
                     await draw(message.author, message.guild, stack[str(message.guild.id)])
                     del stack[str(message.guild.id)]
+                    await display_cards(n, message.guild)
                 elif games[str(message.guild.id)]['settings']['DrawUntilMatch']:
                     await draw(message.author, message.guild, 1, True)
+                    await display_cards(message.author, message.guild)
                 else:
                     await draw(message.author, message.guild, 1)
-
-                await display_cards(n, message.guild)
+                    await display_cards(n, message.guild)
 
                 overwrite.send_messages = True
                 try:
