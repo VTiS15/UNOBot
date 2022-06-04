@@ -207,7 +207,7 @@ def main():
     """
     try:
         client.run(getenv('BOT_TOKEN'))
-    except discord.ext.commands.CommandNotFound:
+    except discord.ext.commands.CommandNotFound or discord.Forbidden:
         pass
 
 
