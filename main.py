@@ -1274,6 +1274,56 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                                 color=discord.Color.red()))) for x
             in guild.text_channels if x.category.name == 'UNO-GAME'])
 
+        def get_score(player_id: str) -> int:
+            cards = games[str(guild.id)]['players'][player_id]['cards']
+
+            score = 0
+            for card in cards:
+                if not games[str(guild.id)]['settings']['Flip']:
+                    value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+
+                    if value in ('+2', 'skip', 'reverse'):
+                        score += 20
+                    elif value in ('+4', 'wild'):
+                        score += 50
+                    else:
+                        score += int(value)
+
+                elif not games[str(guild.id)]['dark']:
+                    value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+
+                    if value == '+1':
+                        score += 10
+                    elif value in ('reverse', 'flip', 'skip'):
+                        score += 20
+                    elif value == 'wild':
+                        score += 40
+                    elif value == '+2':
+                        score += 50
+                    else:
+                        score += int(value)
+
+                else:
+                    value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
+
+                    if value in ('+5', 'reverse', 'flip'):
+                        score += 20
+                    elif value == 'skip':
+                        score += 30
+                    elif value == 'wild':
+                        score += 40
+                    elif value == '+c':
+                        score += 60
+                    else:
+                        score += int(value)
+
+            return score
+
+        users_file = s3_resource.Object('unobot-bucket', 'users.json')
+        users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
+        users[str(player.id)][str(guild.id)]['Score'] -= get_score(str(player.id))
+        users_file.put(Body=json.dumps(users).encode('utf-8'))
+
         if len(games[str(guild.id)]['players']) - 1 >= 2:
             m = None
             p = list(games[str(guild.id)]['players'].keys())
