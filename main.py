@@ -1072,7 +1072,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                 current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
                 current_value = search(r'\+[12]|wild|skip|reverse|flip|\d', games[str(guild.id)]['current'][0]).group(0)
 
-                colour = search(r'red|blue|green|yellow', c)
+                colour = search(r'red|blue|green|yellow', c[0])
                 if colour:
                     colour = colour.group(0)
                 value = search(r'\+[12]|wild|skip|reverse|flip|\d', c[0]).group(0)
