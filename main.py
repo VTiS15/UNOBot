@@ -946,7 +946,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         # Get the color of the Wild Draw Color
         current_color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
         # Randomly pick a card from the deck
-        c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+        c = choice(games[str(guild.id)]['cards'])
+        games[str(guild.id)]['cards'].remove(c)
 
         # Add the card from the deck to the player's hand
         if not bot:
@@ -967,7 +968,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         # Keep drawing the player while he does not get a card of the specified color
         color = search(r'pink|teal|orange|purple', c[1])
         while not color or color.group(0) != current_color:
-            c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+            c = choice(games[str(guild.id)]['cards'])
+            games[str(guild.id)]['cards'].remove(c)
 
             # Add the card from the deck to the player's hand
             if not bot:
@@ -994,7 +996,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         # Draw the player {number} cards
         for i in range(number):
             # Randomly pick a card from the deck
-            c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+            c = choice(games[str(guild.id)]['cards'])
+            games[str(guild.id)]['cards'].remove(c)
 
             # Add the card from the deck to the player's hand
             if not bot:
@@ -1016,7 +1019,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
     else:
         draw = []  # A list to keep track of the drawn cards
         # Randomly pick a card from the deck
-        c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+        c = choice(games[str(guild.id)]['cards'])
+        games[str(guild.id)]['cards'].remove(c)
 
         # Add the card from the deck to the player's hand
         if not bot:
@@ -1043,7 +1047,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
             value = search(r'\+[42]|wild|skip|reverse|\d', c).group(0)
 
             while color != current_color and value != current_value or not any(x in c for x in ('+4', 'wild')):
-                c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+                c = choice(games[str(guild.id)]['cards'])
+                games[str(guild.id)]['cards'].remove(c)
 
                 if not bot:
                     games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
@@ -1068,7 +1073,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
                 while color != current_color and value != current_value or not any(
                         x in c[0] for x in ('+2', 'wild')):
-                    c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+                    c = choice(games[str(guild.id)]['cards'])
+                    games[str(guild.id)]['cards'].remove(c)
 
                     if not bot:
                         games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
@@ -1092,7 +1098,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
                 while color != current_color and value != current_value or not any(
                         x in c[1] for x in ('+color', 'wild')):
-                    c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
+                    c = choice(games[str(guild.id)]['cards'])
+                    games[str(guild.id)]['cards'].remove(c)
 
                     if not bot:
                         games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
