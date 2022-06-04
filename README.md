@@ -101,7 +101,7 @@ The scoring for the cards is as follows:
 # Troubleshooting🛠️
 If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
 * Forcefully end the ongoing game using `/u-eg`; or
-* Manually delete the UNO channels\
+* Manually delete the UNO channels
 
 before starting a new game.
 
