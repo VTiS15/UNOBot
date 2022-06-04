@@ -17,7 +17,7 @@ It allows Discord servers to play the game completely within text channels. Chal
 * Check and show off your **stats**.
 * Highly customizable player options, game and command settings
 
-# Usage and Commands🛠️
+# Usage and Commands⚙️
 Type the following `/u-` command to start a game of UNO.
 ```
 /u-sg
@@ -97,6 +97,15 @@ The scoring for the cards is as follows:
 | Wild | 40 pts |
 | Wild Draw 2 | 50 pts |
 | Wild Draw Color | 60 pts |
+
+# Troubleshooting🛠️
+If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
+* Forcefully end the ongoing game using `/u-eg`; or
+* Manually delete the UNO channels\
+
+before starting a new game.
+
+If that doesn't work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
 
 # Inspiration✨
 * [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which is what motivated me to develop this bot.
