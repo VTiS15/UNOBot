@@ -132,8 +132,8 @@ default_command_settings = {
         'Blacklist': None
     }
 }
-cmds = ('startgame', 'endgame', 'joingame', 'leavegame', 'kick', 'spectate', 'stats', 'globalstats', 'leaderboard',
-        'globalleaderboard', 'options', 'commands')
+cmds = {'startgame', 'endgame', 'joingame', 'leavegame', 'kick', 'spectate', 'stats', 'globalstats', 'leaderboard',
+        'globalleaderboard', 'options', 'commands', 'settings'}
 cards = ['blue0', 'blue1', 'blue2', 'blue3', 'blue4', 'blue5', 'blue6', 'blue7', 'blue8', 'blue9', 'bluereverse',
          'blueskip', 'blue+2',
          'blue1', 'blue2', 'blue3', 'blue4', 'blue5', 'blue6', 'blue7', 'blue8', 'blue9', 'bluereverse', 'blueskip',
@@ -1083,10 +1083,10 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         else:
             if not games[str(guild.id)]['dark']:
                 current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
-                current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current'][0]).group(0)
+                current_value = search(r'\+[12]|wild|skip|reverse|\d', games[str(guild.id)]['current'][0]).group(0)
 
                 color = search(r'red|blue|green|yellow', c[0]).group(0)
-                value = search(r'\+[42]|wild|skip|reverse|\d', c[0]).group(0)
+                value = search(r'\+[12]|wild|skip|reverse|\d', c[0]).group(0)
 
                 while color != current_color and value != current_value or not any(
                         x in c[0] for x in ('+2', 'wild')):
@@ -1109,14 +1109,14 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     draw.append(c)
 
                     color = search(r'red|blue|green|yellow', c[0]).group(0)
-                    value = search(r'\+[42]|wild|skip|reverse|\d', c[0]).group(0)
+                    value = search(r'\+[12]|wild|skip|reverse|\d', c[0]).group(0)
 
             else:
-                current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][1]).group(0)
-                current_value = search(r'\+[42]|wild|skip|reverse|\d', games[str(guild.id)]['current'][1]).group(0)
+                current_color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
+                current_value = search(r'\+(5|color)|wild|skip|reverse|\d', games[str(guild.id)]['current'][1]).group(0)
 
                 color = search(r'pink|teal|orange|purple', c[1]).group(0)
-                value = search(r'\+([251]|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
+                value = search(r'\+(5|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
 
                 while color != current_color and value != current_value or not any(
                         x in c[1] for x in ('+color', 'wild')):
@@ -1138,8 +1138,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
                     draw.append(c)
 
-                    color = search(r'red|blue|green|yellow', c[1]).group(0)
-                    value = search(r'\+[42]|wild|skip|reverse|\d', c[1]).group(0)
+                    color = search(r'pink|teal|orange|purple', c[1]).group(0)
+                    value = search(r'\+(5|color)|wild|skip|reverse|\d', c[1]).group(0)
 
     # Craft a message that displays the details of the drawn card(s) to every player (except UNOBot)
     message = None
@@ -1266,102 +1266,6 @@ async def display_cards(player: Union[Member, str], guild: Guild):
         player: The current player
         guild: The guild of the current game
     """
-
-    # If the player left
-    if isinstance(player, Member) and 'left' in games[str(guild.id)]['players'][str(player.id)]:
-        await asyncio.gather(*[asyncio.create_task(x.send(
-            embed=discord.Embed(description=':warning: **' + player.name + '** left.',
-                                color=discord.Color.red()))) for x
-            in guild.text_channels if x.category.name == 'UNO-GAME'])
-
-        def get_score(player_id: str) -> int:
-            cards = games[str(guild.id)]['players'][player_id]['cards']
-
-            score = 0
-            for card in cards:
-                if not games[str(guild.id)]['settings']['Flip']:
-                    value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
-
-                    if value in ('+2', 'skip', 'reverse'):
-                        score += 20
-                    elif value in ('+4', 'wild'):
-                        score += 50
-                    else:
-                        score += int(value)
-
-                elif not games[str(guild.id)]['dark']:
-                    value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
-
-                    if value == '+1':
-                        score += 10
-                    elif value in ('reverse', 'flip', 'skip'):
-                        score += 20
-                    elif value == 'wild':
-                        score += 40
-                    elif value == '+2':
-                        score += 50
-                    else:
-                        score += int(value)
-
-                else:
-                    value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
-
-                    if value in ('+5', 'reverse', 'flip'):
-                        score += 20
-                    elif value == 'skip':
-                        score += 30
-                    elif value == 'wild':
-                        score += 40
-                    elif value == '+c':
-                        score += 60
-                    else:
-                        score += int(value)
-
-            return score
-
-        users_file = s3_resource.Object('unobot-bucket', 'users.json')
-        users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
-        users[str(player.id)][str(guild.id)]['Score'] -= get_score(str(player.id))
-        users_file.put(Body=json.dumps(users).encode('utf-8'))
-
-        if len(games[str(guild.id)]['players']) - 1 >= 2:
-            m = None
-            p = list(games[str(guild.id)]['players'].keys())
-
-            temp = iter(p)
-            for key in temp:
-                if key == str(player.id):
-                    m = next(temp, next(iter(p)))
-                    if str.isdigit(m):
-                        m = guild.get_member(int(m))
-                    break
-
-            del games[str(guild.id)]['players'][str(player.id)]
-
-            channel = discord.utils.get(guild.text_channels,
-                                        name=sub(r'[^\w -]', '',
-                                                 player.name.lower().replace(' ',
-                                                                        '-')) + '-uno-channel')
-
-            for bot in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
-                games[str(guild.id)]['players'][bot].channels.remove(channel)
-            await channel.delete()
-
-            await display_cards(m, guild)
-
-        else:
-            try:
-                await asyncio.gather(*[asyncio.create_task(x.send(
-                    embed=discord.Embed(
-                        description=':x: Since not enough players are left, ending game...',
-                        color=discord.Color.red()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
-            except discord.NotFound:
-                pass
-
-            ending.append(str(guild.id))
-            await game_shutdown(games[str(guild.id)], guild, None)
-
-        return
 
     if str(guild.id) not in ending:
         async def send_cards(channel: TextChannel):
@@ -1718,7 +1622,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
             message.set_thumbnail(url='attachment://thumbnail.png')
 
             n = None
-            p = list(games[str(guild.id)]['players'].keys())
+            p = [x for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -2064,7 +1968,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
     # Get the next player
     n = None
-    p = list(games[str(guild.id)]['players'].keys())
+    p = [x for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]]
 
     temp = iter(p)
     for key in temp:
@@ -2603,7 +2507,7 @@ class Bot:
         if str(self.guild.id) not in ending:
             n = None
             try:
-                p = list(self.games[str(self.guild.id)]['players'].keys())
+                p = [x for x in self.games[str(self.guild.id)]['players'] if 'left' not in games[str(self.guild.id)]['players'][x]]
             except KeyError:
                 return
 
@@ -2679,7 +2583,7 @@ class Bot:
                             embed=discord.Embed(description='**The player order is reversed.**',
                                                 color=discord.Color.red()))) for x in self.channels])
 
-                        p = list(d['players'].keys())
+                        p = [x for x in d['players'] if 'left' not in d['players'][x]]
                         m = None
                         temp = iter(p)
                         for key in temp:
@@ -3007,7 +2911,7 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
 
             n = None
-            p = list(d['players'].keys())
+            p = [x for x in d['players'] if 'left' not in d['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -3324,7 +3228,7 @@ async def on_message(message):
 
         try:
             n = None
-            p = list(games[str(message.guild.id)]['players'].keys())
+            p = [x for x in games[str(message.guild.id)]['players'] if 'left' not in games[str(message.guild.id)]['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -3797,7 +3701,7 @@ async def on_message(message):
                                                         color=discord.Color.red()))) for x in
                                     message.channel.category.text_channels])
 
-                                p = list(d['players'].keys())
+                                p = [x for x in d['players'] if 'left' not in d['players'][x]]
                                 m = None
                                 temp = iter(p)
                                 for key in temp:
@@ -6247,7 +6151,7 @@ async def leavegame(ctx):
 
                         if len(games[str(ctx.guild.id)]['players']) - 1 >= 2:
                             n = None
-                            p = list(games[str(ctx.guild.id)]['players'].keys())
+                            p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
                             temp = iter(p)
                             for key in temp:
@@ -6360,7 +6264,7 @@ async def kick(ctx, user):
 
                     if len(games[str(ctx.guild.id)]['players']) - 1 >= 2:
                         n = None
-                        p = list(games[str(ctx.guild.id)]['players'].keys())
+                        p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
                         temp = iter(p)
                         for key in temp:
