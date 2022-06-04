@@ -6229,7 +6229,7 @@ async def kick(ctx, user):
                         ctx.guild.id) not in ending:
                     games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
 
-                    if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) - 1 >= 2:
+                    if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
                         n = None
                         p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
