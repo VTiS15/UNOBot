@@ -5612,7 +5612,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             a = args.split()
                             for i in range(len(a)):
                                 if a[i] in (
-                                        'DrawUntilMatch', 'DisableJoin', 'QuickStart', 'SpectateGame', 'StackCards',
+                                        'DrawUntilMatch', 'DisableJoin', 'SpectateGame', 'StackCards',
                                         'Flip'):
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
 
@@ -5668,51 +5668,165 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     return
 
-                        if not games[str(ctx.guild.id)]['settings']['QuickStart']:
-                            if not games[str(ctx.guild.id)]['settings']['Flip']:
-                                message = discord.Embed(title='A game of UNO is going to start!',
-                                                        description='Less than 30 seconds left!',
-                                                        color=discord.Color.red())
-                            else:
-                                message = discord.Embed(title='A game of UNO is going to start!',
-                                                        description='Less than 30 seconds left!',
-                                                        color=discord.Color.from_rgb(102, 51, 153))
+                        if not games[str(ctx.guild.id)]['settings']['Flip']:
+                            message = discord.Embed(title='A game of UNO is going to start!',
+                                                    description='Less than 30 seconds left!',
+                                                    color=discord.Color.red())
+                        else:
+                            message = discord.Embed(title='A game of UNO is going to start!',
+                                                    description='Less than 30 seconds left!',
+                                                    color=discord.Color.from_rgb(102, 51, 153))
 
-                            message.add_field(name='Players:', value='None', inline=False)
+                        message.add_field(name='Players:', value='None', inline=False)
 
-                            s = ""
-                            for setting in games[str(ctx.guild.id)]['settings']:
-                                if setting == 'StartingCards':
-                                    if games[str(ctx.guild.id)]['settings']['StartingCards'] != 7:
-                                        s += ('• ' + setting + "\n")
-                                elif games[str(ctx.guild.id)]['settings'][setting]:
+                        s = ""
+                        for setting in games[str(ctx.guild.id)]['settings']:
+                            if setting == 'StartingCards':
+                                if games[str(ctx.guild.id)]['settings']['StartingCards'] != 7:
                                     s += ('• ' + setting + "\n")
+                            elif games[str(ctx.guild.id)]['settings'][setting]:
+                                s += ('• ' + setting + "\n")
 
-                            if s:
-                                message.add_field(name='Game Settings:', value=s, inline=False)
+                        if s:
+                            message.add_field(name='Game Settings:', value=s, inline=False)
+                        else:
+                            message.add_field(name='Game Settings:', value='None', inline=False)
+
+                        message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
+
+                        join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
+                        async def join_callback(interaction):
+                            await interaction.response.defer()
+
+                            message = interaction.message
+                            guild = interaction.guild
+                            user = interaction.user
+
+                            if str(user.id) not in games[str(guild.id)]['players']:
+                                for g in client.guilds:
+                                    user_options[str(user.id)].pop(str(g.id), None)
+
+                                games[str(guild.id)]['players'][str(user.id)] = user_options[
+                                    str(user.id)]
+                                games[str(guild.id)]['players'][str(user.id)]['cards'] = []
+
                             else:
-                                message.add_field(name='Game Settings:', value='None', inline=False)
+                                del games[str(guild.id)]['players'][str(user.id)]
 
-                            message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
+                            p = ""
+                            for key in games[str(ctx.guild.id)]['players']:
+                                if str.isdigit(key):
+                                    p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                else:
+                                    p += (':small_blue_diamond:' + key + "\n")
 
-                            join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
-                            async def join_callback(interaction):
+                            message.embeds[0].set_field_at(0, name='Players:',
+                                                           value=p,
+                                                           inline=False)
+
+                            await message.edit(embed=message.embeds[0])
+                        join.callback = join_callback
+
+                        start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
+                        async def start_callback(interaction):
+                            await interaction.response.defer()
+
+                            if interaction.user == interaction.guild.owner or interaction.user.id == \
+                                    games[str(interaction.guild.id)]['creator']:
+                                n = len(games[str(interaction.guild.id)]['players'].keys())
+
+                                if n > 1:
+                                    games[str(interaction.guild.id)]['seconds'] = -2
+
+                                    p = ""
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        if str.isdigit(key):
+                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                        else:
+                                            p += (':small_blue_diamond:' + key + "\n")
+
+                                    interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
+                                                                               inline=False)
+
+                                    await interaction.message.edit(embed=interaction.message.embeds[0])
+
+                                    message_dict = interaction.message.embeds[0].to_dict()
+
+                                    message_dict['title'] = 'A game of UNO has started!'
+                                    message_dict[
+                                        'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+
+                                    try:
+                                        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
+                                                                       view=None)
+
+                                        await game_setup(await client.get_context(interaction.message),
+                                                         games[str(interaction.guild.id)])
+                                    except discord.NotFound:
+                                        pass
+                        start.callback = start_callback
+
+                        cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
+                        async def cancel_callback(interaction):
+                            if interaction.user == interaction.guild.owner or str(interaction.user) == \
+                                    interaction.message.embeds[0].to_dict()['fields'][2][
+                                        'value']:
+
+                                await interaction.message.edit(view=None)
+
+                                games[str(interaction.guild.id)]['seconds'] = -1
+
+                                message_dict = interaction.message.embeds[0].to_dict()
+                                message_dict['title'] = 'A game of UNO was cancelled!'
+
+                                if interaction.user == interaction.guild.owner:
+                                    message_dict['description'] = ':x: The server owner cancelled the game.'
+                                elif str(interaction.user) == interaction.message.embeds[0].to_dict()['fields'][2][
+                                    'value']:
+                                    message_dict['description'] = ':x: The game creator cancelled the game.'
+
+                                p = ""
+                                for key in games[str(ctx.guild.id)]['players']:
+                                    if str.isdigit(key):
+                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                    else:
+                                        p += (':small_blue_diamond:' + key + "\n")
+
+                                message_dict['fields'][0]['value'] = p
+
+                                await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
+
+                                try:
+                                    del games[str(interaction.guild.id)]
+                                except ValueError:
+                                    pass
+
+                                print('[' + datetime.now().strftime(
+                                    '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
+                                    interaction.guild) + '.')
+                        cancel.callback = cancel_callback
+
+                        add = Button(label='Add bot', emoji='➕')
+                        async def add_callback(interaction):
+                            if interaction.user == interaction.guild.owner or str(interaction.user) == \
+                                    interaction.message.embeds[0].to_dict()['fields'][2][
+                                        'value']:
                                 await interaction.response.defer()
 
                                 message = interaction.message
-                                guild = interaction.guild
-                                user = interaction.user
+                                field = message.embeds[0].to_dict()['fields'][0]
+                                bot_lst = [x for x in bot_names if x not in field['value']]
 
-                                if str(user.id) not in games[str(guild.id)]['players']:
-                                    for g in client.guilds:
-                                        user_options[str(user.id)].pop(str(g.id), None)
+                                if len(bot_lst) <= 1:
+                                    v = View()
+                                    v.add_item(join)
+                                    v.add_item(start)
+                                    v.add_item(cancel)
+                                    await message.edit(view=v)
 
-                                    games[str(guild.id)]['players'][str(user.id)] = user_options[
-                                        str(user.id)]
-                                    games[str(guild.id)]['players'][str(user.id)]['cards'] = []
+                                bot = choice(bot_lst)
 
-                                else:
-                                    del games[str(guild.id)]['players'][str(user.id)]
+                                games[str(interaction.guild.id)]['players'][bot] = None
 
                                 p = ""
                                 for key in games[str(ctx.guild.id)]['players']:
@@ -5724,67 +5838,63 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 message.embeds[0].set_field_at(0, name='Players:',
                                                                value=p,
                                                                inline=False)
+                        add.callback = add_callback
 
-                                await message.edit(embed=message.embeds[0])
-                            join.callback = join_callback
+                        view = View()
+                        view.add_item(join)
+                        if not games[str(ctx.guild.id)]['settings']['7-0']:
+                            view.add_item(add)
+                        view.add_item(start)
+                        view.add_item(cancel)
 
-                            start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
-                            async def start_callback(interaction):
-                                await interaction.response.defer()
+                        response = await ctx.respond(embed=message, view=view)
+                        e = await response.original_message()
+                        eid = e.id
+                        games[str(ctx.guild.id)]['message'] = eid
 
-                                if interaction.user == interaction.guild.owner or interaction.user.id == \
-                                        games[str(interaction.guild.id)]['creator']:
-                                    n = len(games[str(interaction.guild.id)]['players'].keys())
+                        while True:
+                            if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
+                                break
 
-                                    if n > 1:
-                                        games[str(interaction.guild.id)]['seconds'] = -2
+                            if games[str(ctx.guild.id)]['seconds'] == -1:
+                                del games[str(ctx.guild.id)]
 
-                                        p = ""
-                                        for key in games[str(ctx.guild.id)]['players']:
-                                            if str.isdigit(key):
-                                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                            else:
-                                                p += (':small_blue_diamond:' + key + "\n")
+                                break
 
-                                        interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
-                                                                                   inline=False)
+                            games[str(ctx.guild.id)]['seconds'] -= 10
+                            m = (await ctx.fetch_message(eid)).embeds[0]
 
-                                        await interaction.message.edit(embed=interaction.message.embeds[0])
+                            if games[str(ctx.guild.id)]['seconds'] == 0:
+                                await e.edit(view=None)
 
-                                        message_dict = interaction.message.embeds[0].to_dict()
+                                n = len(games[str(ctx.guild.id)]['players'].keys())
+                                if n > 1:
+                                    message_dict = m.to_dict()
+                                    message_dict['title'] = 'A game of UNO has started!'
+                                    message_dict[
+                                        'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
-                                        message_dict['title'] = 'A game of UNO has started!'
-                                        message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+                                    p = ""
+                                    for key in games[str(ctx.guild.id)]['players']:
+                                        if str.isdigit(key):
+                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                        else:
+                                            p += (':small_blue_diamond:' + key + "\n")
 
-                                        try:
-                                            await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
-                                                                           view=None)
+                                    for field in message_dict['fields']:
+                                        if field['name'] == 'Players:':
+                                            field['value'] = p
+                                            break
 
-                                            await game_setup(await client.get_context(interaction.message),
-                                                             games[str(interaction.guild.id)])
-                                        except discord.NotFound:
-                                            pass
-                            start.callback = start_callback
+                                    await e.edit(embed=discord.Embed.from_dict(message_dict))
 
-                            cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
-                            async def cancel_callback(interaction):
-                                if interaction.user == interaction.guild.owner or str(interaction.user) == \
-                                        interaction.message.embeds[0].to_dict()['fields'][2][
-                                            'value']:
+                                    await game_setup(ctx, games[str(ctx.guild.id)])
 
-                                    await interaction.message.edit(view=None)
-
-                                    games[str(interaction.guild.id)]['seconds'] = -1
-
-                                    message_dict = interaction.message.embeds[0].to_dict()
-                                    message_dict['title'] = 'A game of UNO was cancelled!'
-
-                                    if interaction.user == interaction.guild.owner:
-                                        message_dict['description'] = ':x: The server owner cancelled the game.'
-                                    elif str(interaction.user) == interaction.message.embeds[0].to_dict()['fields'][2][
-                                        'value']:
-                                        message_dict['description'] = ':x: The game creator cancelled the game.'
+                                else:
+                                    message_dict = m.to_dict()
+                                    message_dict['title'] = 'A game of UNO failed to start!'
+                                    message_dict[
+                                        'description'] = ':x: Not enough players! At least 2 players are needed.'
 
                                     p = ""
                                     for key in games[str(ctx.guild.id)]['players']:
@@ -5795,202 +5905,22 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
+                                    await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
 
-                                    try:
-                                        del games[str(interaction.guild.id)]
-                                    except ValueError:
-                                        pass
-
-                                    print('[' + datetime.now().strftime(
-                                        '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
-                                        interaction.guild) + '.')
-                            cancel.callback = cancel_callback
-
-                            add = Button(label='Add bot', emoji='➕')
-                            async def add_callback(interaction):
-                                if interaction.user == interaction.guild.owner or str(interaction.user) == \
-                                        interaction.message.embeds[0].to_dict()['fields'][2][
-                                            'value']:
-                                    await interaction.response.defer()
-
-                                    message = interaction.message
-                                    field = message.embeds[0].to_dict()['fields'][0]
-                                    bot_lst = [x for x in bot_names if x not in field['value']]
-
-                                    if len(bot_lst) <= 1:
-                                        v = View()
-                                        v.add_item(join)
-                                        v.add_item(start)
-                                        v.add_item(cancel)
-                                        await message.edit(view=v)
-
-                                    bot = choice(bot_lst)
-
-                                    games[str(interaction.guild.id)]['players'][bot] = None
-
-                                    p = ""
-                                    for key in games[str(ctx.guild.id)]['players']:
-                                        if str.isdigit(key):
-                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                        else:
-                                            p += (':small_blue_diamond:' + key + "\n")
-
-                                    message.embeds[0].set_field_at(0, name='Players:',
-                                                                   value=p,
-                                                                   inline=False)
-                            add.callback = add_callback
-
-                            view = View()
-                            view.add_item(join)
-                            if not games[str(ctx.guild.id)]['settings']['7-0']:
-                                view.add_item(add)
-                            view.add_item(start)
-                            view.add_item(cancel)
-
-                            response = await ctx.respond(embed=message, view=view)
-                            e = await response.original_message()
-                            eid = e.id
-                            games[str(ctx.guild.id)]['message'] = eid
-
-                            while True:
-                                if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
-                                    break
-
-                                if games[str(ctx.guild.id)]['seconds'] == -1:
                                     del games[str(ctx.guild.id)]
 
-                                    break
+                                    print('[' + datetime.now().strftime(
+                                        '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(
+                                        ctx.guild) + '.')
 
-                                games[str(ctx.guild.id)]['seconds'] -= 10
-                                m = (await ctx.fetch_message(eid)).embeds[0]
+                                break
 
-                                if games[str(ctx.guild.id)]['seconds'] == 0:
-                                    await e.edit(view=None)
+                            message_dict = m.to_dict()
+                            message_dict['description'] = 'Less than ' + str(
+                                games[str(ctx.guild.id)]['seconds']) + ' seconds left!'
 
-                                    n = len(games[str(ctx.guild.id)]['players'].keys())
-                                    if n > 1:
-                                        message_dict = m.to_dict()
-                                        message_dict['title'] = 'A game of UNO has started!'
-                                        message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-
-                                        p = ""
-                                        for key in games[str(ctx.guild.id)]['players']:
-                                            if str.isdigit(key):
-                                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                            else:
-                                                p += (':small_blue_diamond:' + key + "\n")
-
-                                        for field in message_dict['fields']:
-                                            if field['name'] == 'Players:':
-                                                field['value'] = p
-                                                break
-
-                                        await e.edit(embed=discord.Embed.from_dict(message_dict))
-
-                                        await game_setup(ctx, games[str(ctx.guild.id)])
-
-                                    else:
-                                        message_dict = m.to_dict()
-                                        message_dict['title'] = 'A game of UNO failed to start!'
-                                        message_dict[
-                                            'description'] = ':x: Not enough players! At least 2 players are needed.'
-
-                                        p = ""
-                                        for key in games[str(ctx.guild.id)]['players']:
-                                            if str.isdigit(key):
-                                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                            else:
-                                                p += (':small_blue_diamond:' + key + "\n")
-
-                                        message_dict['fields'][0]['value'] = p
-
-                                        await e.edit(embed=discord.Embed.from_dict(message_dict), view=None)
-
-                                        del games[str(ctx.guild.id)]
-
-                                        print('[' + datetime.now().strftime(
-                                            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(
-                                            ctx.guild) + '.')
-
-                                    break
-
-                                message_dict = m.to_dict()
-                                message_dict['description'] = 'Less than ' + str(
-                                    games[str(ctx.guild.id)]['seconds']) + ' seconds left!'
-
-                                await e.edit(embed=discord.Embed.from_dict(message_dict))
-                                await asyncio.sleep(10)
-
-                        else:
-                            if len(games[str(ctx.guild.id)]['players']) > 1:
-                                m = discord.Embed(title='A game of UNO has started!',
-                                                  description=':white_check_mark: Go to your UNO channel titled with your username.',
-                                                  color=discord.Color.red())
-
-                                p = ""
-                                for key in games[str(ctx.guild.id)]['players']:
-                                    if str.isdigit(key):
-                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                    else:
-                                        p += (':small_blue_diamond:' + key + "\n")
-
-                                m.add_field(name='Players:', value=p, inline=False)
-
-                                s = ""
-                                for setting in games[str(ctx.guild.id)]['settings']:
-                                    if setting == 'StartingCards':
-                                        if games[str(ctx.guild.id)]['settings']['StartingCards'] != 7:
-                                            s += ('• ' + setting + "\n")
-                                    elif games[str(ctx.guild.id)]['settings'][setting]:
-                                        s += ('• ' + setting + "\n")
-
-                                if s:
-                                    m.add_field(name='Game Settings:', value=s, inline=False)
-                                else:
-                                    m.add_field(name='Game Settings:', value='None', inline=False)
-
-                                m.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
-
-                                await ctx.respond(embed=m)
-
-                                await game_setup(ctx, games[str(ctx.guild.id)])
-
-                            else:
-                                message = discord.Embed(title='A game of UNO failed to start!',
-                                                        description=':x: Not enough players! At least 2 players are needed.',
-                                                        color=discord.Color.red())
-
-                                if not games[str(ctx.guild.id)]['players']:
-                                    message.add_field(name='Players:', value='None', inline=False)
-                                else:
-                                    p = ""
-                                    for key in games[str(ctx.guild.id)]['players']:
-                                        if str.isdigit(key):
-                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                        else:
-                                            p += (':small_blue_diamond:' + key + "\n")
-
-                                    message.add_field(name='Players:', value=p, inline=False)
-
-                                s = ""
-                                for setting in games[str(ctx.guild.id)]['settings']:
-                                    if setting == 'StartingCards':
-                                        if games[str(ctx.guild.id)]['settings']['StartingCards'] != 7:
-                                            s += ('• ' + setting + "\n")
-                                    elif games[str(ctx.guild.id)]['settings'][setting]:
-                                        s += ('• ' + setting + "\n")
-
-                                if s:
-                                    message.add_field(name='Game Settings:', value=s, inline=False)
-                                else:
-                                    message.add_field(name='Game Settings:', value='None', inline=False)
-                                message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
-
-                                await ctx.respond(embed=message)
-
-                                del games[str(ctx.guild.id)]
+                            await e.edit(embed=discord.Embed.from_dict(message_dict))
+                            await asyncio.sleep(10)
 
                         if commands[str(ctx.guild.id)]['startgame']['Cooldown'] > 0:
                             cooldowns[str(ctx.guild.id)].append('startgame')
