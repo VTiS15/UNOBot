@@ -1088,7 +1088,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         bot.cards.append(c)
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] += cards
+                        games[str(guild.id)]['cards'] += flip_cards
 
                     draw.append(c)
 
@@ -1117,7 +1117,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         bot.cards.append(c)
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] += cards
+                        games[str(guild.id)]['cards'] += flip_cards
 
                     draw.append(c)
 
