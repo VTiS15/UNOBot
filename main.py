@@ -2894,7 +2894,7 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
 
             n = None
-            p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and and 'left' not in d['players'][x]]
+            p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -3211,7 +3211,7 @@ async def on_message(message):
 
         try:
             n = None
-            p = [x for x in games[str(message.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and and 'left' not in games[str(message.guild.id)]['players'][x]]
+            p = [x for x in games[str(message.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(message.guild.id)]['players'][x]]
 
             temp = iter(p)
             for key in temp:
