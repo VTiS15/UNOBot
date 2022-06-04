@@ -703,9 +703,9 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
             else:
                 if str.isdigit(cplayer):
-                    await draw(guild.get_member(int(cplayer)), 2)
+                    await draw(guild.get_member(int(cplayer)), guild, 2)
                 else:
-                    await draw(cplayer, 2)
+                    await draw(cplayer, guild, 2)
 
                 if str.isdigit(order[1]):
                     await display_cards(guild.get_member(int(order[1])), guild)
