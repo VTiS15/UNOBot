@@ -6123,14 +6123,7 @@ async def leavegame(ctx):
                              'Whitelist']) or ctx.author == ctx.guild.owner:
                 if ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
-                        if games[str(ctx.guild.id)]['player'] != ctx.author.id:
-                            games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
-
-                            await ctx.respond(embed=discord.Embed(
-                                description='**:thumbsup: You will leave once it is your turn.**',
-                                color=discord.Color.red()))
-
-                            return
+                        games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
 
                         if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) - 1 >= 2:
                             n = None
@@ -6234,14 +6227,7 @@ async def kick(ctx, user):
 
                 if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)]['players'] and str(
                         ctx.guild.id) not in ending:
-                    if games[str(ctx.guild.id)]['player'] != player.id:
-                        games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
-
-                        await ctx.respond(embed=discord.Embed(
-                            description='**You will be kicked once it is your turn.**',
-                            color=discord.Color.red()))
-
-                        return
+                    games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
 
                     if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) - 1 >= 2:
                         n = None
