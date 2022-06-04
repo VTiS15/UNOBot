@@ -946,16 +946,13 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         # Get the color of the Wild Draw Color
         current_color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
         # Randomly pick a card from the deck
-        c = choice(games[str(guild.id)]['cards'])
+        c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
         # Add the card from the deck to the player's hand
         if not bot:
             games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                             card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
         else:
             bot.cards.append(c)
-            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if card not in bot.cards]
 
         # Replenish the deck if no card is left
         if not games[str(guild.id)]['cards']:
@@ -970,17 +967,13 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         # Keep drawing the player while he does not get a card of the specified color
         color = search(r'pink|teal|orange|purple', c[1])
         while not color or color.group(0) != current_color:
-            c = choice(games[str(guild.id)]['cards'])
+            c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
             # Add the card from the deck to the player's hand
             if not bot:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in games[str(guild.id)]['players'][str(player.id)]['cards']]
             else:
                 bot.cards.append(c)
-                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in bot.cards]
 
             # Replenish the deck if no card is left
             if not games[str(guild.id)]['cards']:
@@ -1001,18 +994,13 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         # Draw the player {number} cards
         for i in range(number):
             # Randomly pick a card from the deck
-            c = choice(games[str(guild.id)]['cards'])
+            c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
             # Add the card from the deck to the player's hand
             if not bot:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in games[str(guild.id)]['players'][str(player.id)][
-                                                     'cards']]
             else:
                 bot.cards.append(c)
-                games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                 card not in bot.cards]
 
             # Replenish the deck if no card is left
             if not games[str(guild.id)]['cards']:
@@ -1028,18 +1016,13 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
     else:
         draw = []  # A list to keep track of the drawn cards
         # Randomly pick a card from the deck
-        c = choice(games[str(guild.id)]['cards'])
+        c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
         # Add the card from the deck to the player's hand
         if not bot:
             games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                             card not in games[str(guild.id)]['players'][str(player.id)][
-                                                 'cards']]
         else:
             bot.cards.append(c)
-            games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                             card not in bot.cards]
 
         # Replenish the deck if no card is left
         if not games[str(guild.id)]['cards']:
@@ -1060,17 +1043,12 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
             value = search(r'\+[42]|wild|skip|reverse|\d', c).group(0)
 
             while color != current_color and value != current_value or not any(x in c for x in ('+4', 'wild')):
-                c = choice(games[str(guild.id)]['cards'])
+                c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
                 if not bot:
                     games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                    games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                     card not in games[str(guild.id)]['players'][str(player.id)][
-                                                         'cards']]
                 else:
                     bot.cards.append(c)
-                    games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                     card not in bot.cards]
 
                 if not games[str(guild.id)]['cards']:
                     games[str(guild.id)]['cards'] += cards
@@ -1083,25 +1061,19 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         else:
             if not games[str(guild.id)]['dark']:
                 current_color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
-                current_value = search(r'\+[12]|wild|skip|reverse|\d', games[str(guild.id)]['current'][0]).group(0)
+                current_value = search(r'\+[12]|wild|skip|reverse|flip|\d', games[str(guild.id)]['current'][0]).group(0)
 
                 color = search(r'red|blue|green|yellow', c[0]).group(0)
-                value = search(r'\+[12]|wild|skip|reverse|\d', c[0]).group(0)
+                value = search(r'\+[12]|wild|skip|reverse|flip|\d', c[0]).group(0)
 
                 while color != current_color and value != current_value or not any(
                         x in c[0] for x in ('+2', 'wild')):
-                    c = choice(games[str(guild.id)]['cards'])
+                    c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
                     if not bot:
                         games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in
-                                                         games[str(guild.id)]['players'][str(player.id)][
-                                                             'cards']]
                     else:
                         bot.cards.append(c)
-                        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in bot.cards]
 
                     if not games[str(guild.id)]['cards']:
                         games[str(guild.id)]['cards'] += cards
@@ -1109,29 +1081,23 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     draw.append(c)
 
                     color = search(r'red|blue|green|yellow', c[0]).group(0)
-                    value = search(r'\+[12]|wild|skip|reverse|\d', c[0]).group(0)
+                    value = search(r'\+[12]|wild|skip|reverse|flip|\d', c[0]).group(0)
 
             else:
                 current_color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
-                current_value = search(r'\+(5|color)|wild|skip|reverse|\d', games[str(guild.id)]['current'][1]).group(0)
+                current_value = search(r'\+(5|color)|wild|skip|reverse|flip|\d', games[str(guild.id)]['current'][1]).group(0)
 
                 color = search(r'pink|teal|orange|purple', c[1]).group(0)
                 value = search(r'\+(5|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
 
                 while color != current_color and value != current_value or not any(
                         x in c[1] for x in ('+color', 'wild')):
-                    c = choice(games[str(guild.id)]['cards'])
+                    c = games[str(guild.id)]['cards'].pop(choice(games[str(guild.id)]['cards']))
 
                     if not bot:
                         games[str(guild.id)]['players'][str(player.id)]['cards'].append(c)
-                        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in
-                                                         games[str(guild.id)]['players'][str(player.id)][
-                                                             'cards']]
                     else:
                         bot.cards.append(c)
-                        games[str(guild.id)]['cards'] = [card for card in games[str(guild.id)]['cards'] if
-                                                         card not in bot.cards]
 
                     if not games[str(guild.id)]['cards']:
                         games[str(guild.id)]['cards'] += cards
@@ -1139,7 +1105,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     draw.append(c)
 
                     color = search(r'pink|teal|orange|purple', c[1]).group(0)
-                    value = search(r'\+(5|color)|wild|skip|reverse|\d', c[1]).group(0)
+                    value = search(r'\+(5|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
 
     # Craft a message that displays the details of the drawn card(s) to every player (except UNOBot)
     message = None
@@ -6149,7 +6115,7 @@ async def leavegame(ctx):
 
                             return
 
-                        if len(games[str(ctx.guild.id)]['players']) - 1 >= 2:
+                        if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) - 1 >= 2:
                             n = None
                             p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
@@ -6160,8 +6126,6 @@ async def leavegame(ctx):
                                     if str.isdigit(n):
                                         n = ctx.guild.get_member(int(n))
                                     break
-
-                            del games[str(ctx.guild.id)]['players'][str(ctx.author.id)]
 
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.',
@@ -6262,7 +6226,7 @@ async def kick(ctx, user):
 
                         return
 
-                    if len(games[str(ctx.guild.id)]['players']) - 1 >= 2:
+                    if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) - 1 >= 2:
                         n = None
                         p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
@@ -6273,8 +6237,6 @@ async def kick(ctx, user):
                                 if str.isdigit(n):
                                     n = ctx.guild.get_member(int(n))
                                 break
-
-                        del games[str(ctx.guild.id)]['players'][str(player.id)]
 
                         channel = discord.utils.get(ctx.guild.text_channels,
                                                     name=sub(r'[^\w -]', '',
