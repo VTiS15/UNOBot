@@ -1605,7 +1605,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
             message.set_thumbnail(url='attachment://thumbnail.png')
 
             n = None
-            p = [x for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]]
+            p = [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(guild.id)]['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -1951,7 +1951,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
     # Get the next player
     n = None
-    p = [x for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]]
+    p = [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(guild.id)]['players'][x]]
 
     temp = iter(p)
     for key in temp:
@@ -2490,7 +2490,7 @@ class Bot:
         if str(self.guild.id) not in ending:
             n = None
             try:
-                p = [x for x in self.games[str(self.guild.id)]['players'] if 'left' not in games[str(self.guild.id)]['players'][x]]
+                p = [x for x in self.games[str(self.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(self.guild.id)]['players'][x]]
             except KeyError:
                 return
 
@@ -2566,7 +2566,7 @@ class Bot:
                             embed=discord.Embed(description='**The player order is reversed.**',
                                                 color=discord.Color.red()))) for x in self.channels])
 
-                        p = [x for x in d['players'] if 'left' not in d['players'][x]]
+                        p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
                         m = None
                         temp = iter(p)
                         for key in temp:
@@ -2894,7 +2894,7 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
 
             n = None
-            p = [x for x in d['players'] if 'left' not in d['players'][x]]
+            p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and and 'left' not in d['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -3211,7 +3211,7 @@ async def on_message(message):
 
         try:
             n = None
-            p = [x for x in games[str(message.guild.id)]['players'] if 'left' not in games[str(message.guild.id)]['players'][x]]
+            p = [x for x in games[str(message.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and and 'left' not in games[str(message.guild.id)]['players'][x]]
 
             temp = iter(p)
             for key in temp:
@@ -3685,7 +3685,7 @@ async def on_message(message):
                                                         color=discord.Color.red()))) for x in
                                     message.channel.category.text_channels])
 
-                                p = [x for x in d['players'] if 'left' not in d['players'][x]]
+                                p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
                                 m = None
                                 temp = iter(p)
                                 for key in temp:
@@ -6126,9 +6126,9 @@ async def leavegame(ctx):
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
 
-                        if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
+                        if len([x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
                             n = None
-                            p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
+                            p = [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
                             temp = iter(p)
                             for key in temp:
@@ -6230,9 +6230,9 @@ async def kick(ctx, user):
                         ctx.guild.id) not in ending:
                     games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
 
-                    if len([x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
+                    if len([x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
                         n = None
-                        p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
+                        p = [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
                         temp = iter(p)
                         for key in temp:
