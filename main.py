@@ -1048,7 +1048,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                 colour = colour.group(0)
             value = search(r'\+[42]|wild|skip|reverse|\d', c).group(0)
 
-            while colour != current_color and value != current_value or not value in {'+4', 'wild'}:
+            while colour != current_color and value not in {current_value, '+4', 'wild'}:
                 c = choice(games[str(guild.id)]['cards'])
                 games[str(guild.id)]['cards'].remove(c)
 
@@ -1077,7 +1077,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     colour = colour.group(0)
                 value = search(r'\+[12]|wild|skip|reverse|flip|\d', c[0]).group(0)
 
-                while colour != current_color and value != current_value or value not in {'+2', 'wild'}:
+                while colour != current_color and value not in {current_value, '+2', 'wild'}:
                     c = choice(games[str(guild.id)]['cards'])
                     games[str(guild.id)]['cards'].remove(c)
 
@@ -1105,7 +1105,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     colour = colour.group(0)
                 value = search(r'\+(5|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
 
-                while colour != current_color and value != current_value or value not in {'+color', 'wild'}:
+                while colour != current_color and value not in {current_value, '+color', 'wild'}:
                     c = choice(games[str(guild.id)]['cards'])
                     games[str(guild.id)]['cards'].remove(c)
 
