@@ -5732,8 +5732,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             async def start_callback(interaction):
                                 await interaction.response.defer()
 
-                                if interaction.user == interaction.guild.owner or str(interaction.user) == str(
-                                        interaction.guild.get_member(games[str(interaction.guild.id)]['creator'])):
+                                if interaction.user == interaction.guild.owner or interaction.user.id == \
+                                        games[str(interaction.guild.id)]['creator']:
                                     n = len(games[str(interaction.guild.id)]['players'].keys())
 
                                     if n > 1:
