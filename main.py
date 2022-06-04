@@ -839,7 +839,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 score += temp
 
             # Craft a message that displays who won , the winner's score, and how many pts every loser lost
-            for key in [x for x in player_ids if x != str(winner.id)]:
+            for key in [x for x in player_ids if x != str(winner.id) and 'left' not in d['players'][x]]:
                 temp = get_score(key)
 
                 if score == 1:
@@ -2551,7 +2551,7 @@ class Bot:
             elif value == 'reverse':
                 if str(self.guild.id) in self.games:
                     d = self.games[str(self.guild.id)]
-                    player_ids = list(d['players'].keys())
+                    player_ids = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
 
                     if len(player_ids) > 2:
                         player_ids.reverse()
@@ -3677,7 +3677,7 @@ async def on_message(message):
 
                         if str(message.guild.id) in games:
                             d = games[str(message.guild.id)]
-                            player_ids = list(d['players'].keys())
+                            player_ids = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
 
                             if len(player_ids) > 2:
                                 player_ids.reverse()
@@ -6134,9 +6134,12 @@ async def leavegame(ctx):
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
 
-                        if len([x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
+                        p = [x for x in games[str(ctx.guild.id)]['players'] if
+                                    not str.isdigit(x) or str.isdigit(x) and 'left' not in
+                                    games[str(ctx.guild.id)]['players'][x]]
+
+                        if len(p) >= 2:
                             n = None
-                            p = [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
                             temp = iter(p)
                             for key in temp:
@@ -6166,7 +6169,14 @@ async def leavegame(ctx):
                                     color=discord.Color.red()))) for x in ctx.channel.category.text_channels])
 
                             ending.append(str(ctx.guild.id))
-                            await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
+                            if p:
+                                if str.isdigit(p[0]):
+                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
+                                                        ctx.guild.get_member(int(p[0])))
+                                else:
+                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild, p[0])
+                            else:
+                                await game_shutdown(games[str(ctx.guild.id)], ctx.guild)
 
                 else:
                     await ctx.respond(
@@ -6238,9 +6248,11 @@ async def kick(ctx, user):
                         ctx.guild.id) not in ending:
                     games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
 
-                    if len([x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
+                    p = [x for x in games[str(ctx.guild.id)]['players'] if
+                         not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]
+
+                    if len(p) >= 2:
                         n = None
-                        p = [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
                         temp = iter(p)
                         for key in temp:
@@ -6275,8 +6287,13 @@ async def kick(ctx, user):
                                                     color=discord.Color.red()))
 
                         ending.append(str(ctx.guild.id))
-
-                        await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
+                        if p:
+                            if str.isdigit(p[0]):
+                                await game_shutdown(games[str(ctx.guild.id)], ctx.guild, ctx.guild.get_member(int(p[0])))
+                            else:
+                                await game_shutdown(games[str(ctx.guild.id)], ctx.guild, p[0])
+                        else:
+                            await game_shutdown(games[str(ctx.guild.id)], ctx.guild)
 
                     await ctx.respond(embed=discord.Embed(
                         description=':thumbsup: **The player has been kicked.**',
