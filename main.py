@@ -251,10 +251,9 @@ async def initialize():
                 if str(guild.id) not in dgs:
                     dgs[str(guild.id)] = default_dgs
 
-            for guild_id in dgs:
+            for guild_id in list(dgs.keys()):
                 if guild_id not in map(lambda x: str(x.id), client.guilds):
                     del dgs[guild_id]
-                    break
 
         dgs_file.put(Body=json.dumps(dgs).encode('utf-8'))
 
@@ -280,10 +279,14 @@ async def initialize():
                             'Played': 0
                         }
 
-            for user_id in user_stuff:
+            for user_id in list(user_stuff.keys()):
                 if user_id not in map(lambda x: str(x.id), client.users):
                     del user_stuff[user_id]
-                    break
+                    continue
+
+                for guild_id in list(user_stuff[user_id].keys()):
+                    if guild_id not in map(lambda x: str(x.id), client.guilds):
+                        del user_stuff[user_id][guild_id]
 
         users_file.put(Body=json.dumps(user_stuff).encode('utf-8'))
 
@@ -296,10 +299,9 @@ async def initialize():
                 if str(guild.id) not in commands:
                     commands[str(guild.id)] = default_command_settings
 
-            for guild_id in commands:
+            for guild_id in list(commands.keys()):
                 if guild_id not in map(lambda x: str(x.id), client.guilds):
                     del commands[guild_id]
-                    break
 
         commands_file.put(Body=json.dumps(commands).encode('utf-8'))
 
@@ -3087,9 +3089,6 @@ async def on_guild_join(guild):
 
 @client.event
 async def on_guild_remove(guild):
-    # Remove the UNO category in the guild
-    await discord.utils.get(guild.categories, name='UNO-GAME').delete()
-
     # Update the configuration files
     await initialize()
 
