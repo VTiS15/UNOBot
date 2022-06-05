@@ -270,11 +270,11 @@ async def initialize():
 
         else:
             for member in [x for x in client.get_all_members() if not x.bot]:
-                if not user_stuff[str(member.id)]:
+                if str(member.id) not in user_stuff:
                     user_stuff[str(member.id)] = {}
 
                 for guild in [x for x in client.guilds if x.get_member(member.id)]:
-                    if not user_stuff[str(member.id)][str(guild.id)]:
+                    if str(guild.id) not in user_stuff[str(member.id)]:
                         user_stuff[str(member.id)][str(guild.id)] = {
                             'Wins': 0,
                             'Score': 0,
