@@ -103,7 +103,7 @@ Make sure there is only **one** UNO category at all times!
 
 If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
 * Forcefully end the ongoing game using `/u-eg`; or
-* Manually delete the UNO channels
+* Manually delete the UNO channels (and perhaps category)
 
 before starting a new game.
 
