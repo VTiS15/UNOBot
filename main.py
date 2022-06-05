@@ -278,7 +278,7 @@ async def initialize():
                         'Score': 0,
                         'Played': 0
                     }
-                    user_stuff[str(member.id)] = default_user_stuff
+                user_stuff[str(member.id)] = default_user_stuff
 
             for user_id in list(user_stuff.keys()):
                 if user_id not in map(lambda x: str(x.id), client.users):
