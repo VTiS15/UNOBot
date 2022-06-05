@@ -21,9 +21,9 @@ It allows Discord servers to play the game completely within text channels. Chal
 Type the following `/u-` command to start a game of UNO.
 ```
 /u-sg
-# Starts a game, allowing users to join the game by reacting.
+# Starts a game, allowing users to join the game by pressing a button.
 ```
-The bot will send a message to the your server. Users can react to the message to join the game in 30 seconds.\
+The bot will send a message to the your server. Users can press the Join button to join the game in 30 seconds.\
 After 30 seconds, if there are enough (>1) players, a text channel for every player will be created and players can use their channels to play their hands.\
 <br/>
 If you want to view command usage, read an in-depth guide on using the bot, or read the rules of UNO, type `/u-help` in your Discord server.\
@@ -99,13 +99,15 @@ The scoring for the cards is as follows:
 | Wild Draw Color | 60 pts |
 
 # Troubleshooting🛠️
+Make sure there is only **one** UNO category and maximum **one** ongoing game in a server at all times!
+
 If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
 * Forcefully end the ongoing game using `/u-eg`; or
-* Manually delete the UNO channels
+* Manually delete the UNO channels (and perhaps category)
 
 before starting a new game.
 
-If that doesn't work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
+If that does not work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
 
 # Inspiration✨
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which is what motivated me to develop this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which motivated me to develop this bot.
