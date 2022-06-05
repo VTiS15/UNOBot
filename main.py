@@ -5843,6 +5843,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 message.embeds[0].set_field_at(0, name='Players:',
                                                                value=p,
                                                                inline=False)
+
+                                await message.edit(embed=message.embeds[0])
                         add.callback = add_callback
 
                         view = View()
