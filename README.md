@@ -110,4 +110,4 @@ before starting a new game.
 If that does not work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
 
 # Inspiration✨
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which is what motivated me to develop this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which motivated me to develop this bot.
