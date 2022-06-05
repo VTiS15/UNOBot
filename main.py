@@ -3087,10 +3087,11 @@ async def on_guild_join(guild):
 
 @client.event
 async def on_guild_remove(guild):
+    # Remove the UNO category in the guild
+    await discord.utils.get(guild.categories, name='UNO-GAME').delete()
+
     # Update the configuration files
     await initialize()
-
-    await discord.utils.get(guild.categories, name='UNO-GAME').delete()
 
     # Print a success message to the console
     print(
