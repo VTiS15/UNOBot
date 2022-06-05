@@ -99,6 +99,8 @@ The scoring for the cards is as follows:
 | Wild Draw Color | 60 pts |
 
 # Troubleshooting🛠️
+Make sure there is only **one** UNO category at all times!
+
 If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
 * Forcefully end the ongoing game using `/u-eg`; or
 * Manually delete the UNO channels
