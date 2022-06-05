@@ -271,13 +271,14 @@ async def initialize():
         else:
             for member in [x for x in client.get_all_members() if
                            str(x.id) not in user_stuff and not x.bot]:
+                default_user_stuff = {}
                 for guild in [x for x in client.guilds if x.get_member(member.id)]:
-                        user_stuff[str(member.id)] = {}
-                        user_stuff[str(member.id)][str(guild.id)] = {
-                            'Wins': 0,
-                            'Score': 0,
-                            'Played': 0
-                        }
+                    default_user_stuff[str(guild.id)] = {
+                        'Wins': 0,
+                        'Score': 0,
+                        'Played': 0
+                    }
+                    user_stuff[str(member.id)] = default_user_stuff
 
             for user_id in list(user_stuff.keys()):
                 if user_id not in map(lambda x: str(x.id), client.users):
