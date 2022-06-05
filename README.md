@@ -21,7 +21,7 @@ It allows Discord servers to play the game completely within text channels. Chal
 Type the following `/u-` command to start a game of UNO.
 ```
 /u-sg
-# Starts a game, allowing users to join the game by reacting.
+# Starts a game, allowing users to join the game by pressing a button.
 ```
 The bot will send a message to the your server. Users can react to the message to join the game in 30 seconds.\
 After 30 seconds, if there are enough (>1) players, a text channel for every player will be created and players can use their channels to play their hands.\
