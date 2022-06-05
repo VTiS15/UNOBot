@@ -290,6 +290,9 @@ async def initialize():
                     if guild_id not in map(lambda x: str(x.id), client.guilds):
                         del user_stuff[user_id][guild_id]
 
+                        if not user_stuff[user_id]:
+                            del user_stuff[user_id]
+
         users_file.put(Body=json.dumps(user_stuff).encode('utf-8'))
 
         if not commands:
