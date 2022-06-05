@@ -5630,7 +5630,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 elif a[i] == 'set':
                                     if a[i - 1] == 'StartingCards':
                                         try:
-                                            if 3 < int(a[i + 1]) < 15:
+                                            if 3 <= int(a[i + 1]) <= 15:
                                                 games[str(ctx.guild.id)]['settings']['StartingCards'] = int(
                                                     a[i + 1])
 
