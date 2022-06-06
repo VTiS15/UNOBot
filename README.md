@@ -40,8 +40,8 @@ The UNOBot uses the prefix `/u-` for commands.
 | `/u-eg` | None | **Ends the ongoing game** in the server |
 | `/u-alerts` | `on/off/view` | Turns your **alerts** on or off | `/u.alerts on` |
 | `/u-kick` | @user mention | **Kicks** a player from a game | `/u-kick @VTiS` |
-| `/u-stats` | (@user mention) | Gives you a user's **stats** only from the current Discord server. Gives you your stats if no user is mentioned | `/u-stats @VTiS` |
-| `/u-gstats` | (@user mention) | Gives you a user's **global stats** only from all Discord servers. Gives you your global stats if no user is mentioned | `/u-gstats @VTiS`|
+| `/u-stats` | (@user mention) | Gives you a user's **stats** only in the current Discord server. Gives you yours if no user is mentioned | `/u-stats @VTiS` |
+| `/u-gstats` | (@user mention) | Gives you a user's **global stats**. Gives you yours if no user is mentioned | `/u-gstats @VTiS`|
 | `/u-lb` | None | Gives you a **leaderboard** only from the current Discord server |
 | `/u-glb` | None | Gives you a **global leaderboard** from all Discord servers |
 | `/u-settings` | Variable | Change the **settings** for each commands `commands`, modify the default game settings `defaultgamesettings/dgs`, or reset the bot `reset` | `/u-settings commands allowalerts off`, `/u-settings dgs Flip on`, `/u-settings dgs StartingCards 15`, `/u-settings reset` |
