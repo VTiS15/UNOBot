@@ -1974,38 +1974,42 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         # Make the game ending
         ending.append(str(guild.id))
 
+        d = False
+        if not games[str(guild.id)]['settings']['Flip'] and '+' in card or not games[str(guild.id)]['dark'] and '+' in card[0] or games[str(guild.id)]['dark'] and '+' in card[1]:
+            d = not d
+
         # If the last card is a draw card, draw the next player
-        if any('+' in x for x in (card, card[0], card[1])):
-            if '4' in card:
+        if d:
+            if not games[str(guild.id)]['settings']['Flip'] and '4' in card:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 4
                     await draw(n, guild, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, guild, 4)
-
-            elif '2' in card or '2' in card[0] and not games[str(guild.id)]['dark']:
+            elif not games[str(guild.id)]['settings']['Flip'] and '2' in card or not games[str(guild.id)][
+                'dark'] and '2' in card[0]:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 2
                     await draw(n, guild, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, guild, 2)
-            elif '1' in card[0] and not games[str(guild.id)]['dark']:
+            elif not games[str(guild.id)]['dark'] and '1' in card[0]:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 1
                     await draw(n, guild, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, guild, 1)
-            elif '5' in card[1] and games[str(guild.id)]['dark']:
+            elif games[str(guild.id)]['dark'] and '5' in card[1]:
                 if str(guild.id) in stack:
                     stack[str(guild.id)] += 5
                     await draw(n, guild, stack[str(guild.id)])
                     del stack[str(guild.id)]
                 else:
                     await draw(n, guild, 5)
-            elif 'color' in card[1] and games[str(guild.id)]['dark']:
+            elif games[str(guild.id)]['dark'] and 'color' in card[1]:
                 await draw(n, guild, 1, False, True)
 
         # If the last card is a flip card, flip everything
