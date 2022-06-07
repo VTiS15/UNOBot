@@ -101,6 +101,8 @@ The scoring for the cards is as follows:
 # Troubleshooting🛠️
 Make sure there is only **one** UNO category and maximum **one** ongoing game in a server at all times!
 
+If the game says it is your turn but otherwise when you try to play, simply ignore the stupid bot and try again.
+
 If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
 * Forcefully end the ongoing game using `/u-eg`; or
 * Manually delete the UNO channels (and perhaps category)
