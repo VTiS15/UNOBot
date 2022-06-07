@@ -2392,7 +2392,7 @@ class Bot:
             if str.isdigit(min):
                 return score * (1 - ceil(e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min]['cards']))/5)))
             else:
-                return score * (1 - ceil(e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min].cards)) / 5)))
+                return score * (1 - ceil(e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min].cards))/5)))
 
         return score
 
@@ -5727,11 +5727,13 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 del games[str(guild.id)]['players'][str(user.id)]
 
                             p = ""
-                            for key in games[str(ctx.guild.id)]['players']:
+                            for key in games[str(guild.id)]['players']:
                                 if str.isdigit(key):
                                     p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
                                 else:
                                     p += (':small_blue_diamond:' + key + "\n")
+                            if not p:
+                                p = 'None'
 
                             message.embeds[0].set_field_at(0, name='Players:',
                                                            value=p,
@@ -5804,6 +5806,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
                                     else:
                                         p += (':small_blue_diamond:' + key + "\n")
+                                if not p:
+                                    p = 'None'
 
                                 message_dict['fields'][0]['value'] = p
 
@@ -5917,6 +5921,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
                                         else:
                                             p += (':small_blue_diamond:' + key + "\n")
+                                    if not p:
+                                        p = 'None'
 
                                     message_dict['fields'][0]['value'] = p
 
