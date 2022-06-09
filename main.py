@@ -448,8 +448,8 @@ async def game_setup(ctx: ApplicationContext, d: dict):
     """Sets up an UNO game.
 
     Args:
-        ctx: The context in which the command that called this function is being invoked under
-        d: The data storage of the game being created
+        ctx: The context under which the command that called this function is invoked
+        d: The data storage of the game
     """
 
     guild = ctx.guild
