@@ -6201,6 +6201,11 @@ async def kick(ctx, user):
                         ctx.guild.id) not in ending:
                     games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
 
+                    await asyncio.gather(*[asyncio.create_task(x.send(
+                        embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.',
+                                            color=discord.Color.red()))) for x in
+                        ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
+
                     p = [x for x in games[str(ctx.guild.id)]['players'] if
                          not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][x]]
 
@@ -6224,11 +6229,6 @@ async def kick(ctx, user):
                             games[str(ctx.guild.id)]['players'][bot].channels.remove(channel)
 
                         await channel.delete()
-
-                        await asyncio.gather(*[asyncio.create_task(x.send(
-                            embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.',
-                                                color=discord.Color.red()))) for x in
-                            ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
                         if player.id == games[str(ctx.guild.id)]['player']:
                             await display_cards(n, ctx.guild)
