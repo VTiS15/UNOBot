@@ -6116,6 +6116,8 @@ async def leavegame(ctx):
                                 await display_cards(n, ctx.guild)
 
                         else:
+                            await ctx.defer()
+
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 embed=discord.Embed(
                                     description=':x: Since not enough players are left, ending game...',
