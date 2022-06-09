@@ -5622,17 +5622,18 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         if args:
                             a = args.split()
                             for i in range(len(a)):
-                                if a[i].lower() in (
-                                        'drawuntilmatch', 'disablejoin', 'spectategame', 'stackcards', 'flip'):
+                                if a[i] in (
+                                        'DrawUntilMatch', 'DisableJoin', 'SpectateGame', 'StackCards',
+                                        'Flip'):
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
 
                                 elif a[i] == '7-0':
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
 
-                                elif a[i].lower() == 'startingcards':
+                                elif a[i] == 'StartingCards':
                                     continue
 
-                                elif a[i].lower() == 'set':
+                                elif a[i] == 'set':
                                     if a[i - 1] == 'StartingCards':
                                         try:
                                             if 3 <= int(a[i + 1]) <= 15:
