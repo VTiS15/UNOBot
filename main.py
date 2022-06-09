@@ -4910,8 +4910,7 @@ async def leaderboard(ctx):
                          commands[str(ctx.guild.id)]['leaderboard']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['leaderboard'][
                              'Whitelist']) or ctx.author == ctx.guild.owner:
-                message = discord.Embed(title=ctx.guild.name + '\'s Leaderboard', color=discord.Color.red(),
-                                        description='The top UNO players in your Discord server.')
+                message = discord.Embed(title=ctx.guild.name + '\'s Leaderboard', color=discord.Color.red())
 
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
@@ -4998,8 +4997,7 @@ async def globalleaderboard(ctx):
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
 
-                message = discord.Embed(title='Global Leaderboard', color=discord.Color.red(),
-                                        description='The top UNO players from all Discord servers.')
+                message = discord.Embed(title='Global Leaderboard', color=discord.Color.red())
 
                 leaderboard = rank()
                 count = 0
@@ -6087,6 +6085,11 @@ async def leavegame(ctx):
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
 
+                        await asyncio.gather(*[asyncio.create_task(x.send(
+                            embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.',
+                                                color=discord.Color.red()))) for x
+                            in ctx.channel.category.text_channels])
+
                         p = [x for x in games[str(ctx.guild.id)]['players'] if
                                     not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                     games[str(ctx.guild.id)]['players'][x]]
@@ -6102,11 +6105,6 @@ async def leavegame(ctx):
                                         n = ctx.guild.get_member(int(n))
                                     break
 
-                            await asyncio.gather(*[asyncio.create_task(x.send(
-                                embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.',
-                                                    color=discord.Color.red()))) for x
-                                in ctx.channel.category.text_channels])
-
                             for bot in [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)]:
                                 games[str(ctx.guild.id)]['players'][bot].channels.remove(ctx.channel)
 
@@ -6120,7 +6118,7 @@ async def leavegame(ctx):
 
                             await asyncio.gather(*[asyncio.create_task(x.send(
                                 embed=discord.Embed(
-                                    description=':x: Since not enough players are left, ending game...',
+                                    description=':x: **Since not enough players are left, ending game...**',
                                     color=discord.Color.red()))) for x in ctx.channel.category.text_channels])
 
                             ending.append(str(ctx.guild.id))
