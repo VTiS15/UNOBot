@@ -6092,7 +6092,7 @@ async def leavegame(ctx):
 
                         p = [x for x in games[str(ctx.guild.id)]['players']]
 
-                        if len(p) >= 2:
+                        if len([x for x in p if 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
                             n = None
 
                             temp = iter(p)
@@ -6206,7 +6206,7 @@ async def kick(ctx, user):
 
                     p = [x for x in games[str(ctx.guild.id)]['players']]
 
-                    if len(p) >= 2:
+                    if len([x for x in p if 'left' not in games[str(ctx.guild.id)]['players'][x]]) >= 2:
                         n = None
 
                         temp = iter(p)
