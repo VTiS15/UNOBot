@@ -6239,6 +6239,9 @@ async def kick(ctx, user):
                                                     color=discord.Color.red()))
 
                         ending.append(str(ctx.guild.id))
+
+                        p = [x for x in games[str(ctx.guild.id)]['players'] if
+                             'left' not in games[str(ctx.guild.id)]['players'][x]]
                         if p:
                             if str.isdigit(p[0]):
                                 await game_shutdown(games[str(ctx.guild.id)], ctx.guild, ctx.guild.get_member(int(p[0])))
