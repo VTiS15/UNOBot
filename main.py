@@ -1975,7 +1975,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         ending.append(str(guild.id))
 
         d = False
-        if not games[str(guild.id)]['settings']['Flip'] and '+' in card or not games[str(guild.id)]['dark'] and '+' in card[0] or games[str(guild.id)]['dark'] and '+' in card[1]:
+        if not games[str(guild.id)]['settings']['Flip'] and '+' in card or 'dark' in games[str(guild.id)] and (not games[str(guild.id)]['dark'] and '+' in card[0] or games[str(guild.id)]['dark'] and '+' in card[1]):
             d = not d
 
         # If the last card is a draw card, draw the next player
