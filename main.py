@@ -6120,8 +6120,10 @@ async def leavegame(ctx):
                                     color=discord.Color.red()))) for x in ctx.channel.category.text_channels])
 
                             ending.append(str(ctx.guild.id))
+
+                            p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
                             if p:
-                                if str.isdigit(p[0]):
+                                if str.isdigit(p):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
                                                         ctx.guild.get_member(int(p[0])))
                                 else:
