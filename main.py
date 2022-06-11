@@ -5746,11 +5746,12 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                             if interaction.user == interaction.guild.owner or interaction.user.id == \
                                     games[str(interaction.guild.id)]['creator']:
-                                await interaction.message.edit(view=None)
 
                                 n = len(games[str(interaction.guild.id)]['players'].keys())
 
                                 if n > 1:
+                                    await interaction.message.edit(view=None)
+
                                     games[str(interaction.guild.id)]['seconds'] = -2
 
                                     p = ""
