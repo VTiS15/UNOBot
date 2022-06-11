@@ -5791,6 +5791,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 games[str(interaction.guild.id)]['seconds'] = -1
 
+                                try:
+                                    del games[str(interaction.guild.id)]
+                                except ValueError:
+                                    pass
+
                                 message_dict = interaction.message.embeds[0].to_dict()
                                 message_dict['title'] = 'A game of UNO was cancelled!'
 
@@ -5812,11 +5817,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 message_dict['fields'][0]['value'] = p
 
                                 await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
-
-                                try:
-                                    del games[str(interaction.guild.id)]
-                                except ValueError:
-                                    pass
 
                                 print('[' + datetime.now().strftime(
                                     '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
