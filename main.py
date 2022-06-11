@@ -5791,11 +5791,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 games[str(interaction.guild.id)]['seconds'] = -1
 
-                                try:
-                                    del games[str(interaction.guild.id)]
-                                except ValueError:
-                                    pass
-
                                 message_dict = interaction.message.embeds[0].to_dict()
                                 message_dict['title'] = 'A game of UNO was cancelled!'
 
@@ -5813,6 +5808,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         p += (':small_blue_diamond:' + key + "\n")
                                 if not p:
                                     p = 'None'
+
+                                try:
+                                    del games[str(interaction.guild.id)]
+                                except ValueError:
+                                    pass
 
                                 message_dict['fields'][0]['value'] = p
 
