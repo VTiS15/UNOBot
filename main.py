@@ -5868,8 +5868,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                         response = await ctx.respond(embed=message, view=view)
                         e = await response.original_message()
-                        eid = e.id
-                        games[str(ctx.guild.id)]['message'] = eid
+                        games[str(ctx.guild.id)]['message'] = e.id
 
                         while True:
                             if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
@@ -5881,7 +5880,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 break
 
                             games[str(ctx.guild.id)]['seconds'] -= 10
-                            m = (await ctx.fetch_message(eid)).embeds[0]
+                            m = (await ctx.fetch_message(e.id)).embeds[0]
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 await e.edit(view=None)
