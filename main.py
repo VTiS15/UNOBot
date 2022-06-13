@@ -6121,7 +6121,9 @@ async def leavegame(ctx):
 
                             ending.append(str(ctx.guild.id))
 
-                            p = [x for x in games[str(ctx.guild.id)]['players'] if 'left' not in games[str(ctx.guild.id)]['players'][x]]
+                            p = [x for x in games[str(ctx.guild.id)]['players'] if
+                                 not str.isdigit(x) or str.isdigit(x) and 'left' not in
+                                 games[str(ctx.guild.id)]['players'][x]]
                             if p:
                                 if str.isdigit(p):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
@@ -6242,7 +6244,8 @@ async def kick(ctx, user):
                         ending.append(str(ctx.guild.id))
 
                         p = [x for x in games[str(ctx.guild.id)]['players'] if
-                             'left' not in games[str(ctx.guild.id)]['players'][x]]
+                             not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(ctx.guild.id)]['players'][
+                                 x]]
                         if p:
                             if str.isdigit(p[0]):
                                 await game_shutdown(games[str(ctx.guild.id)], ctx.guild, ctx.guild.get_member(int(p[0])))
