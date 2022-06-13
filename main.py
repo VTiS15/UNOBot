@@ -6125,7 +6125,7 @@ async def leavegame(ctx):
                                  not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                  games[str(ctx.guild.id)]['players'][x]]
                             if p:
-                                if str.isdigit(p):
+                                if str.isdigit(p[0]):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
                                                         ctx.guild.get_member(int(p[0])))
                                 else:
