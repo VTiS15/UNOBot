@@ -4959,7 +4959,7 @@ async def leaderboard(ctx):
                          commands[str(ctx.guild.id)]['leaderboard']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['leaderboard'][
                              'Whitelist']) or ctx.author == ctx.guild.owner:
-                message = discord.Embed(title=ctx.guild.name + '\'s Leaderboard', color=discord.Color.red())
+                message = discord.Embed(title=ctx.guild.name + '\'s UNO Leaderboard', color=discord.Color.red())
 
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
@@ -5046,7 +5046,7 @@ async def globalleaderboard(ctx):
                 users = json.loads(
                     s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
 
-                message = discord.Embed(title='Global Leaderboard', color=discord.Color.red())
+                message = discord.Embed(title='Global UNO Leaderboard', color=discord.Color.red())
 
                 leaderboard = rank()
                 count = 0
