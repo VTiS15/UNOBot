@@ -2232,12 +2232,37 @@ class Bot:
                                                                            total - i) / comb(
                                 108 * (hands // 108 + 1) - len(self.cards), total)
 
-                if prob > 0.3:
+                if prob > 0.5:
                     score = 10 * prob
                 else:
                     score = 0
-            elif value in {'wild', '+4'}:
+            elif value == 'wild':
                 return 1
+            elif value == '+4':
+                least = sum(1 for x in self.cards if self.__get_value(x) == '+4')
+                total = 0
+                n = 0
+                for player in [x for x in d['players'] if x != self.name]:
+                    if str.isdigit(player):
+                        total += len(d['players'][player]['cards'])
+                    else:
+                        total += len(d['players'][player].cards)
+                    n += 1
+
+                prob = 0
+                hands = total + len(self.cards)
+                if n * least <= 4 * ((total + len(self.cards)) % 108 + 1):
+                    for i in range(n * least):
+                        if i <= total:
+                            prob += comb(4 * (hands // 108 + 1) - least, i) * comb(
+                                104 * (hands // 108 + 1) - len(self.cards) + least,
+                                total - i) / comb(
+                                108 * (hands // 108 + 1) - len(self.cards), total)
+
+                if prob > 0.5:
+                    score = 10 * prob
+                else:
+                    score = 0
             else:
                 score = int(value)
 
@@ -2295,10 +2320,35 @@ class Bot:
                 elif max_ratio < 25:
                     score = 1
                 else:
-                    score = -1
+                    score = 0
 
-            elif value in {'wild', '+2'}:
+            elif value == 'wild':
                 score = 1
+            elif value == '+2':
+                least = sum(1 for x in self.cards if self.__get_value(x) == '+2')
+                total = 0
+                n = 0
+                for player in [x for x in d['players'] if x != self.name]:
+                    if str.isdigit(player):
+                        total += len(d['players'][player]['cards'])
+                    else:
+                        total += len(d['players'][player].cards)
+                    n += 1
+
+                prob = 0
+                hands = total + len(self.cards)
+                if n * least <= 4 * (hands % 112 + 1):
+                    for i in range(n * least):
+                        if i <= total:
+                            prob += comb(4 * (hands // 112 + 1) - least, i) * comb(
+                                108 * (hands // 112 + 1) - len(self.cards) + least,
+                                total - i) / comb(
+                                112 * (hands // 112 + 1) - len(self.cards), total)
+
+                if prob > 0.5:
+                    score = 10 * prob
+                else:
+                    score = 0
             else:
                 score = int(value)
 
@@ -2358,13 +2408,13 @@ class Bot:
                 elif max_ratio < 25:
                     score = 1
                 else:
-                    score = -1
+                    score = 0
             elif value in {'wild', '+color'}:
                 score = 1
             else:
                 score = int(value)
 
-        if (color in self.losing_colors or value in self.losing_values) and score >= 0:
+        if (color in self.losing_colors or value in self.losing_values) and score > 0:
             bot_pos = None
             min_pos = 0
             for i in range(len(d['players'].keys())):
@@ -3055,7 +3105,7 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best)) >= 0 or self.__get_value(best) == 'flip' and len(self.cards) == 1:
+                if self.__get_score(self.__get_value(best)) > 0 or self.__get_value(best) == 'flip' and len(self.cards) == 1:
                     await play_card(best, self.name, self.guild)
                     await self.__execute_card(self.__get_value(best))
                 else:
