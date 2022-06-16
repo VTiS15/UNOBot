@@ -3112,8 +3112,8 @@ class Bot:
                 else:
                     if str(self.guild.id) in stack:
                         await draw(self.name, self.guild, stack[str(self.guild.id)])
-                        await display_cards(n, self.guild)
                         del stack[str(self.guild.id)]
+                        await display_cards(n, self.guild)
                     elif self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
                         await draw(self.name, self.guild, 1, True)
                         await display_cards(self.name, self.guild)
