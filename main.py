@@ -3105,13 +3105,15 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best)) > 0 or self.__get_value(best) == 'flip' and len(self.cards) == 1:
+                if self.__get_score(self.__get_value(best)) > 0 or (
+                        self.__get_value(best) == 'flip' and len(self.cards) == 1) or len(self.cards) == 1:
                     await play_card(best, self.name, self.guild)
                     await self.__execute_card(self.__get_value(best))
                 else:
                     if str(self.guild.id) in stack:
                         await draw(self.name, self.guild, stack[str(self.guild.id)])
                         await display_cards(n, self.guild)
+                        del stack[str(self.guild.id)]
                     elif self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
                         await draw(self.name, self.guild, 1, True)
                         await display_cards(self.name, self.guild)
