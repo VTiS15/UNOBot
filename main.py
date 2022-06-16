@@ -2232,7 +2232,7 @@ class Bot:
                                                                            total - i) / comb(
                                 108 * (hands // 108 + 1) - len(self.cards), total)
 
-                if prob > 0.7:
+                if prob > 0.6:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2259,7 +2259,7 @@ class Bot:
                                 total - i) / comb(
                                 108 * (hands // 108 + 1) - len(self.cards), total)
 
-                if prob > 0.7:
+                if prob > 0.6:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2287,7 +2287,7 @@ class Bot:
                                                                            total - i) / comb(
                                 112 * (hands // 112 + 1) - len(self.cards), total)
 
-                if prob > 0.7:
+                if prob > 0.6:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2345,7 +2345,7 @@ class Bot:
                                 total - i) / comb(
                                 112 * (hands // 112 + 1) - len(self.cards), total)
 
-                if prob > 0.7:
+                if prob > 0.6:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2385,7 +2385,7 @@ class Bot:
                                                                           total - i) / comb(
                                 112 * (hands // 112 + 1) - len(self.cards), total)
 
-                if prob > 0.7:
+                if prob > 0.6:
                     score = 10 * prob
                 else:
                     score = 0
