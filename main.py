@@ -22,7 +22,7 @@ from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
-from random import sample, choice
+from random import sample, choice, randrange
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
 from discord import ApplicationContext, User, Member, Guild, TextChannel
@@ -1796,6 +1796,12 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['current'] = (games[str(guild.id)]['current'][0], 'darkwild')
 
         games[str(guild.id)]['cards'].append(games[str(guild.id)]['current'])
+
+        for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
+            if b.losing_colors:
+                b.losing_colors.pop(randrange(len(b.losing_colors)))
+            if b.losing_values:
+                b.losing_values.pop(randrange(len(b.losing_values)))
 
         if not games[str(guild.id)]['dark'] and 'flip' in card[0] or games[str(guild.id)]['dark'] and 'flip' in card[1]:
             for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
