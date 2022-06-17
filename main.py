@@ -2259,7 +2259,7 @@ class Bot:
             if value == '+1':
                 least = sum(1 for x in self.cards if self.__get_value(x) in ('+1', '+2'))
 
-                if self.losing_values.count('+1') > least:
+                if self.losing_values.count('+1') >= least:
                     score = 0
                 else:
                     total = 0
@@ -2320,7 +2320,7 @@ class Bot:
             elif value == '+2':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+2')
 
-                if self.losing_values.count('+2') > least:
+                if self.losing_values.count('+2') >= least:
                     score = 0
                 else:
                     total = 0
@@ -2365,7 +2365,7 @@ class Bot:
             elif value == '+5':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+5')
 
-                if self.losing_values.count('+5') > least:
+                if self.losing_values.count('+5') >= least:
                     score = 0
                 else:
                     total = 0
