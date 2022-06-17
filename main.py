@@ -1729,12 +1729,12 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove('+4')
 
                 if str(client.user.id) in games[str(guild.id)]['players']:
-                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.add(card.replace('+4', ''))
+                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('+4', ''))
             elif 'wild' in card:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove('wild')
 
                 if str(client.user.id) in games[str(guild.id)]['players']:
-                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.add(card.replace('wild', ''))
+                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('wild', ''))
             else:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
@@ -1779,57 +1779,53 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
                 if 'flip' in c:
                     for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
-                        b.losing_colors, b.losing_values = set(), set()
+                        b.losing_colors, b.losing_values = [], []
 
                         if games[str(guild.id)]['dark']:
-                            b.losing_colors.add(search(r'pink|teal|orange|purple', c[1]).group(0))
-                            b.losing_values.add(search(r'skip|reverse|\d', c[1]).group(0))
+                            b.losing_colors.append(search(r'pink|teal|orange|purple', c[1]).group(0))
+                            b.losing_values.append(search(r'\+(5|color)|skip|reverse|\d', c[1]).group(0))
                             for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
                                 for temp in games[str(guild.id)]['players'][p]['cards']:
-                                    b.losing_colors.add(search(r'pink|teal|orange|purple', temp[1]).group(0))
-                                    v = search(r'\+c|skip|reverse|\d', temp[1]).group(0)
-                                    if v == '+c':
-                                        b.losing_values.add('skip')
-                                        b.losing_values.add('reverse')
-                                    else:
-                                        b.losing_values.add(v)
+                                    b.losing_colors.append(search(r'pink|teal|orange|purple', temp[1]).group(0))
+                                    v = search(r'\+(5|color)|skip|reverse|\d', temp[1]).group(0)
+                                    if v == '+color':
+                                        b.losing_values.append('skip')
+                                        b.losing_values.append('reverse')
+                                    b.losing_values.append(v)
                             for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
                                 for temp in games[str(guild.id)]['players'][p].cards:
-                                    b.losing_colors.add(search(r'pink|teal|orange|purple', temp[1]).group(0))
-                                    v = search(r'\+c|skip|reverse|\d', temp[1]).group(0)
-                                    if v == '+c':
-                                        b.losing_values.add('skip')
-                                        b.losing_values.add('reverse')
-                                    else:
-                                        b.losing_values.add(v)
+                                    b.losing_colors.append(search(r'pink|teal|orange|purple', temp[1]).group(0))
+                                    v = search(r'\+(5|color)|skip|reverse|\d', temp[1]).group(0)
+                                    if v == '+color':
+                                        b.losing_values.append('skip')
+                                        b.losing_values.append('reverse')
+                                    b.losing_values.append(v)
                         else:
-                            b.losing_colors.add(search(r'red|blue|green|yellow', c[0]).group(0))
-                            b.losing_values.add(search(r'skip|reverse|\d', c[0]).group(0))
+                            b.losing_colors.append(search(r'red|blue|green|yellow', c[0]).group(0))
+                            b.losing_values.append(search(r'\+[12]|skip|reverse|\d', c[0]).group(0))
                             for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
                                 for temp in games[str(guild.id)]['players'][p]['cards']:
-                                    b.losing_colors.add(search(r'red|blue|green|yellow', temp[0]).group(0))
-                                    v = search(r'\+2|skip|reverse|\d', temp[0]).group(0)
+                                    b.losing_colors.append(search(r'red|blue|green|yellow', temp[0]).group(0))
+                                    v = search(r'\+[12]|skip|reverse|\d', temp[0]).group(0)
                                     if v == '+2':
-                                        b.losing_values.add('skip')
-                                        b.losing_values.add('reverse')
-                                    else:
-                                        b.losing_values.add(v)
+                                        b.losing_values.append('skip')
+                                        b.losing_values.append('reverse')
+                                    b.losing_values.append(v)
                             for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
                                 for temp in games[str(guild.id)]['players'][p].cards:
-                                    b.losing_colors.add(search(r'red|blue|green|yellow', temp[0]).group(0))
-                                    v = search(r'\+2|skip|reverse|\d', temp[0]).group(0)
+                                    b.losing_colors.append(search(r'red|blue|green|yellow', temp[0]).group(0))
+                                    v = search(r'\+[12]|skip|reverse|\d', temp[0]).group(0)
                                     if v == '+2':
-                                        b.losing_values.add('skip')
-                                        b.losing_values.add('reverse')
-                                    else:
-                                        bot.losing_values.add(v)
+                                        b.losing_values.append('skip')
+                                        b.losing_values.append('reverse')
+                                    bot.losing_values.append(v)
 
                 if len(games[str(guild.id)]['players'][str(player.id)]['cards']) == 1 and str(client.user.id) in \
                         games[str(guild.id)]['players']:
                     if not games[str(guild.id)]['dark']:
-                        bot.losing_colors.add(card[0].replace(c[0], ''))
+                        bot.losing_colors.append(card[0].replace(c[0], ''))
                     else:
-                        bot.losing_colors.add(card[1].replace(c[1], ''))
+                        bot.losing_colors.append(card[1].replace(c[1], ''))
             else:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
         else:
@@ -2071,7 +2067,7 @@ class Bot:
         self.games = games
         self.cards = cards
         self.reccount = 0
-        self.losing_colors, self.losing_values = set(), set()
+        self.losing_colors, self.losing_values = [], []
 
     def __get_color_and_value(self, card: Union[str, tuple]) -> (str, str):
         """Returns the color and value of an UNO card.
@@ -2269,28 +2265,32 @@ class Bot:
         elif not d['dark']:
             if value == '+1':
                 least = sum(1 for x in self.cards if self.__get_value(x) in ('+1', '+2'))
-                total = 0
-                n = 0
-                for player in [x for x in d['players'] if x != self.name]:
-                    if str.isdigit(player):
-                        total += len(d['players'][player]['cards'])
-                    else:
-                        total += len(d['players'][player].cards)
-                    n += 1
 
-                prob = 0
-                hands = total + len(self.cards)
-                if n * least <= 12 * (hands % 112 + 1):
-                    for i in range(n * least):
-                        if i <= total:
-                            prob += comb(12 * (hands // 112 + 1) - least, i) * comb(100 * (hands // 112 + 1) - len(self.cards) + least,
-                                                                           total - i) / comb(
-                                112 * (hands // 112 + 1) - len(self.cards), total)
-
-                if prob > 0.6:
-                    score = 10 * prob
-                else:
+                if self.losing_values.count('+1') > least:
                     score = 0
+                else:
+                    total = 0
+                    n = 0
+                    for player in [x for x in d['players'] if x != self.name]:
+                        if str.isdigit(player):
+                            total += len(d['players'][player]['cards'])
+                        else:
+                            total += len(d['players'][player].cards)
+                        n += 1
+
+                    prob = 0
+                    hands = total + len(self.cards)
+                    if n * least <= 12 * (hands % 112 + 1):
+                        for i in range(n * least):
+                            if i <= total:
+                                prob += comb(12 * (hands // 112 + 1) - least, i) * comb(100 * (hands // 112 + 1) - len(self.cards) + least,
+                                                                               total - i) / comb(
+                                    112 * (hands // 112 + 1) - len(self.cards), total)
+
+                    if prob > 0.6:
+                        score = 10 * prob
+                    else:
+                        score = 0
             elif value in {'reverse', 'skip'}:
                 if len(d['players']) == 2 or value == 'skip':
                     score = 20
@@ -2326,29 +2326,33 @@ class Bot:
                 score = 1
             elif value == '+2':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+2')
-                total = 0
-                n = 0
-                for player in [x for x in d['players'] if x != self.name]:
-                    if str.isdigit(player):
-                        total += len(d['players'][player]['cards'])
-                    else:
-                        total += len(d['players'][player].cards)
-                    n += 1
 
-                prob = 0
-                hands = total + len(self.cards)
-                if n * least <= 4 * (hands % 112 + 1):
-                    for i in range(n * least):
-                        if i <= total:
-                            prob += comb(4 * (hands // 112 + 1) - least, i) * comb(
-                                108 * (hands // 112 + 1) - len(self.cards) + least,
-                                total - i) / comb(
-                                112 * (hands // 112 + 1) - len(self.cards), total)
-
-                if prob > 0.6:
-                    score = 10 * prob
-                else:
+                if self.losing_values.count('+2') > least:
                     score = 0
+                else:
+                    total = 0
+                    n = 0
+                    for player in [x for x in d['players'] if x != self.name]:
+                        if str.isdigit(player):
+                            total += len(d['players'][player]['cards'])
+                        else:
+                            total += len(d['players'][player].cards)
+                        n += 1
+
+                    prob = 0
+                    hands = total + len(self.cards)
+                    if n * least <= 4 * (hands % 112 + 1):
+                        for i in range(n * least):
+                            if i <= total:
+                                prob += comb(4 * (hands // 112 + 1) - least, i) * comb(
+                                    108 * (hands // 112 + 1) - len(self.cards) + least,
+                                    total - i) / comb(
+                                    112 * (hands // 112 + 1) - len(self.cards), total)
+
+                    if prob > 0.6:
+                        score = 10 * prob
+                    else:
+                        score = 0
             else:
                 score = int(value)
 
@@ -2367,28 +2371,32 @@ class Bot:
                         score = 20
             elif value == '+5':
                 least = sum(1 for x in self.cards if self.__get_value(x) == '+5')
-                total = 0
-                n = 0
-                for player in [x for x in d['players'] if x != self.name]:
-                    if str.isdigit(player):
-                        total += len(d['players'][player]['cards'])
-                    else:
-                        total += len(d['players'][player].cards)
-                    n += 1
 
-                prob = 0
-                hands = total + len(self.cards)
-                if n * least <= 8 * (hands % 112 + 1):
-                    for i in range(n * least):
-                        if i <= total:
-                            prob += comb(8 * (hands // 112 + 1) - least, i) * comb(104 * (hands // 112 + 1) - len(self.cards) + least,
-                                                                          total - i) / comb(
-                                112 * (hands // 112 + 1) - len(self.cards), total)
-
-                if prob > 0.6:
-                    score = 10 * prob
-                else:
+                if self.losing_values.count('+5') > least:
                     score = 0
+                else:
+                    total = 0
+                    n = 0
+                    for player in [x for x in d['players'] if x != self.name]:
+                        if str.isdigit(player):
+                            total += len(d['players'][player]['cards'])
+                        else:
+                            total += len(d['players'][player].cards)
+                        n += 1
+
+                    prob = 0
+                    hands = total + len(self.cards)
+                    if n * least <= 8 * (hands % 112 + 1):
+                        for i in range(n * least):
+                            if i <= total:
+                                prob += comb(8 * (hands // 112 + 1) - least, i) * comb(104 * (hands // 112 + 1) - len(self.cards) + least,
+                                                                              total - i) / comb(
+                                    112 * (hands // 112 + 1) - len(self.cards), total)
+
+                    if prob > 0.6:
+                        score = 10 * prob
+                    else:
+                        score = 0
             elif value == 'skip':
                 score = 20
             elif value == 'flip':
