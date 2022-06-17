@@ -1809,42 +1809,50 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
                 if games[str(guild.id)]['dark']:
                     games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', card[1]).group(0))
-                    games[str(guild.id)]['players'][b].losing_values.append(search(r'\+(5|color)|skip|reverse|\d', card[1]).group(0))
+                    value = search(r'\+(5|color)|skip|reverse|\d', card[1])
+                    if value:
+                        games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
                             games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', temp[1]).group(0))
                             v = search(r'\+(5|color)|skip|reverse|\d', temp[1]).group(0)
-                            if v == '+color':
-                                games[str(guild.id)]['players'][b].losing_values.append('skip')
-                                games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                            games[str(guild.id)]['players'][b].losing_values.append(v)
+                            if v:
+                                if v.group(0) == '+color':
+                                    games[str(guild.id)]['players'][b].losing_values.append('skip')
+                                    games[str(guild.id)]['players'][b].losing_values.append('reverse')
+                                games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
                     for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
                         for temp in games[str(guild.id)]['players'][p].cards:
                             games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', temp[1]).group(0))
-                            v = search(r'\+(5|color)|skip|reverse|\d', temp[1]).group(0)
-                            if v == '+color':
-                                games[str(guild.id)]['players'][b].losing_values.append('skip')
-                                games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                            games[str(guild.id)]['players'][b].losing_values.append(v)
+                            v = search(r'\+(5|color)|skip|reverse|\d', temp[1])
+                            if v:
+                                if v.group(0) == '+color':
+                                    games[str(guild.id)]['players'][b].losing_values.append('skip')
+                                    games[str(guild.id)]['players'][b].losing_values.append('reverse')
+                                games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
                 else:
                     games[str(guild.id)]['players'][b].losing_colors.append(search(r'red|blue|green|yellow', card[0]).group(0))
-                    games[str(guild.id)]['players'][b].losing_values.append(search(r'\+[12]|skip|reverse|\d', card[0]).group(0))
+                    value = search(r'\+[12]|skip|reverse|\d', card[0])
+                    if value:
+                        games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
                             games[str(guild.id)]['players'][b].losing_colors.append(search(r'red|blue|green|yellow', temp[0]).group(0))
-                            v = search(r'\+[12]|skip|reverse|\d', temp[0]).group(0)
-                            if v == '+2':
-                                games[str(guild.id)]['players'][b].losing_values.append('skip')
-                                games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                            games[str(guild.id)]['players'][b].losing_values.append(v)
+                            v = search(r'\+[12]|skip|reverse|\d', temp[0])
+                            if v:
+                                if v.group(0) == '+2':
+                                    games[str(guild.id)]['players'][b].losing_values.append('skip')
+                                    games[str(guild.id)]['players'][b].losing_values.append('reverse')
+                                games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
                     for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
                         for temp in games[str(guild.id)]['players'][p].cards:
                             games[str(guild.id)]['players'][b].losing_colors.append(search(r'red|blue|green|yellow', temp[0]).group(0))
-                            v = search(r'\+[12]|skip|reverse|\d', temp[0]).group(0)
-                            if v == '+2':
-                                games[str(guild.id)]['players'][b].losing_values.append('skip')
-                                games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                            games[str(guild.id)]['players'][b].losing_values.append(v)
+                            v = search(r'\+[12]|skip|reverse|\d', temp[0])
+                            if v:
+                                if v.group(0) == '+2':
+                                    games[str(guild.id)]['players'][b].losing_values.append('skip')
+                                    games[str(guild.id)]['players'][b].losing_values.append('reverse')
+                                games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
     # Make the played card the first card on the discard pile
     games[str(guild.id)]['current'] = card
