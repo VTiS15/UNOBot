@@ -1819,13 +1819,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                         b.losing_values.append('skip')
                                         b.losing_values.append('reverse')
                                     bot.losing_values.append(v)
-
-                if len(games[str(guild.id)]['players'][str(player.id)]['cards']) == 1 and str(client.user.id) in \
-                        games[str(guild.id)]['players']:
-                    if not games[str(guild.id)]['dark']:
-                        bot.losing_colors.append(card[0].replace(c[0], ''))
-                    else:
-                        bot.losing_colors.append(card[1].replace(c[1], ''))
             else:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
         else:
