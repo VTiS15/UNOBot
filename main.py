@@ -1815,7 +1815,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
                             games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', temp[1]).group(0))
-                            v = search(r'\+(5|color)|skip|reverse|\d', temp[1]).group(0)
+                            v = search(r'\+(5|color)|skip|reverse|\d', temp[1])
                             if v:
                                 if v.group(0) == '+color':
                                     games[str(guild.id)]['players'][b].losing_values.append('skip')
