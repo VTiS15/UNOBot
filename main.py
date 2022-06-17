@@ -2432,8 +2432,8 @@ class Bot:
                             d['players'][min]['cards']):
                             min_pos = i
                     else:
-                        if min_is_bot and len(d['players'][item].cards) < len(
-                                d['players'][min]['cards']) or not min_is_bot and len(
+                        if min_is_bot and len(d['players'][item]['cards']) < len(
+                                d['players'][min].cards) or not min_is_bot and len(
                             d['players'][item]['cards']) < len(
                             d['players'][min]['cards']):
                             min_pos = i
