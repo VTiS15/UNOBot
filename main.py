@@ -1777,7 +1777,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             if c:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(c)
 
-                if 'flip' in c:
+                if not games[str(guild.id)]['dark'] and 'flip' in c[0] or games[str(guild.id)]['dark'] and 'flip' in c[1]:
                     for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
                         b.losing_colors, b.losing_values = [], []
 
