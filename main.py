@@ -207,7 +207,7 @@ def main():
     """
     try:
         client.run(getenv('BOT_TOKEN'))
-    except discord.ext.commands.CommandNotFound or discord.Forbidden:
+    except (discord.ext.commands.CommandNotFound, discord.Forbidden):
         pass
 
 
@@ -3493,7 +3493,7 @@ async def on_message(message):
                 overwrite.read_messages = True
                 try:
                     await message.channel.set_permissions(message.author, overwrite=overwrite)
-                except discord.NotFound:
+                except (discord.NotFound, ClientOSError):
                     pass
 
                 if not games[str(message.guild.id)]['settings']['Flip']:
