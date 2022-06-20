@@ -2271,7 +2271,7 @@ class Bot:
                 else:
                     score = 0
             else:
-                score = int(value)
+                score = float(value)
 
         elif not d['dark']:
             if value == '+1':
@@ -2360,7 +2360,7 @@ class Bot:
                     else:
                         score = 0
             else:
-                score = int(value)
+                score = float(value)
 
         else:
             if value == 'reverse':
@@ -2424,7 +2424,7 @@ class Bot:
             elif value in {'wild', '+color'}:
                 score = 1
             else:
-                score = int(value)
+                score = float(value)
 
         if (color in self.losing_colors or value in self.losing_values) and score > 0:
             bot_pos = None
