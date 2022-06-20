@@ -2149,7 +2149,7 @@ class Bot:
         except TypeError:
             pass
 
-    def __get_score(self, value: str, color: str = None) -> int:
+    def __get_score(self, value: str, color: str = None) -> float:
         """Returns the weight/bias of an UNO card value.
 
         Args:
@@ -2235,11 +2235,11 @@ class Bot:
 
                 prob = 0
                 hands = total + len(self.cards)
-                if n * least <= 12 * ((total + len(self.cards)) % 108 + 1):
+                if n * least <= 12 * ceil(hands / 108):
                     for i in range(n * least):
-                        prob += comb(12 * (hands // 108 + 1) - least, i) * comb(96 * (hands // 108 + 1) - len(self.cards) + least,
+                        prob += comb(12 * ceil(hands / 108) - least, i) * comb(96 * ceil(hands / 108) - len(self.cards) + least,
                                                                        total - i) / comb(
-                            108 * (hands // 108 + 1) - len(self.cards), total)
+                            108 * ceil(hands / 108) - len(self.cards), total)
 
                 if prob > 0.5:
                     score = 10 * prob
@@ -2259,12 +2259,12 @@ class Bot:
 
                 prob = 0
                 hands = total + len(self.cards)
-                if n * least <= 4 * ((total + len(self.cards)) % 108 + 1):
+                if n * least <= 4 * ceil(hands / 108):
                     for i in range(n * least):
-                        prob += comb(4 * (hands // 108 + 1) - least, i) * comb(
-                            104 * (hands // 108 + 1) - len(self.cards) + least,
+                        prob += comb(4 * ceil(hands / 108) - least, i) * comb(
+                            104 * ceil(hands / 108) - len(self.cards) + least,
                             total - i) / comb(
-                            108 * (hands // 108 + 1) - len(self.cards), total)
+                            108 * ceil(hands / 108) - len(self.cards), total)
 
                 if prob > 0.5:
                     score = 10 * prob
@@ -2290,11 +2290,11 @@ class Bot:
 
                     prob = 0
                     hands = total + len(self.cards)
-                    if n * least <= 12 * (hands % 112 + 1):
+                    if n * least <= 12 * ceil(hands / 112):
                         for i in range(n * least):
-                            prob += comb(12 * (hands // 112 + 1) - least, i) * comb(100 * (hands // 112 + 1) - len(self.cards) + least,
+                            prob += comb(12 * ceil(hands / 112) - least, i) * comb(100 * ceil(hands / 112) - len(self.cards) + least,
                                                                            total - i) / comb(
-                                112 * (hands // 112 + 1) - len(self.cards), total)
+                                112 * ceil(hands / 112) - len(self.cards), total)
 
                     if prob > 0.5:
                         score = 10 * prob
@@ -2348,12 +2348,12 @@ class Bot:
 
                     prob = 0
                     hands = total + len(self.cards)
-                    if n * least <= 4 * (hands % 112 + 1):
+                    if n * least <= 4 * ceil(hands / 112):
                         for i in range(n * least):
-                            prob += comb(4 * (hands // 112 + 1) - least, i) * comb(
-                                108 * (hands // 112 + 1) - len(self.cards) + least,
+                            prob += comb(4 * ceil(hands / 112) - least, i) * comb(
+                                108 * ceil(hands / 112) - len(self.cards) + least,
                                 total - i) / comb(
-                                112 * (hands // 112 + 1) - len(self.cards), total)
+                                112 * ceil(hands / 112) - len(self.cards), total)
 
                     if prob > 0.5:
                         score = 10 * prob
@@ -2391,11 +2391,11 @@ class Bot:
 
                     prob = 0
                     hands = total + len(self.cards)
-                    if n * least <= 8 * (hands % 112 + 1):
+                    if n * least <= 8 * ceil(hands / 112):
                         for i in range(n * least):
-                            prob += comb(8 * (hands // 112 + 1) - least, i) * comb(104 * (hands // 112 + 1) - len(self.cards) + least,
+                            prob += comb(8 * ceil(hands / 112) - least, i) * comb(104 * ceil(hands / 112) - len(self.cards) + least,
                                                                           total - i) / comb(
-                                112 * (hands // 112 + 1) - len(self.cards), total)
+                                112 * ceil(hands / 112) - len(self.cards), total)
 
                     if prob > 0.5:
                         score = 10 * prob
@@ -2451,9 +2451,9 @@ class Bot:
 
             min = list(d['players'].keys())[min_pos]
             if str.isdigit(min):
-                return score * (1 - ceil(e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min]['cards']))/5)))
+                return score * (1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min]['cards']))/5))
             else:
-                return score * (1 - ceil(e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min].cards))/5)))
+                return score * (1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min].cards))/5))
 
         return score
 
