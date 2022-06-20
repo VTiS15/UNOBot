@@ -3047,7 +3047,7 @@ class Bot:
 
                         for card in self.playables:
                             tree = Tree()
-                            tree.create_node(identifier=card, data=self.__get_score(self.__get_value(card)))
+                            tree.create_node(identifier=card, data=self.__get_score(self.__get_value(card), self.__get_color(card)))
                             self.__build_tree(tree, card)
 
                             paths = tree.paths_to_leaves()
@@ -3086,7 +3086,7 @@ class Bot:
                         for card in self.playables:
                             tree = Tree()
                             tree.create_node(identifier=card[0] + '|' + card[1],
-                                             data=self.__get_score(self.__get_value(card)))
+                                             data=self.__get_score(self.__get_value(card), self.__get_color(card)))
                             self.__build_tree(tree, card[0] + '|' + card[1])
 
                             paths = tree.paths_to_leaves()
@@ -3128,11 +3128,11 @@ class Bot:
                             tree = Tree()
                             if card[1] != 'darkwild':
                                 tree.create_node(identifier=card[0] + '|' + card[1],
-                                                 data=self.__get_score(self.__get_value(card)))
+                                                 data=self.__get_score(self.__get_value(card), self.__get_color(card)))
                                 self.__build_tree(tree, card[0] + '|' + card[1])
                             else:
                                 tree.create_node(identifier=card[0] + '|wild',
-                                                 data=self.__get_score(self.__get_value(card)))
+                                                 data=self.__get_score(self.__get_value(card), self.__get_color(card)))
                                 self.__build_tree(tree, card[0] + '|wild')
 
                             paths = tree.paths_to_leaves()
@@ -3153,7 +3153,7 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best)) > 0 or (
+                if self.__get_score(self.__get_value(best), self.__get_color(best)) > 0 or (
                         self.__get_value(best) == 'flip' and len(self.cards) == 1) or len(self.cards) == 1:
                     await play_card(best, self.name, self.guild)
                     await self.__execute_card(self.__get_value(best))
