@@ -2308,7 +2308,7 @@ class Bot:
                 least = sum(1 for x in self.cards if self.__get_value(x) in ('+1', '+2'))
                 n = len([x for x in d['players'] if x != self.name])
 
-                if self.losing_values.count('+1') >= n*least:
+                if self.losing_values.count('+1') + self.losing_values.count('+2') >= n*least:
                     score = 0
                 else:
                     total = 0
