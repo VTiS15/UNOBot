@@ -4538,7 +4538,7 @@ async def help(ctx):
 
 
 @client.slash_command(name='u-cmds', description='Shows you how to use UNOBot\'s commands.')
-@bot_bot_has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def commands(ctx, command: Option(str, 'The command you want to learn', required=False, default='')):
     if not command:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
