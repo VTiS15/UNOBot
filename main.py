@@ -17,7 +17,7 @@ from copy import deepcopy
 from discord import Option, SelectOption
 from discord.ui import Button, View, Select
 from discord.ext import commands
-from discord.ext.commands import has_permissions
+from discord.ext.commands import bot_has_permissions
 from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
@@ -4522,7 +4522,7 @@ async def on_message(message):
 # Commands
 @client.slash_command(name='u-help',
                       description='Shows the command usage, an in-depth guide on using UNOBot and a link to the rules of UNO.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def help(ctx):
     UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
 
@@ -4538,7 +4538,7 @@ async def help(ctx):
 
 
 @client.slash_command(name='u-cmds', description='Shows you how to use UNOBot\'s commands.')
-@has_permissions(read_messages=True)
+@bot_bot_has_permissions(read_messages=True)
 async def commands(ctx, command: Option(str, 'The command you want to learn', required=False, default='')):
     if not command:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
@@ -4660,7 +4660,7 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
 
 
 @client.slash_command(name='u-guide', description='Shows you how to use UNOBot in general.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def guide(ctx, area: Option(str, 'The area you want a guide on', required=False, default='')):
     if not area:
         UNOBotPNG = discord.File('images/UNOBot.png', filename='bot.png')
@@ -4775,14 +4775,14 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
 
 
 @client.slash_command(name='u-rules', description='Gives you a link to the rules of UNO.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def rules(ctx):
     await ctx.respond("https://github.com/VTiS15/UNOBot#game-rule")
 
 
 @client.slash_command(name='u-stats',
                       description='Gives you a user\'s or your (if no user is specified) UNO stats in the current Discord server.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def stats(ctx,
                 user: Option(discord.User, 'The user whose local stats you wish to see', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
@@ -4876,7 +4876,7 @@ async def stats(ctx,
 
 @client.slash_command(name='u-gstats',
                       description='Gives you a user\'s or your (if no user is specified) global stats.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def globalstats(ctx, user: Option(discord.User, 'The user whose global stats you wish to see', required=False,
                                         default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
@@ -4971,7 +4971,7 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
 
 
 @client.slash_command(name='u-lb', description='Presents you with the UNO leaderboard in the current Discord server.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def leaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -5055,7 +5055,7 @@ async def leaderboard(ctx):
 
 
 @client.slash_command(name='u-glb', description='Presents you with the global UNO leaderboard.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def globalleaderboard(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -5151,7 +5151,7 @@ async def globalleaderboard(ctx):
 
 
 @client.slash_command(name='u-settings', description='Allows you to change the settings of UNOBot.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def settings(ctx, setting: Option(str, 'The setting you wish to change'), *,
                    args: Option(str, 'some arguments', required=False, default='')):
     if not setting:
@@ -5667,7 +5667,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
 
 
 @client.slash_command(name='u-sg', description='Starts a game of UNO.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -6064,7 +6064,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
 
 @client.slash_command(name='u-eg', description='Forcefully ends a game of UNO.')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def endgame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -6142,7 +6142,7 @@ async def endgame(ctx):
 
 
 @client.slash_command(name='u-leave', description='Gets you out of an ongoing game of UNO')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def leavegame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -6251,7 +6251,7 @@ async def leavegame(ctx):
 
 
 @client.slash_command(name='u-kick', description='Kicks someone out of an ongoing game of UNO')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def kick(ctx, user):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
@@ -6376,7 +6376,7 @@ async def kick(ctx, user):
 
 
 @client.slash_command(name='u-spectate', description='Turns your ability to spectate any game of UNO on or off')
-@has_permissions(read_messages=True)
+@bot_has_permissions(read_messages=True)
 async def spectate(ctx, option: Option(str, 'on or off', required=True)):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
