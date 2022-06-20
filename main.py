@@ -1809,13 +1809,12 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
             if color in games[str(guild.id)]['players'][b].losing_colors:
                 games[str(guild.id)]['players'][b].losing_colors.remove(color)
-            elif games[str(guild.id)]['players'][b].losing_colors:
-                games[str(guild.id)]['players'][b].losing_colors.pop(randrange(len(games[str(guild.id)]['players'][b].losing_colors)))
-
             if value in games[str(guild.id)]['players'][b].losing_values:
                 games[str(guild.id)]['players'][b].losing_values.remove(value)
-            elif games[str(guild.id)]['players'][b].losing_values:
-                games[str(guild.id)]['players'][b].losing_values.pop(randrange(len(games[str(guild.id)]['players'][b].losing_values)))
+
+                if value in {'+2', '+color'}:
+                    games[str(guild.id)]['players'][b].losing_values.remove('skip')
+                    games[str(guild.id)]['players'][b].losing_values.remove('reverse')
 
         if not games[str(guild.id)]['dark'] and 'flip' in card[0] or games[str(guild.id)]['dark'] and 'flip' in card[1]:
             for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
@@ -2262,7 +2261,9 @@ class Bot:
 
                 prob = 0
                 hands = total + len(self.cards)
-                if n * least <= 12 * ceil(hands / 108):
+                if n * least > total:
+                    prob = 1
+                elif n * least <= 12 * ceil(hands / 108):
                     for i in range(n * least):
                         prob += comb(12 * ceil(hands / 108) - least, i) * comb(96 * ceil(hands / 108) - len(self.cards) + least,
                                                                        total - i) / comb(
@@ -2286,7 +2287,9 @@ class Bot:
 
                 prob = 0
                 hands = total + len(self.cards)
-                if n * least <= 4 * ceil(hands / 108):
+                if n * least > total:
+                    prob = 1
+                elif n * least <= 4 * ceil(hands / 108):
                     for i in range(n * least):
                         prob += comb(4 * ceil(hands / 108) - least, i) * comb(
                             104 * ceil(hands / 108) - len(self.cards) + least,
@@ -2317,7 +2320,9 @@ class Bot:
 
                     prob = 0
                     hands = total + len(self.cards)
-                    if n * least <= 12 * ceil(hands / 112):
+                    if n * least > total:
+                        prob = 1
+                    elif n * least <= 12 * ceil(hands / 112):
                         for i in range(n * least):
                             prob += comb(12 * ceil(hands / 112) - least, i) * comb(100 * ceil(hands / 112) - len(self.cards) + least,
                                                                            total - i) / comb(
@@ -2375,7 +2380,9 @@ class Bot:
 
                     prob = 0
                     hands = total + len(self.cards)
-                    if n * least <= 4 * ceil(hands / 112):
+                    if n * least > total:
+                        prob = 1
+                    elif n * least <= 4 * ceil(hands / 112):
                         for i in range(n * least):
                             prob += comb(4 * ceil(hands / 112) - least, i) * comb(
                                 108 * ceil(hands / 112) - len(self.cards) + least,
@@ -2418,7 +2425,9 @@ class Bot:
 
                     prob = 0
                     hands = total + len(self.cards)
-                    if n * least <= 8 * ceil(hands / 112):
+                    if n * least > total:
+                        prob = 1
+                    elif n * least <= 8 * ceil(hands / 112):
                         for i in range(n * least):
                             prob += comb(8 * ceil(hands / 112) - least, i) * comb(104 * ceil(hands / 112) - len(self.cards) + least,
                                                                           total - i) / comb(
