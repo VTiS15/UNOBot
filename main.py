@@ -2496,12 +2496,12 @@ class Bot:
                     score = 1
                 else:
                     score = 0
-            elif value in {'darkwild', '+color'}:
+            elif value in {'wild', '+color'}:
                 score = 1
             else:
                 score = float(value)
 
-        if (color in self.losing_colors or value in self.losing_values) and 'wild' not in value and score > 0:
+        if (color in self.losing_colors or value in self.losing_values) and value != 'wild' and score > 0:
             lst = list(d['players'].keys())
             bot_pos = None
             min_pos = 0
