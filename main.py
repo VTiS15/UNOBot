@@ -3131,7 +3131,7 @@ class Bot:
                         else:
                             best = self.playables[0]
                     else:
-                        color_change = 'blue'
+                        color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
                         optimals = []
                         self.reccount = 0
 
@@ -3154,6 +3154,7 @@ class Bot:
 
                         best = self.playables[optimals.index(max(optimals))]
                         if not self.__get_color(best):
+                            if
                             best = (color_change + best[0], best[1])
 
                 else:
@@ -3175,7 +3176,7 @@ class Bot:
                         else:
                             best = self.playables[0]
                     else:
-                        color_change = 'teal'
+                        color_change = choice([x for x in {'pink', 'teal', 'orange', 'purple'} if x not in self.losing_colors])
                         optimals = []
                         self.reccount = 0
 
