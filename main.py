@@ -1864,7 +1864,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                             games[str(guild.id)]['players'][b].losing_values.append('reverse')
                         games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
 
-                    for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
+                    for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x)]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
                             temp_c = search(r'red|blue|green|yellow', temp[0])
                             if temp_c:
@@ -1887,6 +1887,16 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     games[str(guild.id)]['players'][b].losing_values.append('skip')
                                     games[str(guild.id)]['players'][b].losing_values.append('reverse')
                                 games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
+
+            if isinstance(player, Member) and len(
+                    games[str(guild.id)]['players'][str(player.id)]['cards']) == 1 or isinstance(player, str) and len(
+                    games[str(guild.id)]['players'][player].cards) == 1:
+                if not games[str(guild.id)]['dark'] and any(x in card[0] for x in {'wild', '+2'}):
+                    for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
+                        games[str(guild.id)]['players'][b].losing_colors.append(search(r'red|blue|green|yellow', card[0]).group(0))
+                elif games[str(guild.id)]['dark'] and any(x in card[1] for x in {'wild', '+color'}):
+                    for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
+                        games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', card[1]).group(0))
 
     # Make the played card the first card on the discard pile
     games[str(guild.id)]['current'] = card
