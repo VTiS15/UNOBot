@@ -2572,12 +2572,13 @@ class Bot:
             for card in [x for x in self.cards if
                          not any(x in c for c in tree.rsearch(root)) and self.__is_similar(x, root)]:
                 color, value = self.__get_color_and_value(card)
+                score = self.__get_score(value, color)
                 count = 0
 
                 while True:
                     try:
-                        tree.create_node(identifier=card + str(count), tag=str(count),
-                                         data=self.__get_score(value, color), parent=root)
+                        if score > 0:
+                            tree.create_node(identifier=card + str(count), tag=str(count), data=score, parent=root)
                     except DuplicatedNodeIdError:
                         count += 1
                         continue
@@ -3121,6 +3122,8 @@ class Bot:
                         self.playables = [x for x in self.playables if x[0] != '+2']
                     if not all(t[0] == 'flip' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != 'flip']
+                    if not all(t[0] == 'wild' for t in self.playables):
+                        self.playables = [x for x in self.playables if x[0] != 'wild']
 
                     if len(self.cards) == 1:
                         if self.playables[0][0] in {'wild', '+2'}:
@@ -3161,6 +3164,8 @@ class Bot:
                         self.playables = [x for x in self.playables if x[1] != '+color']
                     if not all(t[1] == 'flip' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != 'flip']
+                    if not all(t[1] == 'darkwild' for t in self.playables):
+                        self.playables = [x for x in self.playables if x[1] != 'darkwild']
 
                     if len(self.cards) == 1:
                         if self.playables[0][1] == '+color':
