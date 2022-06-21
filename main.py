@@ -1815,7 +1815,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['players'][b].losing_values.remove(value)
             if value in {'+2', '+color'} and len(games[str(guild.id)]['players'].keys()) > 2:
                 try:
-                    games[str(guild.id)]['players'][b].losing_values.remove('+2')
                     games[str(guild.id)]['players'][b].losing_values.remove('skip')
                     games[str(guild.id)]['players'][b].losing_values.remove('reverse')
                 except ValueError:
@@ -1852,7 +1851,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                         games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
-                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+5' in card[1])):
+                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+5' in x[1])):
                                     games[str(guild.id)]['players'][b].losing_values.append('+5')
 
                     for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
@@ -1870,7 +1869,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                         games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
-                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+5' in card[1])):
+                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+5' in x[1])):
                                     games[str(guild.id)]['players'][b].losing_values.append('+5')
 
                 else:
@@ -1900,9 +1899,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                         games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
-                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+1' in card[0])):
+                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+1' in x[0])):
                                     games[str(guild.id)]['players'][b].losing_values.append('+1')
-                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+2' in card[0])):
+                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+2' in x[0])):
                                     games[str(guild.id)]['players'][b].losing_values.append('+2')
 
                     for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
@@ -1920,9 +1919,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                         games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
-                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+1' in card[0])):
+                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+1' in x[0])):
                                     games[str(guild.id)]['players'][b].losing_values.append('+1')
-                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+2' in card[0])):
+                                for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+2' in x[0])):
                                     games[str(guild.id)]['players'][b].losing_values.append('+2')
 
         if isinstance(player, Member) and len(
