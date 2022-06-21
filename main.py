@@ -2323,7 +2323,7 @@ class Bot:
                                                                        total - i) / comb(
                             108 * ceil(hands / 108) - len(self.cards), total)
 
-                if prob > 0.5:
+                if prob > 0.4:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2350,7 +2350,7 @@ class Bot:
                             total - i) / comb(
                             108 * ceil(hands / 108) - len(self.cards), total)
 
-                if prob > 0.5:
+                if prob > 0.4:
                     score = 10 * prob
                 else:
                     score = 0
@@ -2382,7 +2382,7 @@ class Bot:
                                                                            total - i) / comb(
                                 112 * ceil(hands / 112) - len(self.cards), total)
 
-                    if prob > 0.5:
+                    if prob > 0.4:
                         score = 10 * prob
                     else:
                         score = 0
@@ -2443,7 +2443,7 @@ class Bot:
                                 total - i) / comb(
                                 112 * ceil(hands / 112) - len(self.cards), total)
 
-                    if prob > 0.5:
+                    if prob > 0.4:
                         score = 10 * prob
                     else:
                         score = 0
@@ -2487,7 +2487,7 @@ class Bot:
                                                                           total - i) / comb(
                                 112 * ceil(hands / 112) - len(self.cards), total)
 
-                    if prob > 0.5:
+                    if prob > 0.4:
                         score = 10 * prob
                     else:
                         score = 0
@@ -3169,9 +3169,6 @@ class Bot:
                 else:
                     if all(x in self.losing_colors for x in {'pink', 'teal', 'orange', 'purple'}):
                         self.losing_colors = []
-
-                    print(f'losings_colors: {self.losing_colors}')
-                    print(f'losings_valuess: {self.losing_values}')
 
                     if not all(t[1] == '+color' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != '+color']
