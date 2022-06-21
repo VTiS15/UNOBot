@@ -3154,7 +3154,6 @@ class Bot:
 
                         best = self.playables[optimals.index(max(optimals))]
                         if not self.__get_color(best):
-                            if
                             best = (color_change + best[0], best[1])
 
                 else:
