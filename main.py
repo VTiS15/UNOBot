@@ -3062,6 +3062,8 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
             self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
 
+            print(f'Playables: {self.playables}')
+
             n = None
             p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
 
@@ -3125,9 +3127,6 @@ class Bot:
                 elif not d['dark']:
                     if all(x in self.losing_colors for x in {'red', 'blue', 'green', 'yellow'}):
                         self.losing_colors = []
-
-                    print(f'losings_colors: {self.losing_colors}')
-                    print(f'losings_valuess: {self.losing_values}')
 
                     if not all(t[0] == '+2' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != '+2']
