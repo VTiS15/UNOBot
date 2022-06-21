@@ -3085,8 +3085,8 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                     if self.playables:
                         random_card = choice(self.playables)
-                        await play_card(random_card)
-                        await self.__execute_card(random_card)
+                        await play_card(random_card, self.name, self.guild)
+                        await self.__execute_card(self.__get_value(random_card))
                     else:
                         await draw(self.name, self.guild, 1)
                         await display_cards(n, self.guild)
