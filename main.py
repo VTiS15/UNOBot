@@ -1821,20 +1821,24 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     pass
 
         if not games[str(guild.id)]['dark'] and 'flip' in card[0] or games[str(guild.id)]['dark'] and 'flip' in card[1]:
-            for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
+            for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
                 games[str(guild.id)]['players'][b].losing_colors, games[str(guild.id)]['players'][b].losing_values = [], []
 
                 if not games[str(guild.id)]['dark']:
-                    color = search(r'pink|teal|orange|purple', card[1])
-                    if color:
-                        games[str(guild.id)]['players'][b].losing_colors.append(color.group(0))
-                    value = search(r'\+(5|color)|skip|reverse|\d', card[1])
-                    if value:
-                        if value.group(0) == '+color' and len(games[str(guild.id)]['players'].keys()) > 2:
-                            games[str(guild.id)]['players'][b].losing_values.append('skip')
-                            games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                        else:
-                            games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
+                    if isinstance(player, Member) and len(
+                            games[str(guild.id)]['players'][str(player.id)]['cards']) <= 3 or isinstance(player,
+                                                                                                         str) and len(
+                        games[str(guild.id)]['players'][player].cards) < 3:
+                        color = search(r'pink|teal|orange|purple', card[1])
+                        if color:
+                            games[str(guild.id)]['players'][b].losing_colors.append(color.group(0))
+                        value = search(r'\+(5|color)|skip|reverse|\d', card[1])
+                        if value:
+                            if value.group(0) == '+color' and len(games[str(guild.id)]['players'].keys()) > 2:
+                                games[str(guild.id)]['players'][b].losing_values.append('skip')
+                                games[str(guild.id)]['players'][b].losing_values.append('reverse')
+                            else:
+                                games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
 
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x)]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
@@ -1873,16 +1877,20 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     games[str(guild.id)]['players'][b].losing_values.append('+5')
 
                 else:
-                    color = search(r'red|blue|green|yellow', card[0])
-                    if color:
-                        games[str(guild.id)]['players'][b].losing_colors.append(color.group(0))
-                    value = search(r'\+[12]|skip|reverse|\d', card[0])
-                    if value:
-                        if value.group(0) == '+2' and len(games[str(guild.id)]['players'].keys()) > 2:
-                            games[str(guild.id)]['players'][b].losing_values.append('skip')
-                            games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                        else:
-                            games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
+                    if isinstance(player, Member) and len(
+                            games[str(guild.id)]['players'][str(player.id)]['cards']) <= 3 or isinstance(player,
+                                                                                                         str) and len(
+                        games[str(guild.id)]['players'][player].cards) < 3:
+                        color = search(r'red|blue|green|yellow', card[0])
+                        if color:
+                            games[str(guild.id)]['players'][b].losing_colors.append(color.group(0))
+                        value = search(r'\+[12]|skip|reverse|\d', card[0])
+                        if value:
+                            if value.group(0) == '+2' and len(games[str(guild.id)]['players'].keys()) > 2:
+                                games[str(guild.id)]['players'][b].losing_values.append('skip')
+                                games[str(guild.id)]['players'][b].losing_values.append('reverse')
+                            else:
+                                games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
 
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x)]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
