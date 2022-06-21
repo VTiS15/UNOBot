@@ -3220,7 +3220,10 @@ class Bot:
 
                         best = self.playables[optimals.index(max(optimals))]
                         if not self.__get_color(best):
-                            best = (best[0], color_change + best[1])
+                            if best[1] == 'darkwild':
+                                best = (best[0], color_change + 'wild')
+                            else:
+                                best = (best[0], color_change + best[1])
 
                 await play_card(best, self.name, self.guild)
                 await self.__execute_card(self.__get_value(best))
