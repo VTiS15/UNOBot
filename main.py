@@ -3060,9 +3060,8 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
-            self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
-
-            print(f'Playables: {self.playables}')
+            if self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
+                self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
 
             n = None
             p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
@@ -3218,20 +3217,8 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best), self.__get_color(best)) > 0 or len(self.cards) == 1:
-                    await play_card(best, self.name, self.guild)
-                    await self.__execute_card(self.__get_value(best))
-                else:
-                    if str(self.guild.id) in stack:
-                        await draw(self.name, self.guild, stack[str(self.guild.id)])
-                        del stack[str(self.guild.id)]
-                        await display_cards(n, self.guild)
-                    elif self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
-                        await draw(self.name, self.guild, 1, True)
-                        await display_cards(self.name, self.guild)
-                    else:
-                        await draw(self.name, self.guild, 1)
-                        await display_cards(n, self.guild)
+                await play_card(best, self.name, self.guild)
+                await self.__execute_card(self.__get_value(best))
 
 
 # Events
@@ -5796,7 +5783,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 elif a[i] == 'StartingCards':
                                     continue
 
-                                elif a[i] == 'set':
+                                elif a[i].lower() == 'set':
                                     if a[i - 1] == 'StartingCards':
                                         try:
                                             if 3 <= int(a[i + 1]) <= 15:
@@ -5832,6 +5819,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         del games[str(ctx.guild.id)]
 
                                         return
+
+                                elif a[i].lower() == 'DUM':
+                                    games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = True
 
                                 else:
                                     await ctx.respond(embed=discord.Embed(
