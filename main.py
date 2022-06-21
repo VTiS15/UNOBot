@@ -1830,7 +1830,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                             games[str(guild.id)]['players'][b].losing_values.append('reverse')
                         games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
 
-                    for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and x != b]:
+                    for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x) and len(games[str(guild.id)]['players'][x]['cards']) <= 3]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
                             temp_c = search(r'pink|teal|orange|purple', temp[1])
                             if temp_c:
@@ -1842,7 +1842,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     games[str(guild.id)]['players'][b].losing_values.append('reverse')
                                 games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
-                    for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b]:
+                    for p in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != b and len(games[str(guild.id)]['players'][x].cards) <= 3]:
                         for temp in games[str(guild.id)]['players'][p].cards:
                             temp_c = search(r'pink|teal|orange|purple', temp[1])
                             if temp_c:
@@ -2463,13 +2463,15 @@ class Bot:
                 score = float(value)
 
         if (color in self.losing_colors or value in self.losing_values) and score > 0:
+            lst = list(d['players'].keys())
             bot_pos = None
             min_pos = 0
-            for i in range(len(d['players'].keys())):
-                if list(d['players'].keys())[i] == self.name:
+
+            for i in range(len(lst)):
+                if lst[i] == self.name:
                     bot_pos = i
                 else:
-                    item, min = list(d['players'].keys())[i], list(d['players'].keys())[min_pos]
+                    item, min = lst[i], lst[min_pos]
                     min_is_bot = not str.isdigit(min)
                     item_is_bot = not str.isdigit(item)
 
@@ -2485,11 +2487,10 @@ class Bot:
                             d['players'][min]['cards']):
                             min_pos = i
 
-            min = list(d['players'].keys())[min_pos]
-            if str.isdigit(min):
-                return score * (1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min]['cards']))/5))
+            if str.isdigit(lst[min_pos]):
+                return score * (1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][lst[min_pos]]['cards']))/5))
             else:
-                return score * (1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][min].cards))/5))
+                return score * (1 - e**(abs(bot_pos - min_pos)*(1 - len(d['players'][lst[min_pos]].cards))/5))
 
         return score
 
@@ -3066,6 +3067,9 @@ class Bot:
                             best = color_change + best
 
                 elif not d['dark']:
+                    if all(x in self.losing_colors for x in {'red', 'blue', 'green', 'yellow'}):
+                        self.losing_colors = []
+
                     if not all(t[0] == '+2' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != '+2']
                     if not all(t[0] == 'flip' for t in self.playables):
@@ -3105,6 +3109,9 @@ class Bot:
                             best = (color_change + best[0], best[1])
 
                 else:
+                    if all(x in self.losing_colors for x in {'pink', 'teal', 'orange', 'purple'}):
+                        self.losing_colors = []
+
                     if not all(t[1] == '+color' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != '+color']
                     if not all(t[1] == 'flip' for t in self.playables):
