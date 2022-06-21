@@ -3076,6 +3076,8 @@ class Bot:
                     await display_cards(n, self.guild)
 
             else:
+                self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
+
                 if not d['settings']['Flip']:
                     if not all(t == '+4' for t in self.playables):
                         self.playables = [x for x in self.playables if x != '+4']
