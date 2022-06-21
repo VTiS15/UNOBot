@@ -2562,10 +2562,10 @@ class Bot:
             bool: Whether x and y are similar
         """
 
-        return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(
-            y) or any(t in ('+4', 'wild') or t[0] in ('+2', 'wild') and not
-        self.games[str(self.guild.id)]['dark'] or t[1] in ('+color', 'wild') and self.games[str(self.guild.id)]['dark']
-                      for t in (x, y))
+        return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(y) or not \
+        self.games[str(self.guild.id)]['settings']['Flip'] and any(
+            t in ('+4', 'wild') or not games[str(self.guild.id)]['dark'] and t[0] in ('+2', 'wild') or
+            self.games[str(self.guild.id)]['dark'] and t[1] in ('+color', 'darkwild') for t in (x, y))
 
     def __build_tree(self, tree: Tree, root: str):
         """Builds a tree (i.e. neural network) according to the optimal strategy.
