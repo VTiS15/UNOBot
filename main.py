@@ -2501,7 +2501,7 @@ class Bot:
             else:
                 score = float(value)
 
-        if (color in self.losing_colors or value in self.losing_values) and value not in {'+color', 'wild', 'darkwild', '+2'} and score > 0:
+        if (color in self.losing_colors or value in self.losing_values) and value not in {'wild', 'darkwild'} and score > 0:
             lst = list(d['players'].keys())
             bot_pos = None
             min_pos = 0
