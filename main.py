@@ -3118,6 +3118,9 @@ class Bot:
                     if all(x in self.losing_colors for x in {'red', 'blue', 'green', 'yellow'}):
                         self.losing_colors = []
 
+                    print(f'losings_colors: {self.losing_colors}')
+                    print(f'losings_valuess: {self.losing_values}')
+
                     if not all(t[0] == '+2' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != '+2']
                     if not all(t[0] == 'flip' for t in self.playables):
@@ -3159,6 +3162,9 @@ class Bot:
                 else:
                     if all(x in self.losing_colors for x in {'pink', 'teal', 'orange', 'purple'}):
                         self.losing_colors = []
+
+                    print(f'losings_colors: {self.losing_colors}')
+                    print(f'losings_valuess: {self.losing_values}')
 
                     if not all(t[1] == '+color' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != '+color']
