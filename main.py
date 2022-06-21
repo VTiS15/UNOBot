@@ -1797,7 +1797,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         games[str(guild.id)]['cards'].append(games[str(guild.id)]['current'])
 
-        for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
+        for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
             if not games[str(guild.id)]['dark']:
                 color = search(r'red|blue|green|yellow', card[0])
                 value = search(r'\+[12]|skip|reverse|\d', card[0])
