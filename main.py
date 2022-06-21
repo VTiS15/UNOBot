@@ -1804,6 +1804,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             else:
                 color = search(r'pink|teal|orange|purple', card[1]).group(0)
                 value = search(r'\+(5|color)|skip|reverse|\d', card[1])
+            if color:
+                color.color.group(0)
             if value:
                 value = value.group(0)
 
@@ -1823,9 +1825,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['players'][b].losing_colors, games[str(guild.id)]['players'][b].losing_values = [], []
 
                 if not games[str(guild.id)]['dark']:
-                    games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', card[1]).group(0))
+                    color = search(r'pink|teal|orange|purple', card[1])
+                    if color:
+                        games[str(guild.id)]['players'][b].losing_colors.append(color.group(0))
                     value = search(r'\+(5|color)|skip|reverse|\d', card[1])
-
                     if value:
                         if value.group(0) == '+color' and len(games[str(guild.id)]['players'].keys()) > 2:
                             games[str(guild.id)]['players'][b].losing_values.append('skip')
@@ -1870,9 +1873,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     games[str(guild.id)]['players'][b].losing_values.append('+5')
 
                 else:
-                    games[str(guild.id)]['players'][b].losing_colors.append(search(r'red|blue|green|yellow', card[0]).group(0))
+                    color = search(r'red|blue|green|yellow', card[0])
+                    if color:
+                        games[str(guild.id)]['players'][b].losing_colors.append(color.group(0))
                     value = search(r'\+[12]|skip|reverse|\d', card[0])
-
                     if value:
                         if value.group(0) == '+2' and len(games[str(guild.id)]['players'].keys()) > 2:
                             games[str(guild.id)]['players'][b].losing_values.append('skip')
