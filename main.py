@@ -3060,8 +3060,7 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
-            if self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
-                self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
+            self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
 
             n = None
             p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
@@ -3083,8 +3082,14 @@ class Bot:
                     await draw(self.name, self.guild, 1, True)
                     await display_cards(self.name, self.guild)
                 else:
-                    await draw(self.name, self.guild, 1)
-                    await display_cards(n, self.guild)
+                    self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
+                    if self.playables:
+                        random_card = choice(self.playables)
+                        await play_card(random_card)
+                        await self.__execute_card(random_card)
+                    else:
+                        await draw(self.name, self.guild, 1)
+                        await display_cards(n, self.guild)
 
             else:
                 if not d['settings']['Flip']:
