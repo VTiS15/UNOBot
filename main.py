@@ -1722,7 +1722,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     if isinstance(player, str):
         bot = games[str(guild.id)]['players'][player]
 
-    # Removes the played card from player's hand and puts it back to the deck
+    # Removes the played card from player's hand and puts it back to the deck (plus something else)
     if not games[str(guild.id)]['settings']['Flip']:
         if not bot:
             if '+4' in card:
