@@ -901,9 +901,12 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             else:
                 message = discord.Embed(title=f'{winner} Won! 🎉 🥳', color=discord.Color.red())
 
-            await asyncio.gather(
-                *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
-                  x.category.name == 'UNO-GAME'])
+            try:
+                await asyncio.gather(
+                    *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
+                      x.category.name == 'UNO-GAME'])
+            except ClientOSError:
+                pass
 
         # Increment winner's Win count and every player's Played count
         if isinstance(winner, Member):
