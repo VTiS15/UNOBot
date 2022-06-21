@@ -3121,8 +3121,6 @@ class Bot:
                         self.playables = [x for x in self.playables if x[0] != '+2']
                     if not all(t[0] == 'flip' for t in self.playables):
                         self.playables = [x for x in self.playables if x[0] != 'flip']
-                    if not all(t[0] == 'wild' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[0] != 'wild']
 
                     if len(self.cards) == 1:
                         if self.playables[0][0] in {'wild', '+2'}:
@@ -3163,8 +3161,6 @@ class Bot:
                         self.playables = [x for x in self.playables if x[1] != '+color']
                     if not all(t[1] == 'flip' for t in self.playables):
                         self.playables = [x for x in self.playables if x[1] != 'flip']
-                    if not all(t[1] == 'darkwild' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[1] != 'darkwild']
 
                     if len(self.cards) == 1:
                         if self.playables[0][1] == '+color':
