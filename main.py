@@ -1812,8 +1812,11 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             if value in games[str(guild.id)]['players'][b].losing_values:
                 games[str(guild.id)]['players'][b].losing_values.remove(value)
             if value in {'+2', '+color'} and len(games[str(guild.id)]['players'].keys()) > 2:
-                games[str(guild.id)]['players'][b].losing_values.remove('skip')
-                games[str(guild.id)]['players'][b].losing_values.remove('reverse')
+                try:
+                    games[str(guild.id)]['players'][b].losing_values.remove('skip')
+                    games[str(guild.id)]['players'][b].losing_values.remove('reverse')
+                except ValueError:
+                    pass
 
         if not games[str(guild.id)]['dark'] and 'flip' in card[0] or games[str(guild.id)]['dark'] and 'flip' in card[1]:
             for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
