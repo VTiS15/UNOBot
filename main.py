@@ -1805,7 +1805,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 color = search(r'pink|teal|orange|purple', card[1]).group(0)
                 value = search(r'\+(5|color)|skip|reverse|\d', card[1])
             if color:
-                color.color.group(0)
+                color = color.group(0)
             if value:
                 value = value.group(0)
 
