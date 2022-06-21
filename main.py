@@ -1815,6 +1815,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['players'][b].losing_values.remove(value)
             if value in {'+2', '+color'} and len(games[str(guild.id)]['players'].keys()) > 2:
                 try:
+                    games[str(guild.id)]['players'][b].losing_values.remove('+2')
                     games[str(guild.id)]['players'][b].losing_values.remove('skip')
                     games[str(guild.id)]['players'][b].losing_values.remove('reverse')
                 except ValueError:
@@ -3208,8 +3209,7 @@ class Bot:
                             else:
                                 best = (best[0], color_change + best[1])
 
-                if self.__get_score(self.__get_value(best), self.__get_color(best)) > 0 or (
-                        self.__get_value(best) == 'flip' and len(self.cards) == 1) or len(self.cards) == 1:
+                if self.__get_score(self.__get_value(best), self.__get_color(best)) > 0 or len(self.cards) == 1:
                     await play_card(best, self.name, self.guild)
                     await self.__execute_card(self.__get_value(best))
                 else:
