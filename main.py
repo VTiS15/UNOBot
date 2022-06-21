@@ -1811,10 +1811,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['players'][b].losing_colors.remove(color)
             if value in games[str(guild.id)]['players'][b].losing_values:
                 games[str(guild.id)]['players'][b].losing_values.remove(value)
-
-                if value in {'+2', '+color'} and len(games[str(guild.id)]['players'].keys()) > 2:
-                    games[str(guild.id)]['players'][b].losing_values.remove('skip')
-                    games[str(guild.id)]['players'][b].losing_values.remove('reverse')
+            if value in {'+2', '+color'} and len(games[str(guild.id)]['players'].keys()) > 2:
+                games[str(guild.id)]['players'][b].losing_values.remove('skip')
+                games[str(guild.id)]['players'][b].losing_values.remove('reverse')
 
         if not games[str(guild.id)]['dark'] and 'flip' in card[0] or games[str(guild.id)]['dark'] and 'flip' in card[1]:
             for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
@@ -1828,7 +1827,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                         if value.group(0) == '+color' and len(games[str(guild.id)]['players'].keys()) > 2:
                             games[str(guild.id)]['players'][b].losing_values.append('skip')
                             games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                        games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
+                        else:
+                            games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
 
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x)]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
@@ -1841,7 +1841,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     if v.group(0) == '+color' and len(games[str(guild.id)]['players'].keys()) > 2:
                                         games[str(guild.id)]['players'][b].losing_values.append('skip')
                                         games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                                    games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
+                                    else:
+                                        games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
                                 for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+5' in card[1])):
@@ -1858,7 +1859,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     if v.group(0) == '+color' and len(games[str(guild.id)]['players'].keys()) > 2:
                                         games[str(guild.id)]['players'][b].losing_values.append('skip')
                                         games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                                    games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
+                                    else:
+                                        games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
                                 for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+5' in card[1])):
@@ -1872,7 +1874,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                         if value.group(0) == '+2' and len(games[str(guild.id)]['players'].keys()) > 2:
                             games[str(guild.id)]['players'][b].losing_values.append('skip')
                             games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                        games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
+                        else:
+                            games[str(guild.id)]['players'][b].losing_values.append(value.group(0))
 
                     for p in [x for x in games[str(guild.id)]['players'] if str.isdigit(x)]:
                         for temp in games[str(guild.id)]['players'][p]['cards']:
@@ -1885,7 +1888,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     if v.group(0) == '+2' and len(games[str(guild.id)]['players'].keys()) > 2:
                                         games[str(guild.id)]['players'][b].losing_values.append('skip')
                                         games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                                    games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
+                                    else:
+                                        games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
                                 for i in range(sum(1 for x in games[str(guild.id)]['players'][p]['cards'] if '+1' in card[0])):
@@ -1904,7 +1908,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     if v.group(0) == '+2':
                                         games[str(guild.id)]['players'][b].losing_values.append('skip')
                                         games[str(guild.id)]['players'][b].losing_values.append('reverse')
-                                    games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
+                                    else:
+                                        games[str(guild.id)]['players'][b].losing_values.append(v.group(0))
 
                             else:
                                 for i in range(sum(1 for x in games[str(guild.id)]['players'][p].cards if '+1' in card[0])):
