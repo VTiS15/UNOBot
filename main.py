@@ -5825,7 +5825,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         return
 
-                                elif a[i].lower() == 'DUM':
+                                elif a[i].lower() == 'dum':
                                     games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = True
 
                                 else:
