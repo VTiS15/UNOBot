@@ -1799,10 +1799,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)]:
             if not games[str(guild.id)]['dark']:
-                color = search(r'red|blue|green|yellow', card[0]).group(0)
+                color = search(r'red|blue|green|yellow', card[0])
                 value = search(r'\+[12]|skip|reverse|\d', card[0])
             else:
-                color = search(r'pink|teal|orange|purple', card[1]).group(0)
+                color = search(r'pink|teal|orange|purple', card[1])
                 value = search(r'\+(5|color)|skip|reverse|\d', card[1])
             if color:
                 color = color.group(0)
