@@ -2590,7 +2590,7 @@ class Bot:
                         if score > 0 or value == '0':
                             tree.create_node(identifier=card + str(count), tag=str(count), data=score, parent=root)
                         else:
-                            break
+                            return
                     except DuplicatedNodeIdError:
                         count += 1
                         continue
@@ -2610,6 +2610,9 @@ class Bot:
                          not any(x[0] + '|' + x[1] in c for c in tree.rsearch(root)) and self.__is_similar(x, rcard)]:
                 color, value = self.__get_color_and_value(card)
                 count = 0
+
+                if self.__get_score(value, color) <= 0:
+                    return
 
                 while True:
                     try:
@@ -2639,10 +2642,16 @@ class Bot:
                 color, value = self.__get_color_and_value(card)
                 count = 0
 
+                if self.__get_score(value, color) <= 0:
+                    return
+
                 while True:
                     try:
                         tree.create_node(identifier=card[0] + '|' + card[1] + str(count), tag=str(count),
                                          data=self.__get_score(value, color), parent=root)
+
+                        if value == 'flip':
+                            return
                     except DuplicatedNodeIdError:
                         count += 1
                         continue
