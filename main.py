@@ -3057,12 +3057,15 @@ class Bot:
                         self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+2')
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+2')
+                self.playables = [x for x in self.playables if
+                                  self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
             else:
                 if str(self.guild.id) not in stack:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
-            self.playables = [x for x in self.playables if self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
+                self.playables = [x for x in self.playables if
+                                  self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
 
             n = None
             p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
