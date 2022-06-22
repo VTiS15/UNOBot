@@ -103,7 +103,7 @@ The scoring for the cards is as follows:
 Remove the extra games by deleting the text channels. If UNOBot gets stuck afterwards, end the remaining game by entering `/u-eg`.\
 You should always make sure there is only **one** UNO category and maximum **one** ongoing game in a server at all times.
 
-### UNOBot said it was my turn but not when I actually try to play.
+### UNOBot said it was my turn but not when I actually tried to play.
 Simply ignore the stupid bot and try again.
 
 ### I only want people to use UNOBot's commands in a specific text channel.
