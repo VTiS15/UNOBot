@@ -2587,7 +2587,7 @@ class Bot:
 
                 while True:
                     try:
-                        if score > 0:
+                        if score > 0 and value != '0':
                             tree.create_node(identifier=card + str(count), tag=str(count), data=score, parent=root)
                     except DuplicatedNodeIdError:
                         count += 1
@@ -3057,15 +3057,13 @@ class Bot:
                         self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+2')
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+2')
-                self.playables = [x for x in self.playables if
-                                  self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
             else:
                 if str(self.guild.id) not in stack:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
-                self.playables = [x for x in self.playables if
-                                  self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
+            self.playables = [x for x in self.playables if
+                              self.__get_score(self.__get_value(x), self.__get_color(x)) > 0]
 
             n = None
             p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
@@ -3109,7 +3107,7 @@ class Bot:
                         else:
                             best = self.playables[0]
                     else:
-                        color_change = 'blue'
+                        color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
                         optimals = []
                         self.reccount = 0
 
