@@ -113,7 +113,7 @@ Deny UNOBot the permission to read other channels. NEVER restrict UNOBot's comma
 * Forcefully end the ongoing game (if there is one) using `/u-eg`; or
 * Manually delete the UNO channels (and perhaps category)
 
-before starting a new game.
+before starting a new game.\
 If that does not work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
 
 # Inspiration✨
