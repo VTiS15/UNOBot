@@ -99,16 +99,21 @@ The scoring for the cards is as follows:
 | Wild Draw Color | 60 pts |
 
 # Troubleshooting🛠️
-Make sure there is only **one** UNO category and maximum **one** ongoing game in a server at all times!
+### There are more than one UNO games happening in my server.
+Remove the extra games by deleting the channels. If UNOBot gets stuck afterwards, end the remaining game by entering `/u-eg`.
+You should always make sure there is only **one** UNO category and maximum **one** ongoing game in a server at all times.
 
-If UNOBot says it is your turn but otherwise when you actually try to play, simply ignore the stupid bot and try again.
+### UNOBot said it was my turn but not when I actually try to play.
+Simply ignore the stupid bot and try again.
 
-If UNOBot somehow gets stuck and is unresponsive in your server, try the following:
+### I only want people to use UNOBot's commands in a specific text channel.
+Deny UNOBot the permission to read other channels. NEVER restrict UNOBot's command usage in your Discord server's Integrations settings page, otherwise people cannot use UNOBot's commands in their UNO channels (because a player's UNO channel only exists during a game).
+
+### UNOBot is stuck and unresponsive!!! What do I do???
 * Forcefully end the ongoing game using `/u-eg`; or
 * Manually delete the UNO channels (and perhaps category)
 
 before starting a new game.
-
 If that does not work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
 
 # Inspiration✨
