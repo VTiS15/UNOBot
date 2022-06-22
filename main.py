@@ -2589,6 +2589,8 @@ class Bot:
                     try:
                         if score > 0 or value == '0':
                             tree.create_node(identifier=card + str(count), tag=str(count), data=score, parent=root)
+                        else:
+                            break
                     except DuplicatedNodeIdError:
                         count += 1
                         continue
