@@ -2603,7 +2603,7 @@ class Bot:
         elif not d['dark']:
             rcard = tuple(root.split('|'))
 
-            if self.__get_value(rcard) == 'flip':
+            if self.__get_value(rcard) == 'flip' or self.__get_score(self.__get_value(rcard), self.__get_color(rcard)) <= 0:
                 return
 
             for card in [x for x in self.cards if
@@ -2611,16 +2611,10 @@ class Bot:
                 color, value = self.__get_color_and_value(card)
                 count = 0
 
-                if self.__get_score(value, color) <= 0:
-                    return
-
                 while True:
                     try:
                         tree.create_node(identifier=card[0] + '|' + card[1] + str(count), tag=str(count),
                                          data=self.__get_score(value, color), parent=root)
-
-                        if value == 'flip':
-                            return
                     except DuplicatedNodeIdError:
                         count += 1
                         continue
@@ -2633,7 +2627,7 @@ class Bot:
         else:
             rcard = tuple(root.split('|'))
 
-            if self.__get_value(rcard) == 'flip':
+            if self.__get_value(rcard) == 'flip' or self.__get_score(self.__get_value(rcard), self.__get_color(rcard)) <= 0:
                 return
 
             for card in [x for x in self.cards if not any(
@@ -2642,15 +2636,12 @@ class Bot:
                 color, value = self.__get_color_and_value(card)
                 count = 0
 
-                if self.__get_score(value, color) <= 0:
-                    return
-
                 while True:
                     try:
                         tree.create_node(identifier=card[0] + '|' + card[1] + str(count), tag=str(count),
                                          data=self.__get_score(value, color), parent=root)
 
-                        if value == 'flip':
+                        if self.__get_score(value, color) <= 0:
                             return
                     except DuplicatedNodeIdError:
                         count += 1
