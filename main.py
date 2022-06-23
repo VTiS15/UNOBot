@@ -2566,10 +2566,10 @@ class Bot:
             return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(y) or any(
                 t in ('+4', 'wild') for t in (x, y))
         elif not self.games[str(self.guild.id)]['dark']:
-            return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) or any(
+            return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(y) or any(
                 t[0] in ('+2', 'wild') for t in (x, y))
         else:
-            return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) or any(
+            return self.__get_color(x) == self.__get_color(y) or self.__get_value(x) == self.__get_value(y) or any(
                 t[1] in ('+color', 'darkwild') for t in (x, y))
 
     def __build_tree(self, tree: Tree, root: str):
