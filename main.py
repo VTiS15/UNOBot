@@ -962,6 +962,17 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             else:
                 message = discord.Embed(title=f'{winner} Won! 🎉 🥳', color=discord.Color.red())
 
+            if m:
+                field = None
+                m_dict = m.embeds[0].to_dict()
+                for f in m_dict['fields']:
+                    if f['name'] == 'Players:':
+                        f['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
+                                                                f':crown: **{winner.name}**')
+                        break
+
+                await m.edit(embed=discord.Embed.from_dict(m_dict))
+
             try:
                 await asyncio.gather(
                     *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
