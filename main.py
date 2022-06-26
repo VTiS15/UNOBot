@@ -785,7 +785,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         if not [x for x in player_ids if not str.isdigit(x)]:
             # Initialize the score the winner gets to 0
             score = 0
-            # Calculate winner's score and losers' penalties (if they are not UNOBot)
+            # Calculate winner's score and losers' penalties
             tasks = []
 
             def get_score(player_id: str) -> int:
@@ -833,7 +833,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 return score
 
-            # Calculate the winner's score
+            # Deduct scores from losers
             for key in [x for x in player_ids if x != str(winner.id)]:
                 temp = get_score(key)
 
@@ -843,6 +843,21 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                     users[key][str(guild.id)]['Score'] -= temp
 
                 score += temp
+
+            m, field = None, None
+            for channel in guild.text_channels:
+                try:
+                    m = await channel.fetch_message(games[str(guild.id)]['message'])
+                except (discord.NotFound, discord.Forbidden):
+                    continue
+                else:
+                    break
+            if m:
+                m_dict = m.embeds[0].to_dict()
+                for f in m_dict['fields']:
+                    if f['name'] == 'Players:':
+                        field = f
+                        break
 
             # Craft a message that displays who won , the winner's score, and how many pts every loser lost
             for key in [x for x in player_ids if x != str(winner.id) and 'left' not in d['players'][x]]:
@@ -875,6 +890,17 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                                                      '-')) + '-uno-channel').send(
                     embed=message)))
 
+                if field:
+                    name = guild.get_member(int(key)).name
+                    if temp == 1:
+                        field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
+                                                                f':small_blue_diamond{name} -1 pt')
+                    else:
+                        field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
+                                                                f':small_blue_diamond{name} -{temp} pts')
+
+            tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
+
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
             else:
@@ -888,6 +914,24 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 embed=message)))
             tasks.append(asyncio.create_task(
                 discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
+
+            # Edit the game invitation message in order to show who the winner is
+            if isinstance(winner, str):
+                if score == 1:
+                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
+                                                            f':crown: **{winner}** +1 pt')
+                else:
+                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
+                                                            f':crown: **{winner}** +{score} pts')
+            else:
+                if score == 1:
+                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
+                                                            f':crown: **{winner.name}** +1 pt')
+                else:
+                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
+                                                            f':crown: **{winner.name}** +{score}pts')
+
+            tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
             await asyncio.gather(*tasks)
 
@@ -2049,6 +2093,39 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     except discord.NotFound:
         pass
 
+    m = None
+    for channel in guild.text_channels:
+        try:
+            m = await channel.fetch_message(games[str(guild.id)]['message'])
+        except (discord.NotFound, discord.Forbidden):
+            continue
+        else:
+            break
+    if m:
+        m_dict = m.embeds[0].to_dict()
+        for f in m_dict['fields']:
+            if f['name'] == 'Players:':
+                if isinstance(player, str):
+                    l = len(max(games[str(guild.id)]['players'], key=len)) - len(player) + 1
+                    if len(games[str(guild.id)]["players"][player].cards) == 1:
+                        f['value'] = f['value'].replace(
+                            f'{player}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                            f'{player}' + '-' * l + ' 1 card')
+                    else:
+                        f['value'] = f['value'].replace(
+                            f'{player}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                            f'{player}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                else:
+                    l = len(max(games[str(guild.id)]['players'], key=len)) - len(player.name) + 1
+                    if len(games[str(guild.id)]["players"][player]['cards']) == 1:
+                        f['value'] = f['value'].replace(
+                            f'{player.name}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player]["cards"]) + 1)}',
+                            f'{player.name}' + '-' * l + ' 1 card')
+                    else:
+                        f['value'] = f['value'].replace(
+                            f'{player.name}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player]["cards"]) + 1)}',
+                            f'{player.name}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player]["cards"]))}')
+
     # Get the next player
     n = None
     p = [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(guild.id)]['players'][x]]
@@ -2109,27 +2186,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         elif 'flip' in card[0] and not games[str(guild.id)]['dark'] or 'flip' in card[1] and games[str(guild.id)][
             'dark']:
             games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
-
-        # Edit the game invitation message in order to show who the winner is
-        for channel in guild.text_channels:
-            try:
-                m = await channel.fetch_message(games[str(guild.id)]['message'])
-            except (discord.NotFound, discord.Forbidden):
-                continue
-            else:
-                break
-        m_dict = m.embeds[0].to_dict()
-        for field in m_dict['fields']:
-            if field['name'] == 'Players:':
-                if bot:
-                    field['value'] = field['value'].replace(f':small_blue_diamond:{bot.name}',
-                                                            f':crown: **{bot.name}**')
-                else:
-                    field['value'] = field['value'].replace(f':small_blue_diamond:{player.name}',
-                                                            f':crown: **{player.name}**')
-                break
-
-        await m.edit(embed=discord.Embed.from_dict(m_dict))
 
         # Shut down the game where the player wins
         await game_shutdown(games[str(guild.id)], guild, player)
@@ -5924,11 +5980,24 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(interaction.guild.id)]['seconds'] = -2
 
                                     p = ""
+                                    l = len(max(games[str(ctx.guild.id)]['players'], key=len))
                                     for key in games[str(ctx.guild.id)]['players']:
                                         if str.isdigit(key):
-                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                            if len(key) == l:
+                                                p += (':small_blue_diamond:' + (client.get_user(
+                                                    int(key))).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                            else:
+                                                p += (':small_blue_diamond:' + (client.get_user(
+                                                    int(key))).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
+                                                    l + 2), '-')
                                         else:
-                                            p += (':small_blue_diamond:' + key + "\n")
+                                            if len(key) == l:
+                                                p += (
+                                                            ':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                            else:
+                                                p += (
+                                                ':small_blue_diamond:' + key + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
+                                                    l + 2), '-')
 
                                     interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
                                                                                inline=False)
@@ -6063,11 +6132,22 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                                     p = ""
+                                    l = len(max(games[str(ctx.guild.id)]['players'], key=len))
                                     for key in games[str(ctx.guild.id)]['players']:
                                         if str.isdigit(key):
-                                            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                            if len(key) == l:
+                                                p += (':small_blue_diamond:' + (client.get_user(
+                                                    int(key))).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                            else:
+                                                p += (':small_blue_diamond:' + (client.get_user(
+                                                    int(key))).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
+                                                    l + 2), '-')
                                         else:
-                                            p += (':small_blue_diamond:' + key + "\n")
+                                            if len(key) == l:
+                                                p += (':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                            else:
+                                                p += (':small_blue_diamond:' + key + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
+                                                    l + 2), '-')
 
                                     for field in message_dict['fields']:
                                         if field['name'] == 'Players:':
