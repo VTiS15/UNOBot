@@ -945,8 +945,10 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                                                  ' ',
                                                                                                  '-')) + '-uno-channel').send(
                 embed=message)))
-            tasks.append(asyncio.create_task(
-                discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
+
+            if d['settings']['SpectateGame']:
+                tasks.append(asyncio.create_task(
+                    discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
 
             await asyncio.gather(*tasks)
 
