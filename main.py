@@ -923,14 +923,14 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                 f':crown: **{winner}** +1 pt')
                     else:
                         field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
-                                                                f':crown: **{winner}** +{score} pts')
+                                                                f':crown: **{winner} +{score} pts**')
                 else:
                     if score == 1:
                         field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
                                                                 f':crown: **{winner.name}** +1 pt')
                     else:
                         field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                                f':crown: **{winner.name}** +{score}pts')
+                                                                f':crown: **{winner.name} +{score}pts**')
 
                 tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
