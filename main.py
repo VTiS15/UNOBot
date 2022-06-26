@@ -1321,11 +1321,11 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         m_dict = m.embeds[0].to_dict()
         for f in m_dict['fields']:
             if f['name'] == 'Players:':
-                l = max({len(max(
+                l = max(len(max(
                     [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
                     key=len)), len(max(
                     [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
-                     str.isdigit(x)], key=len))})
+                     str.isdigit(x)], key=len)))
                 if isinstance(player, str):
                     f['value'] = f['value'].replace(
                         f'{player}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
@@ -2150,11 +2150,11 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         m_dict = m.embeds[0].to_dict()
         for f in m_dict['fields']:
             if f['name'] == 'Players:':
-                l = max({len(max(
+                l = max(len(max(
                     [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
                     key=len)), len(max(
                     [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
-                     str.isdigit(x)], key=len))})
+                     str.isdigit(x)], key=len)))
                 if isinstance(player, str):
                     if len(games[str(guild.id)]["players"][player].cards) == 1:
                         f['value'] = f['value'].replace(
@@ -6032,11 +6032,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(interaction.guild.id)]['seconds'] = -2
 
                                     p = ""
-                                    l = max({len(max(
+                                    l = max(len(max(
                                         [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
                                         key=len)), len(max(
                                         [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players'] if
-                                         str.isdigit(x)], key=len))})
+                                         str.isdigit(x)], key=len)))
                                     for key in games[str(ctx.guild.id)]['players']:
                                         if str.isdigit(key):
                                             if len(key) == l:
@@ -6188,11 +6188,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                                     p = ""
-                                    l = max({len(max(
+                                    l = max(len(max(
                                         [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
                                         key=len)), len(max(
                                         [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players'] if
-                                         str.isdigit(x)], key=len))})
+                                         str.isdigit(x)], key=len)))
                                     for key in games[str(ctx.guild.id)]['players']:
                                         if str.isdigit(key):
                                             if len(key) == l:
