@@ -6045,7 +6045,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             else:
                                                 p += (':small_blue_diamond:' + client.get_user(
                                                     int(key)).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
-                                                    l + 2), '-')
+                                                    l + 2, '-'))
                                         else:
                                             if len(key) == l:
                                                 p += (
@@ -6053,7 +6053,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             else:
                                                 p += (
                                                 ':small_blue_diamond:' + key + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
-                                                    l + 2), '-')
+                                                    l + 2, '-'))
 
                                     interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
                                                                                inline=False)
@@ -6201,13 +6201,13 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             else:
                                                 p += (':small_blue_diamond:' + client.get_user(
                                                     int(key)).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
-                                                    l + 2), '-')
+                                                    l + 2, '-'))
                                         else:
                                             if len(key) == l:
                                                 p += (':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
                                             else:
                                                 p += (':small_blue_diamond:' + key + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
-                                                    l + 2), '-')
+                                                    l + 2, '-'))
 
                                     for field in message_dict['fields']:
                                         if field['name'] == 'Players:':
