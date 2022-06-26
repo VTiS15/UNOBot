@@ -932,7 +932,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                         field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
                                                                 f':crown: **{winner.name} +{score}pts**')
 
-                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
+                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict), view=None))
 
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
@@ -971,7 +971,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                 f':crown: **{winner.name}**')
                         break
 
-                await m.edit(embed=discord.Embed.from_dict(m_dict))
+                await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
             try:
                 await asyncio.gather(
@@ -6083,6 +6083,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             await message.edit(embed=message.embeds[0])
                         join.callback = join_callback
 
+                        spectate = Button(label='Spectate', style=discord.ButtonStyle.blurple, emoji='👀')
+                        async def spectate_callback(interaction):
+                            role = discord.utils.get(ctx.guild.roles, name='UNO Spectator')
+                            if role in interaction.user.roles:
+                                await interaction.user.remove_roles(role)
+                            else:
+                                await interaction.user.add_roles(role)
+                        spectate.callback = spectate_callback
+
                         start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
                         async def start_callback(interaction):
                             await interaction.response.defer()
@@ -6133,8 +6142,10 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                                     try:
+                                        v = View()
+                                        v.add_item(spectate)
                                         await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
-                                                                       view=None)
+                                                                       view=v)
 
                                         await game_setup(await client.get_context(interaction.message),
                                                          games[str(interaction.guild.id)])
@@ -6244,7 +6255,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             m = (await ctx.fetch_message(e.id)).embeds[0]
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
-                                await e.edit(view=None)
+                                v = View()
+                                v.add_item(spectate)
+                                await e.edit(view=v)
 
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
