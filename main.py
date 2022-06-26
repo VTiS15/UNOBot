@@ -962,22 +962,26 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             else:
                 message = discord.Embed(title=f'{winner} Won! 🎉 🥳', color=discord.Color.red())
 
-            if m:
-                m_dict = m.embeds[0].to_dict()
-                for f in m_dict['fields']:
-                    if f['name'] == 'Players:':
-                        f['value'] = f['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                                f':crown: **{winner.name}**')
-                        break
-
-                await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
-
             try:
                 await asyncio.gather(
                     *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
                       x.category.name == 'UNO-GAME'])
             except ClientOSError:
                 pass
+
+            if m:
+                m_dict = m.embeds[0].to_dict()
+                for f in m_dict['fields']:
+                    if f['name'] == 'Players:':
+                        if isinstance(winner, Member):
+                            f['value'] = f['value'].replace(f':small_blue_diamond:{winner.name}',
+                                                                    f':crown: **{winner.name}**')
+                        else:
+                            f['value'] = f['value'].replace(f':small_blue_diamond:{winner}',
+                                                            f':crown: **{winner}**')
+                        break
+
+                await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
         # Increment winner's Win count and every player's Played count
         if isinstance(winner, Member):
