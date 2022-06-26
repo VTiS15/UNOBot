@@ -775,6 +775,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     player_ids = list(d['players'].keys())
 
+    # Prepare the player list
     p = ""
     for key in games[str(guild.id)]['players']:
         if str.isdigit(key):
@@ -874,7 +875,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                         field = f
                         break
 
-                # Craft a message that displays who won , the winner's score, and how many pts every loser lost
+                # Craft a message that displays who won, the winner's score, and how many pts every loser lost
+                # Also show losers' scores in the game invitation message
                 for key in [x for x in player_ids if x != str(winner.id) and 'left' not in d['players'][x]]:
                     temp = get_score(key)
 
@@ -914,6 +916,22 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                             field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
                                                                     f':small_blue_diamond:{name} -{temp} pts')
 
+                # Show who the winner is and their score in the game invitation message
+                if isinstance(winner, str):
+                    if score == 1:
+                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
+                                                                f':crown: **{winner}** +1 pt')
+                    else:
+                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
+                                                                f':crown: **{winner}** +{score} pts')
+                else:
+                    if score == 1:
+                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
+                                                                f':crown: **{winner.name}** +1 pt')
+                    else:
+                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
+                                                                f':crown: **{winner.name}** +{score}pts')
+
                 tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
             if score == 1:
@@ -929,24 +947,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 embed=message)))
             tasks.append(asyncio.create_task(
                 discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
-
-            # Edit the game invitation message in order to show who the winner is
-            if isinstance(winner, str):
-                if score == 1:
-                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
-                                                            f':crown: **{winner}** +1 pt')
-                else:
-                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
-                                                            f':crown: **{winner}** +{score} pts')
-            else:
-                if score == 1:
-                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                            f':crown: **{winner.name}** +1 pt')
-                else:
-                    field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                            f':crown: **{winner.name}** +{score}pts')
-
-            tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
             await asyncio.gather(*tasks)
 
