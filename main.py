@@ -1327,13 +1327,23 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
                      str.isdigit(x)], key=len, default=[])))
                 if isinstance(player, str):
-                    f['value'] = f['value'].replace(
-                        f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
-                        f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                    if len(player) == l:
+                        f['value'] = f['value'].replace(
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
+                    else:
+                        f['value'] = f['value'].replace(
+                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
                 else:
-                    f['value'] = f['value'].replace(
-                        f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
-                        f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                    if len(player.name) == l:
+                        f['value'] = f['value'].replace(
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                    else:
+                        f['value'] = f['value'].replace(
+                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
                 break
 
@@ -2157,22 +2167,42 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                      str.isdigit(x)], key=len, default=[])))
                 if isinstance(player, str):
                     if len(games[str(guild.id)]["players"][player].cards) == 1:
-                        f['value'] = f['value'].replace(
-                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
-                            f'{player} '.ljust(l + 3, '-') + ' 1 card')
+                        if len(player) == l:
+                            f['value'] = f['value'].replace(
+                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                f'{player} - 1 card')
+                        else:
+                            f['value'] = f['value'].replace(
+                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                f'{player} '.ljust(l + 3, '-') + ' 1 card')
                     else:
-                        f['value'] = f['value'].replace(
-                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
-                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                        if len(player) == l:
+                            f['value'] = f['value'].replace(
+                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
+                        else:
+                            f['value'] = f['value'].replace(
+                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
                 else:
                     if len(games[str(guild.id)]["players"][str(player.id)]['cards']) == 1:
-                        f['value'] = f['value'].replace(
-                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
-                            f'{player.name} '.ljust(l + 3, '-') + ' 1 card')
+                        if len(player.name) == l:
+                            f['value'] = f['value'].replace(
+                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                f'{player.name} - 1 card')
+                        else:
+                            f['value'] = f['value'].replace(
+                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                f'{player.name} '.ljust(l + 3, '-') + ' 1 card')
                     else:
-                        f['value'] = f['value'].replace(
-                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
-                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                        if len(player.name) == l:
+                            f['value'] = f['value'].replace(
+                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                        else:
+                            f['value'] = f['value'].replace(
+                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
                 break
 
