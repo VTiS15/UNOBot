@@ -1294,6 +1294,36 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                                         color=discord.Color.red()))) for x in guild.text_channels if
                     x.category.name == 'UNO-GAME'])
 
+    m = None
+    for channel in guild.text_channels:
+        try:
+            m = await channel.fetch_message(games[str(guild.id)]['message'])
+        except (discord.NotFound, discord.Forbidden):
+            continue
+        else:
+            break
+    if m:
+        m_dict = m.embeds[0].to_dict()
+        for f in m_dict['fields']:
+            if f['name'] == 'Players:':
+                l = max({len(max(
+                    [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
+                    key=len)), len(max(
+                    [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
+                     str.isdigit(x)], key=len))})
+                if isinstance(player, str):
+                    f['value'] = f['value'].replace(
+                        f'{player}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                        f'{player}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                else:
+                    f['value'] = f['value'].replace(
+                        f'{player.name}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                        f'{player.name}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+
+                break
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict))
+
 
 async def display_cards(player: Union[Member, str], guild: Guild):
     """Displays the current player's hand to every player except UNOBot.
@@ -2130,6 +2160,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                             f'{player.name}' + '-' * l + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
                 break
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict))
 
     # Get the next player
     n = None
