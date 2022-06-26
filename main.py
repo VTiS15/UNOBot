@@ -6040,11 +6040,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     for key in games[str(ctx.guild.id)]['players']:
                                         if str.isdigit(key):
                                             if len(key) == l:
-                                                p += (':small_blue_diamond:' + (client.get_user(
-                                                    int(key))).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                p += (':small_blue_diamond:' + client.get_user(
+                                                    int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
                                             else:
-                                                p += (':small_blue_diamond:' + (client.get_user(
-                                                    int(key))).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
+                                                p += (':small_blue_diamond:' + client.get_user(
+                                                    int(key)).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
                                                     l + 2), '-')
                                         else:
                                             if len(key) == l:
@@ -6196,11 +6196,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     for key in games[str(ctx.guild.id)]['players']:
                                         if str.isdigit(key):
                                             if len(key) == l:
-                                                p += (':small_blue_diamond:' + (client.get_user(
-                                                    int(key))).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                p += (':small_blue_diamond:' + client.get_user(
+                                                    int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
                                             else:
-                                                p += (':small_blue_diamond:' + (client.get_user(
-                                                    int(key))).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
+                                                p += (':small_blue_diamond:' + client.get_user(
+                                                    int(key)).name + ' ' + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n".rjust(
                                                     l + 2), '-')
                                         else:
                                             if len(key) == l:
