@@ -775,6 +775,28 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     player_ids = list(d['players'].keys())
 
+    p = ""
+    for key in games[str(guild.id)]['players']:
+        if str.isdigit(key):
+            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+        else:
+            p += (':small_blue_diamond:' + key + "\n")
+
+    m = None
+    for channel in guild.text_channels:
+        try:
+            m = await channel.fetch_message(games[str(guild.id)]['message'])
+        except (discord.NotFound, discord.Forbidden):
+            continue
+        else:
+            break
+    if m:
+        m.embeds[0].set_field_at(0, name='Players:',
+                                       value=p,
+                                       inline=False)
+
+        await m.edit(embed=m.embeds[0])
+
     # If there is a winner
     if winner:
         # Load users' data
@@ -844,62 +866,55 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 score += temp
 
-            m, field = None, None
-            for channel in guild.text_channels:
-                try:
-                    m = await channel.fetch_message(games[str(guild.id)]['message'])
-                except (discord.NotFound, discord.Forbidden):
-                    continue
-                else:
-                    break
             if m:
+                field = None
                 m_dict = m.embeds[0].to_dict()
                 for f in m_dict['fields']:
                     if f['name'] == 'Players:':
                         field = f
                         break
 
-            # Craft a message that displays who won , the winner's score, and how many pts every loser lost
-            for key in [x for x in player_ids if x != str(winner.id) and 'left' not in d['players'][x]]:
-                temp = get_score(key)
+                # Craft a message that displays who won , the winner's score, and how many pts every loser lost
+                for key in [x for x in player_ids if x != str(winner.id) and 'left' not in d['players'][x]]:
+                    temp = get_score(key)
 
-                if score == 1:
-                    if temp == 1:
-                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
-                                                description=f"You lost **1** pt.",
-                                                color=discord.Color.red())
+                    if score == 1:
+                        if temp == 1:
+                            message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
+                                                    description=f"You lost **1** pt.",
+                                                    color=discord.Color.red())
+                        else:
+                            message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
+                                                    description=f"You lost **{temp}** pts.",
+                                                    color=discord.Color.red())
                     else:
-                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt',
-                                                description=f"You lost **{temp}** pts.",
-                                                color=discord.Color.red())
-                else:
-                    if temp == 1:
-                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
-                                                description=f"You lost **1** pt.",
-                                                color=discord.Color.red())
-                    else:
-                        message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
-                                                description=f"You lost **{temp}** pts.",
-                                                color=discord.Color.red())
-                message.set_image(url=winner.display_avatar.url)
+                        if temp == 1:
+                            message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
+                                                    description=f"You lost **1** pt.",
+                                                    color=discord.Color.red())
+                        else:
+                            message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts',
+                                                    description=f"You lost **{temp}** pts.",
+                                                    color=discord.Color.red())
+                    message.set_image(url=winner.display_avatar.url)
 
-                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
-                                                                                                 guild.get_member(
-                                                                                                     int(key)).name.lower().replace(
-                                                                                                     ' ',
-                                                                                                     '-')) + '-uno-channel').send(
-                    embed=message)))
+                    tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
+                                                                                                     guild.get_member(
+                                                                                                         int(key)).name.lower().replace(
+                                                                                                         ' ',
+                                                                                                         '-')) + '-uno-channel').send(
+                        embed=message)))
 
-                if field:
-                    name = guild.get_member(int(key)).name
-                    if temp == 1:
-                        field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
-                                                                f':small_blue_diamond{name} -1 pt')
-                    else:
-                        field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
-                                                                f':small_blue_diamond{name} -{temp} pts')
+                    if field:
+                        name = guild.get_member(int(key)).name
+                        if temp == 1:
+                            field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
+                                                                    f':small_blue_diamond:{name} -1 pt')
+                        else:
+                            field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
+                                                                    f':small_blue_diamond:{name} -{temp} pts')
 
-            tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
+                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
