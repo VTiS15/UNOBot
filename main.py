@@ -1344,7 +1344,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                             f['value'] = f['value'].replace(
                                 f'{player} '.ljust(l + 3, '-') + ' UNO!',
                                 f'{player} '.ljust(l + 3,
-                                                   '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                                                   '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))} cards')
                         else:
                             f['value'] = f['value'].replace(
                                 f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
@@ -1364,7 +1364,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                             f['value'] = f['value'].replace(
                                 f'{player.name} '.ljust(l + 3, '-') + ' UNO!',
                                 f'{player.name} '.ljust(l + 3,
-                                                        '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                                                        '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
                         else:
                             f['value'] = f['value'].replace(
                                 f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
