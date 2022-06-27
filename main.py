@@ -6070,7 +6070,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         async def spectate_callback(interaction):
                             await interaction.response.defer()
 
-                            role = discord.utils.get(ctx.guild.roles, name='UNO Spectator')
+                            role = discord.utils.get(interaction.guild.roles, name='UNO Spectator')
                             if role in interaction.user.roles:
                                 await interaction.user.remove_roles(role)
                             else:
