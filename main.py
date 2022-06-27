@@ -608,7 +608,9 @@ async def game_setup(ctx: ApplicationContext, d: dict):
     # Assign the top card of the game
     if flip:
         c = choice(
-            [card for card in d['cards'] if card[0] != 'wild' and card[0] != '+2' and 'flip' not in card[0]])
+            [card for card in d['cards'] if
+             card[0] != 'wild' and card[0] != '+2' and 'flip' not in card[0] and card[1] != 'darkwild' and card[
+                 1] != '+color'])
         d['cards'].remove(c)
         d['current'] = c
         d['current_opposite'] = c
