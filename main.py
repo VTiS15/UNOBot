@@ -608,15 +608,15 @@ async def game_setup(ctx: ApplicationContext, d: dict):
     # Assign the top card of the game
     if flip:
         c = choice(
-            [card for card in d['cards'] if
-             card[0] != 'wild' and card[0] != '+2' and 'flip' not in card[0] and card[1] != 'darkwild' and card[
-                 1] != '+color'])
+            [card for card in d['cards'] if card[0] != 'wild' and card[0] != '+2' and 'flip' not in card[0]])
+        d['cards'].remove(c)
         d['current'] = c
         d['current_opposite'] = c
 
     else:
         d['current'] = choice(
             [card for card in d['cards'] if card != 'wild' and card != '+4'])
+        d['cards'].remove(d['current'])
 
     # Craft and send a message that displays the top card of the game to every player (except UNOBot)
     if d['settings']['Flip']:
@@ -1041,10 +1041,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
         # Replenish the deck if no card is left
         if not games[str(guild.id)]['cards']:
-            if not games[str(guild.id)]['settings']['Flip']:
-                games[str(guild.id)]['cards'] += cards
-            else:
-                games[str(guild.id)]['cards'] += flip_cards
+            games[str(guild.id)]['cards'] = flip_cards
 
         # Append the card to the draw list
         draw.append(c)
@@ -1063,10 +1060,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
             # Replenish the deck if no card is left
             if not games[str(guild.id)]['cards']:
-                if not games[str(guild.id)]['settings']['Flip']:
-                    games[str(guild.id)]['cards'] += cards
-                else:
-                    games[str(guild.id)]['cards'] += flip_cards
+                games[str(guild.id)]['cards'] = flip_cards
 
             # Append the card to the draw list
             draw.append(c)
@@ -1863,7 +1857,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     if isinstance(player, str):
         bot = games[str(guild.id)]['players'][player]
 
-    # Removes the played card from player's hand and puts it back to the deck (plus something else)
+    # Removes the played card from player's hand (plus something else)
     if not games[str(guild.id)]['settings']['Flip']:
         if not bot:
             if '+4' in card:
@@ -1879,13 +1873,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             else:
                 games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
-            if '+4' in games[str(guild.id)]['current']:
-                games[str(guild.id)]['cards'].append('+4')
-            elif 'wild' in games[str(guild.id)]['current']:
-                games[str(guild.id)]['cards'].append('wild')
-            else:
-                games[str(guild.id)]['cards'].append(games[str(guild.id)]['current'])
-
         else:
             if '+4' in card:
                 bot.cards.remove('+4')
@@ -1893,13 +1880,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 bot.cards.remove('wild')
             else:
                 bot.cards.remove(card)
-
-            if '+4' in games[str(guild.id)]['current']:
-                games[str(guild.id)]['cards'].append('+4')
-            elif 'wild' in games[str(guild.id)]['current']:
-                games[str(guild.id)]['cards'].append('wild')
-            else:
-                games[str(guild.id)]['cards'].append(games[str(guild.id)]['current'])
 
     else:
         c = None
@@ -1935,8 +1915,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 games[str(guild.id)]['current'] = (games[str(guild.id)]['current'][0], '+color')
             elif 'wild' in games[str(guild.id)]['current'][1]:
                 games[str(guild.id)]['current'] = (games[str(guild.id)]['current'][0], 'darkwild')
-
-        games[str(guild.id)]['cards'].append(games[str(guild.id)]['current'])
 
         for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
             if not games[str(guild.id)]['dark']:
