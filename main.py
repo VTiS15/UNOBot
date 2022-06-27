@@ -798,7 +798,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                        value=p,
                                        inline=False)
 
-        await m.edit(embed=m.embeds[0])
+        await m.edit(embed=m.embeds[0], view=None)
 
     # If there is a winner
     if winner:
@@ -934,7 +934,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                         field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
                                                                 f':crown: **{winner.name} +{score}pts**')
 
-                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict), view=None))
+                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
@@ -983,7 +983,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                             f':crown: **{winner}**')
                         break
 
-                await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+                await m.edit(embed=discord.Embed.from_dict(m_dict))
 
         # Increment winner's Win count and every player's Played count
         if isinstance(winner, Member):
