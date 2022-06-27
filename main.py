@@ -240,7 +240,7 @@ async def initialize():
     commands_file = s3_resource.Object('unobot-bucket', 'commands.json')
     commands = json.loads(commands_file.get()['Body'].read().decode('utf-8'))
 
-    # Initializes or updates the configuration files
+    # Initialize or update the configuration files
     if client.guilds:
         if not dgs:
             for guild in client.guilds:
