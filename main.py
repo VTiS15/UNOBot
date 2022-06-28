@@ -1043,7 +1043,16 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
         # Replenish the deck if no card is left
         if not games[str(guild.id)]['cards']:
-            games[str(guild.id)]['cards'] = flip_cards
+            hands = []
+            for id in games[str(guild.id)]['players']:
+                if str.isdigit(id):
+                    hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                else:
+                    hands.extend(games[str(guild.id)]['players'][id].cards)
+            games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+
+            if not games[str(guild.id)]['cards']:
+                games[str(guild.id)]['cards'] = flip_cards
 
         # Append the card to the draw list
         draw.append(c)
@@ -1062,7 +1071,16 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
             # Replenish the deck if no card is left
             if not games[str(guild.id)]['cards']:
-                games[str(guild.id)]['cards'] = flip_cards
+                hands = []
+                for id in games[str(guild.id)]['players']:
+                    if str.isdigit(id):
+                        hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                    else:
+                        hands.extend(games[str(guild.id)]['players'][id].cards)
+                games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+
+                if not games[str(guild.id)]['cards']:
+                    games[str(guild.id)]['cards'] = flip_cards
 
             # Append the card to the draw list
             draw.append(c)
@@ -1087,10 +1105,23 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
             # Replenish the deck if no card is left
             if not games[str(guild.id)]['cards']:
+                hands = []
+                for id in games[str(guild.id)]['players']:
+                    if str.isdigit(id):
+                        hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                    else:
+                        hands.extend(games[str(guild.id)]['players'][id].cards)
+
                 if not games[str(guild.id)]['settings']['Flip']:
-                    games[str(guild.id)]['cards'] += cards
+                    games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
+
+                    if not games[str(guild.id)]['cards']:
+                        games[str(guild.id)]['cards'] = cards
                 else:
-                    games[str(guild.id)]['cards'] += flip_cards
+                    games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+
+                    if not games[str(guild.id)]['cards']:
+                        games[str(guild.id)]['cards'] = flip_cards
 
             # Append the card to the draw list
             draw.append(c)
@@ -1110,10 +1141,23 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
         # Replenish the deck if no card is left
         if not games[str(guild.id)]['cards']:
+            hands = []
+            for id in games[str(guild.id)]['players']:
+                if str.isdigit(id):
+                    hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                else:
+                    hands.extend(games[str(guild.id)]['players'][id].cards)
+
             if not games[str(guild.id)]['settings']['Flip']:
-                games[str(guild.id)]['cards'] += cards
+                games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
+
+                if not games[str(guild.id)]['cards']:
+                    games[str(guild.id)]['cards'] = cards
             else:
-                games[str(guild.id)]['cards'] += flip_cards
+                games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+
+                if not games[str(guild.id)]['cards']:
+                    games[str(guild.id)]['cards'] = flip_cards
 
         # Append the card to the draw list
         draw.append(c)
@@ -1138,7 +1182,17 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     bot.cards.append(c)
 
                 if not games[str(guild.id)]['cards']:
-                    games[str(guild.id)]['cards'] += cards
+                    hands = []
+                    for id in games[str(guild.id)]['players']:
+                        if str.isdigit(id):
+                            hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                        else:
+                            hands.extend(games[str(guild.id)]['players'][id].cards)
+
+                    games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
+
+                    if not games[str(guild.id)]['cards']:
+                        games[str(guild.id)]['cards'] = cards
 
                 draw.append(c)
 
@@ -1167,7 +1221,17 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         bot.cards.append(c)
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] += flip_cards
+                        hands = []
+                        for id in games[str(guild.id)]['players']:
+                            if str.isdigit(id):
+                                hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                            else:
+                                hands.extend(games[str(guild.id)]['players'][id].cards)
+
+                        games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+
+                        if not games[str(guild.id)]['cards']:
+                            games[str(guild.id)]['cards'] = flip_cards
 
                     draw.append(c)
 
@@ -1195,7 +1259,17 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         bot.cards.append(c)
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] += flip_cards
+                        hands = []
+                        for id in games[str(guild.id)]['players']:
+                            if str.isdigit(id):
+                                hands.extend(games[str(guild.id)]['players'][id]['cards'])
+                            else:
+                                hands.extend(games[str(guild.id)]['players'][id].cards)
+
+                        games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+
+                        if not games[str(guild.id)]['cards']:
+                            games[str(guild.id)]['cards'] = flip_cards
 
                     draw.append(c)
 
