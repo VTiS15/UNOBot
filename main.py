@@ -2188,11 +2188,11 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     if len(games[str(guild.id)]["players"][player].cards) == 1:
                         if len(player) == l:
                             f['value'] = f['value'].replace(
-                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                f'{player} - 2 cards',
                                 f'{player} - UNO!')
                         else:
                             f['value'] = f['value'].replace(
-                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)} cards',
+                                f'{player} '.ljust(l + 3, '-') + ' 2 cards',
                                 f'{player} '.ljust(l + 3, '-') + ' UNO!')
                     else:
                         if len(player) == l:
@@ -2207,11 +2207,11 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     if len(games[str(guild.id)]["players"][str(player.id)]['cards']) == 1:
                         if len(player.name) == l:
                             f['value'] = f['value'].replace(
-                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                f'{player.name} - 2 cards',
                                 f'{player.name} - UNO!')
                         else:
                             f['value'] = f['value'].replace(
-                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)} cards',
+                                f'{player.name} '.ljust(l + 3, '-') + ' 2 cards',
                                 f'{player.name} '.ljust(l + 3, '-') + ' UNO!')
                     else:
                         if len(player.name) == l:
