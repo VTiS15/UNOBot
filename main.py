@@ -2021,7 +2021,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
                 if not games[str(guild.id)]['dark']:
                     if isinstance(player, Member) and len(
-                            games[str(guild.id)]['players'][str(player.id)]['cards']) <= 3 or isinstance(player,
+                            games[str(guild.id)]['players'][str(player.id)]['cards']) < 3 or isinstance(player,
                                                                                                          str) and len(
                         games[str(guild.id)]['players'][player].cards) < 3:
                         color = search(r'pink|teal|orange|purple', card[1])
