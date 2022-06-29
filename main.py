@@ -1046,20 +1046,20 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         if 'wild' in top[0]:
             top = ('wild', top[1])
         elif 'wild' in top[1]:
-            top[1] = (top[0], 'darkwild')
+            top = (top[0], 'darkwild')
         elif '+2' in top[0]:
-            top[0] = ('+2', top[1])
+            top = ('+2', top[1])
         elif '+color' in top[1]:
-            top[1] = (top[0], '+color')
+            top = (top[0], '+color')
 
         if 'wild' in bottom[0]:
-            bottom[0] = ('wild', bottom[1])
+            bottom = ('wild', bottom[1])
         elif 'wild' in bottom[1]:
-            bottom[1] = (bottom[0], 'darkwild')
+            bottom = (bottom[0], 'darkwild')
         elif '+2' in bottom[0]:
-            bottom[0] = ('+2', bottom[1])
+            bottom = ('+2', bottom[1])
         elif '+color' in bottom[1]:
-            bottom[1] = (bottom[0], '+color')
+            bottom = (bottom[0], '+color')
 
     # Wild Draw Color case
     if color:
