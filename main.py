@@ -1032,6 +1032,33 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
     if isinstance(player, str):
         bot = games[str(guild.id)]['players'][player]
 
+    top = games[str(guild.id)]['current'], bottom = None
+    if isinstance(top, str):
+        if '+4' in top:
+            top = '+4'
+        elif 'wild' in top:
+            top = 'wild'
+    else:
+        bottom = games[str(guild.id)]['current_opposite']
+
+        if 'wild' in top[0]:
+            top[0] = 'wild'
+        elif 'wild' in top[1]:
+            top[1] = 'darkwild'
+        elif '+2' in top[0]:
+            top[0] = '+2'
+        elif '+color' in top[1]:
+            top[1] = '+color'
+
+        if 'wild' in bottom[0]:
+            bottom[0] = 'wild'
+        elif 'wild' in bottom[1]:
+            bottom[1] = 'darkwild'
+        elif '+2' in bottom[0]:
+            bottom[0] = '+2'
+        elif '+color' in bottom[1]:
+            bottom[1] = '+color'
+
     # Wild Draw Color case
     if color:
         draw = []  # A list to keep track of the drawn cards
@@ -1056,6 +1083,9 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     hands.extend(games[str(guild.id)]['players'][id]['cards'])
                 else:
                     hands.extend(games[str(guild.id)]['players'][id].cards)
+            hands.append(top)
+            hands.append(bottom)
+
             games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
             if not games[str(guild.id)]['cards']:
@@ -1084,6 +1114,9 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         hands.extend(games[str(guild.id)]['players'][id]['cards'])
                     else:
                         hands.extend(games[str(guild.id)]['players'][id].cards)
+                hands.append(top)
+                hands.append(bottom)
+
                 games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                 if not games[str(guild.id)]['cards']:
@@ -1118,6 +1151,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         hands.extend(games[str(guild.id)]['players'][id]['cards'])
                     else:
                         hands.extend(games[str(guild.id)]['players'][id].cards)
+                hands.append(top)
 
                 if not games[str(guild.id)]['settings']['Flip']:
                     games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
@@ -1125,6 +1159,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     if not games[str(guild.id)]['cards']:
                         games[str(guild.id)]['cards'] += cards
                 else:
+                    hands.append(bottom)
+
                     games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                     if not games[str(guild.id)]['cards']:
@@ -1154,21 +1190,6 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     hands.extend(games[str(guild.id)]['players'][id]['cards'])
                 else:
                     hands.extend(games[str(guild.id)]['players'][id].cards)
-            top = games[str(guild.id)]['current']
-            if isinstance(top, str):
-                if '+4' in top:
-                    top = '+4'
-                elif 'wild' in top:
-                    top = 'wild'
-            else:
-                if 'wild' in top[0]:
-                    top[0] = 'wild'
-                elif 'wild' in top[1]:
-                    top[1] = 'darkwild'
-                elif '+2' in top[0]:
-                    top[0] = '+2'
-                elif '+color' in top[1]:
-                    top[1] = '+color'
             hands.append(top)
 
             if not games[str(guild.id)]['settings']['Flip']:
@@ -1177,6 +1198,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                 if not games[str(guild.id)]['cards']:
                     games[str(guild.id)]['cards'] += cards
             else:
+                hands.append(bottom)
+
                 games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                 if not games[str(guild.id)]['cards']:
@@ -1211,11 +1234,6 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                             hands.extend(games[str(guild.id)]['players'][id]['cards'])
                         else:
                             hands.extend(games[str(guild.id)]['players'][id].cards)
-                    top = games[str(guild.id)]['current']
-                    if '+4' in top:
-                        top = '+4'
-                    elif 'wild' in top:
-                        top = 'wild'
                     hands.append(top)
 
                     games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
@@ -1256,12 +1274,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                                 hands.extend(games[str(guild.id)]['players'][id]['cards'])
                             else:
                                 hands.extend(games[str(guild.id)]['players'][id].cards)
-                        top = games[str(guild.id)]['current']
-                        if 'wild' in top[0]:
-                            top[0] = 'wild'
-                        elif '+2' in top[0]:
-                            top[0] = '+2'
                         hands.append(top)
+                        hands.append(bottom)
 
                         games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
@@ -1300,12 +1314,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                                 hands.extend(games[str(guild.id)]['players'][id]['cards'])
                             else:
                                 hands.extend(games[str(guild.id)]['players'][id].cards)
-                        top = games[str(guild.id)]['current']
-                        if 'wild' in top[1]:
-                            top[1] = 'darkwild'
-                        elif '+color' in top[1]:
-                            top[1] = '+color'
                         hands.append(top)
+                        hands.append(bottom)
 
                         games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
