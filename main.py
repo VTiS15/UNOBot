@@ -2596,68 +2596,10 @@ class Bot:
                     else:
                         score = 20
             elif value == '+2':
-                least = sum(1 for x in self.cards if self.__get_value(x) in ('+2', '+4'))
-                total = 0
-                n = len([x for x in d['players'] if x != self.name])
-                for player in [x for x in d['players'] if x != self.name]:
-                    if str.isdigit(player):
-                        total += len(d['players'][player]['cards'])
-                    else:
-                        total += len(d['players'][player].cards)
-
-                prob = 0
-                hands = total + len(self.cards)
-                if n * least > total:
-                    prob = 1
-                elif n * least <= 12 * ceil(hands / 108):
-                    for i in range(n * least):
-                        prob += comb(12 * ceil(hands / 108) - least, i) * comb(96 * ceil(hands / 108) - len(self.cards) + least,
-                                                                       total - i) / comb(
-                            108 * ceil(hands / 108) - len(self.cards), total)
-
-                if prob > 0.4:
-                    score = 10 * prob
-                else:
-                    score = 0
-            elif value == 'wild':
-                return 1
-            elif value == '+4':
-                least = sum(1 for x in self.cards if self.__get_value(x) == '+4')
-                total = 0
-                n = len([x for x in d['players'] if x != self.name])
-                for player in [x for x in d['players'] if x != self.name]:
-                    if str.isdigit(player):
-                        total += len(d['players'][player]['cards'])
-                    else:
-                        total += len(d['players'][player].cards)
-
-                prob = 0
-                hands = total + len(self.cards)
-                if n * least > total:
-                    prob = 1
-                elif n * least <= 4 * ceil(hands / 108):
-                    for i in range(n * least):
-                        prob += comb(4 * ceil(hands / 108) - least, i) * comb(
-                            104 * ceil(hands / 108) - len(self.cards) + least,
-                            total - i) / comb(
-                            108 * ceil(hands / 108) - len(self.cards), total)
-
-                if prob > 0.4:
-                    score = 10 * prob
-                else:
-                    score = 0
-            else:
-                score = float(value)
-
-        elif not d['dark']:
-            if value == '+1':
-                least = sum(1 for x in self.cards if self.__get_value(x) in ('+1', '+2'))
-                n = len([x for x in d['players'] if x != self.name])
-
-                if self.losing_values.count('+1') + self.losing_values.count('+2') >= n*least:
-                    score = 0
-                else:
+                if len(self.cards) > 1:
+                    least = sum(1 for x in self.cards if self.__get_value(x) in ('+2', '+4'))
                     total = 0
+                    n = len([x for x in d['players'] if x != self.name])
                     for player in [x for x in d['players'] if x != self.name]:
                         if str.isdigit(player):
                             total += len(d['players'][player]['cards'])
@@ -2668,16 +2610,83 @@ class Bot:
                     hands = total + len(self.cards)
                     if n * least > total:
                         prob = 1
-                    elif n * least <= 12 * ceil(hands / 112):
+                    elif n * least <= 12 * ceil(hands / 108):
                         for i in range(n * least):
-                            prob += comb(12 * ceil(hands / 112) - least, i) * comb(100 * ceil(hands / 112) - len(self.cards) + least,
+                            prob += comb(12 * ceil(hands / 108) - least, i) * comb(96 * ceil(hands / 108) - len(self.cards) + least,
                                                                            total - i) / comb(
-                                112 * ceil(hands / 112) - len(self.cards), total)
+                                108 * ceil(hands / 108) - len(self.cards), total)
 
                     if prob > 0.4:
                         score = 10 * prob
                     else:
                         score = 0
+                else:
+                    score = 10
+            elif value == 'wild':
+                return 1
+            elif value == '+4':
+                if len(self.cards) > 1:
+                    least = sum(1 for x in self.cards if self.__get_value(x) == '+4')
+                    total = 0
+                    n = len([x for x in d['players'] if x != self.name])
+                    for player in [x for x in d['players'] if x != self.name]:
+                        if str.isdigit(player):
+                            total += len(d['players'][player]['cards'])
+                        else:
+                            total += len(d['players'][player].cards)
+
+                    prob = 0
+                    hands = total + len(self.cards)
+                    if n * least > total:
+                        prob = 1
+                    elif n * least <= 4 * ceil(hands / 108):
+                        for i in range(n * least):
+                            prob += comb(4 * ceil(hands / 108) - least, i) * comb(
+                                104 * ceil(hands / 108) - len(self.cards) + least,
+                                total - i) / comb(
+                                108 * ceil(hands / 108) - len(self.cards), total)
+
+                    if prob > 0.4:
+                        score = 10 * prob
+                    else:
+                        score = 0
+                else:
+                    score = 10
+            else:
+                score = float(value)
+
+        elif not d['dark']:
+            if value == '+1':
+                if len(self.cards) > 1:
+                    least = sum(1 for x in self.cards if self.__get_value(x) in ('+1', '+2'))
+                    n = len([x for x in d['players'] if x != self.name])
+
+                    if self.losing_values.count('+1') + self.losing_values.count('+2') >= n*least:
+                        score = 0
+                    else:
+                        total = 0
+                        for player in [x for x in d['players'] if x != self.name]:
+                            if str.isdigit(player):
+                                total += len(d['players'][player]['cards'])
+                            else:
+                                total += len(d['players'][player].cards)
+
+                        prob = 0
+                        hands = total + len(self.cards)
+                        if n * least > total:
+                            prob = 1
+                        elif n * least <= 12 * ceil(hands / 112):
+                            for i in range(n * least):
+                                prob += comb(12 * ceil(hands / 112) - least, i) * comb(100 * ceil(hands / 112) - len(self.cards) + least,
+                                                                               total - i) / comb(
+                                    112 * ceil(hands / 112) - len(self.cards), total)
+
+                        if prob > 0.4:
+                            score = 10 * prob
+                        else:
+                            score = 0
+                else:
+                    score = 10
             elif value in {'reverse', 'skip'}:
                 if len(d['players']) == 2 or value == 'skip':
                     score = 20
@@ -2711,34 +2720,37 @@ class Bot:
             elif value == 'wild':
                 score = 1
             elif value == '+2':
-                least = sum(1 for x in self.cards if self.__get_value(x) == '+2')
-                n = len([x for x in d['players'] if x != self.name])
+                if len(self.cards) > 1:
+                    least = sum(1 for x in self.cards if self.__get_value(x) == '+2')
+                    n = len([x for x in d['players'] if x != self.name])
 
-                if self.losing_values.count('+2') >= n*least:
-                    score = 0
-                else:
-                    total = 0
-                    for player in [x for x in d['players'] if x != self.name]:
-                        if str.isdigit(player):
-                            total += len(d['players'][player]['cards'])
-                        else:
-                            total += len(d['players'][player].cards)
-
-                    prob = 0
-                    hands = total + len(self.cards)
-                    if n * least > total:
-                        prob = 1
-                    elif n * least <= 4 * ceil(hands / 112):
-                        for i in range(n * least):
-                            prob += comb(4 * ceil(hands / 112) - least, i) * comb(
-                                108 * ceil(hands / 112) - len(self.cards) + least,
-                                total - i) / comb(
-                                112 * ceil(hands / 112) - len(self.cards), total)
-
-                    if prob > 0.4:
-                        score = 10 * prob
-                    else:
+                    if self.losing_values.count('+2') >= n*least:
                         score = 0
+                    else:
+                        total = 0
+                        for player in [x for x in d['players'] if x != self.name]:
+                            if str.isdigit(player):
+                                total += len(d['players'][player]['cards'])
+                            else:
+                                total += len(d['players'][player].cards)
+
+                        prob = 0
+                        hands = total + len(self.cards)
+                        if n * least > total:
+                            prob = 1
+                        elif n * least <= 4 * ceil(hands / 112):
+                            for i in range(n * least):
+                                prob += comb(4 * ceil(hands / 112) - least, i) * comb(
+                                    108 * ceil(hands / 112) - len(self.cards) + least,
+                                    total - i) / comb(
+                                    112 * ceil(hands / 112) - len(self.cards), total)
+
+                        if prob > 0.4:
+                            score = 10 * prob
+                        else:
+                            score = 0
+                else:
+                    score = 10
             else:
                 score = float(value)
 
@@ -2756,33 +2768,36 @@ class Bot:
                     else:
                         score = 20
             elif value == '+5':
-                least = sum(1 for x in self.cards if self.__get_value(x) == '+5')
-                n = len([x for x in d['players'] if x != self.name])
+                if len(self.cards) > 1:
+                    least = sum(1 for x in self.cards if self.__get_value(x) == '+5')
+                    n = len([x for x in d['players'] if x != self.name])
 
-                if self.losing_values.count('+5') >= n*least:
-                    score = 0
-                else:
-                    total = 0
-                    for player in [x for x in d['players'] if x != self.name]:
-                        if str.isdigit(player):
-                            total += len(d['players'][player]['cards'])
-                        else:
-                            total += len(d['players'][player].cards)
-
-                    prob = 0
-                    hands = total + len(self.cards)
-                    if n * least > total:
-                        prob = 1
-                    elif n * least <= 8 * ceil(hands / 112):
-                        for i in range(n * least):
-                            prob += comb(8 * ceil(hands / 112) - least, i) * comb(104 * ceil(hands / 112) - len(self.cards) + least,
-                                                                          total - i) / comb(
-                                112 * ceil(hands / 112) - len(self.cards), total)
-
-                    if prob > 0.4:
-                        score = 10 * prob
-                    else:
+                    if self.losing_values.count('+5') >= n*least:
                         score = 0
+                    else:
+                        total = 0
+                        for player in [x for x in d['players'] if x != self.name]:
+                            if str.isdigit(player):
+                                total += len(d['players'][player]['cards'])
+                            else:
+                                total += len(d['players'][player].cards)
+
+                        prob = 0
+                        hands = total + len(self.cards)
+                        if n * least > total:
+                            prob = 1
+                        elif n * least <= 8 * ceil(hands / 112):
+                            for i in range(n * least):
+                                prob += comb(8 * ceil(hands / 112) - least, i) * comb(104 * ceil(hands / 112) - len(self.cards) + least,
+                                                                              total - i) / comb(
+                                    112 * ceil(hands / 112) - len(self.cards), total)
+
+                        if prob > 0.4:
+                            score = 10 * prob
+                        else:
+                            score = 0
+                else:
+                    score = 10
             elif value == 'skip':
                 score = 20
             elif value == 'flip':
