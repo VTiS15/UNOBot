@@ -463,9 +463,9 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     # Assign cards to the game
     if flip:
-        d['cards'] = flip_cards
+        d['cards'] += flip_cards
     else:
-        d['cards'] = cards
+        d['cards'] += cards
 
     player_ids = list(d['players'].keys())
 
@@ -1028,8 +1028,6 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         color: Whether the player is subject to Wild Draw Color's effect
     """
 
-    print(len(games[str(guild.id)]['cards']))
-
     bot = None
     if isinstance(player, str):
         bot = games[str(guild.id)]['players'][player]
@@ -1058,10 +1056,10 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     hands.extend(games[str(guild.id)]['players'][id]['cards'])
                 else:
                     hands.extend(games[str(guild.id)]['players'][id].cards)
-            games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+            games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
             if not games[str(guild.id)]['cards']:
-                games[str(guild.id)]['cards'] = flip_cards
+                games[str(guild.id)]['cards'] += flip_cards
 
         # Append the card to the draw list
         draw.append(c)
@@ -1086,10 +1084,10 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         hands.extend(games[str(guild.id)]['players'][id]['cards'])
                     else:
                         hands.extend(games[str(guild.id)]['players'][id].cards)
-                games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+                games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                 if not games[str(guild.id)]['cards']:
-                    games[str(guild.id)]['cards'] = flip_cards
+                    games[str(guild.id)]['cards'] += flip_cards
 
             # Append the card to the draw list
             draw.append(c)
@@ -1122,15 +1120,15 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         hands.extend(games[str(guild.id)]['players'][id].cards)
 
                 if not games[str(guild.id)]['settings']['Flip']:
-                    games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
+                    games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] = cards
+                        games[str(guild.id)]['cards'] += cards
                 else:
-                    games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+                    games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] = flip_cards
+                        games[str(guild.id)]['cards'] += flip_cards
 
             # Append the card to the draw list
             draw.append(c)
@@ -1174,15 +1172,15 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
             hands.append(top)
 
             if not games[str(guild.id)]['settings']['Flip']:
-                games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
+                games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
 
                 if not games[str(guild.id)]['cards']:
-                    games[str(guild.id)]['cards'] = cards
+                    games[str(guild.id)]['cards'] += cards
             else:
-                games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+                games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                 if not games[str(guild.id)]['cards']:
-                    games[str(guild.id)]['cards'] = flip_cards
+                    games[str(guild.id)]['cards'] += flip_cards
 
         # Append the card to the draw list
         draw.append(c)
@@ -1220,10 +1218,10 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         top = 'wild'
                     hands.append(top)
 
-                    games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
+                    games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
 
                     if not games[str(guild.id)]['cards']:
-                        games[str(guild.id)]['cards'] = cards
+                        games[str(guild.id)]['cards'] += cards
 
                 draw.append(c)
 
@@ -1265,10 +1263,10 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                             top[0] = '+2'
                         hands.append(top)
 
-                        games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+                        games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                         if not games[str(guild.id)]['cards']:
-                            games[str(guild.id)]['cards'] = flip_cards
+                            games[str(guild.id)]['cards'] += flip_cards
 
                     draw.append(c)
 
@@ -1309,10 +1307,10 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                             top[1] = '+color'
                         hands.append(top)
 
-                        games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
+                        games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                         if not games[str(guild.id)]['cards']:
-                            games[str(guild.id)]['cards'] = flip_cards
+                            games[str(guild.id)]['cards'] += flip_cards
 
                     draw.append(c)
 
@@ -2183,7 +2181,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     # Make the played card the first card on the discard pile
     games[str(guild.id)]['current'] = card
 
-    # Craft an embed message that displays the played card to all players except UNOBot
+    # Craft an embed message that displays the played card to all players except bots
     if games[str(guild.id)]['settings']['Flip']:
         if not games[str(guild.id)]['dark']:
             color = search(r'red|blue|green|yellow', card[0]).group(0)
