@@ -3355,9 +3355,10 @@ class Bot:
                     else:
                         color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
                         optimals = []
-                        self.reccount = 0
 
                         for card in self.playables:
+                            self.reccount = 0
+
                             tree = Tree()
                             tree.create_node(identifier=card, data=self.__get_score(self.__get_value(card), self.__get_color(card)))
                             self.__build_tree(tree, card)
@@ -3396,9 +3397,10 @@ class Bot:
                     else:
                         color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
                         optimals = []
-                        self.reccount = 0
 
                         for card in self.playables:
+                            self.reccount = 0
+
                             tree = Tree()
                             tree.create_node(identifier=card[0] + '|' + card[1],
                                              data=self.__get_score(self.__get_value(card), self.__get_color(card)))
@@ -3440,9 +3442,10 @@ class Bot:
                     else:
                         color_change = choice([x for x in {'pink', 'teal', 'orange', 'purple'} if x not in self.losing_colors])
                         optimals = []
-                        self.reccount = 0
 
                         for card in self.playables:
+                            self.reccount = 0
+
                             tree = Tree()
                             if card[1] != 'darkwild':
                                 tree.create_node(identifier=card[0] + '|' + card[1],
