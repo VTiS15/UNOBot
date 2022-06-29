@@ -22,7 +22,7 @@ from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
-from random import sample
+from random import shuffle
 from secrets import choice
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
@@ -485,9 +485,9 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         d['players'][bot] = Bot(bot, guild, games, hand)
 
     # Determine the order of play
-    order = sample(player_ids, len(player_ids))
+    shuffle(player_ids)
     ordered_dict = OrderedDict()
-    for x in order:
+    for x in player_ids:
         ordered_dict[x] = d['players'][x]
 
     # Assign the player list to the game
