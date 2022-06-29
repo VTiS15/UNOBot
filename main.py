@@ -462,6 +462,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         category = await guild.create_category('UNO-GAME')
 
     # Assign cards to the game
+    d['cards'] = []
     if flip:
         d['cards'] += flip_cards
     else:
