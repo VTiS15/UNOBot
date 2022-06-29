@@ -1211,6 +1211,12 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                             hands.extend(games[str(guild.id)]['players'][id]['cards'])
                         else:
                             hands.extend(games[str(guild.id)]['players'][id].cards)
+                    top = games[str(guild.id)]['current']
+                    if '+4' in top:
+                        top = '+4'
+                    elif 'wild' in top:
+                        top = 'wild'
+                    hands.append(top)
 
                     games[str(guild.id)]['cards'] = [x for x in cards if x not in hands]
 
@@ -1250,6 +1256,12 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                                 hands.extend(games[str(guild.id)]['players'][id]['cards'])
                             else:
                                 hands.extend(games[str(guild.id)]['players'][id].cards)
+                        top = games[str(guild.id)]['current']
+                        if 'wild' in top[0]:
+                            top[0] = 'wild'
+                        elif '+2' in top[0]:
+                            top[0] = '+2'
+                        hands.append(top)
 
                         games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
 
@@ -1288,6 +1300,12 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                                 hands.extend(games[str(guild.id)]['players'][id]['cards'])
                             else:
                                 hands.extend(games[str(guild.id)]['players'][id].cards)
+                        top = games[str(guild.id)]['current']
+                        if 'wild' in top[1]:
+                            top[1] = 'darkwild'
+                        elif '+color' in top[1]:
+                            top[1] = '+color'
+                        hands.append(top)
 
                         games[str(guild.id)]['cards'] = [x for x in flip_cards if x not in hands]
 
