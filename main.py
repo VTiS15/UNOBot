@@ -22,7 +22,8 @@ from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
-from random import sample, choice, randrange
+from random import sample
+from secrets import choice
 from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
 from discord import ApplicationContext, User, Member, Guild, TextChannel
@@ -474,11 +475,14 @@ async def game_setup(ctx: ApplicationContext, d: dict):
             if flip:
                 d['cards'] += flip_cards
             else:
-                d['cards'] += cards
+                d['cards'] += cards# # # # #
 
-        hand = sample(d['cards'], d['settings']['StartingCards'])
+        hand = []
+        for _ in range(d['settings']['StartingCards']):
+            card = choice(d['cards'])
+            d['cards'].remove(card)
+            hand.append(card)
         d['players'][bot] = Bot(bot, guild, games, hand)
-        d['cards'] = [card for card in d['cards'] if card not in hand]
 
     # Determine the order of play
     order = sample(player_ids, len(player_ids))
@@ -551,9 +555,12 @@ async def game_setup(ctx: ApplicationContext, d: dict):
                 d['cards'] += cards
 
         # Assign a hand from the deck to a player
-        hand = sample(d['cards'], d['settings']['StartingCards'])
+        hand = []
+        for _ in range(d['settings']['StartingCards']):
+            card = choice(d['cards'])
+            d['cards'].remove(card)
+            hand.append(card)
         d['players'][id]['cards'] = hand
-        d['cards'] = [card for card in d['cards'] if card not in hand]
 
         # Craft and send an embed message that displays the opening hand of a player
         m = discord.Embed(title='Your cards:', color=discord.Color.red())
