@@ -2058,9 +2058,11 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 value = value.group(0)
 
             if value in games[str(guild.id)]['players'][b].losing_values:
-                if value not in {'+1', '+2', '+5'}:
+                if value != '+2':
                     if color in games[str(guild.id)]['players'][b].losing_colors:
                         games[str(guild.id)]['players'][b].losing_colors.remove(color)
+                        games[str(guild.id)]['players'][b].losing_values.remove(value)
+                    elif value in {'+1', '+5'}:
                         games[str(guild.id)]['players'][b].losing_values.remove(value)
                 else:
                     games[str(guild.id)]['players'][b].losing_values.remove(value)
