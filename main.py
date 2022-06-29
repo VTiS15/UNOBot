@@ -1033,7 +1033,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
     if isinstance(player, str):
         bot = games[str(guild.id)]['players'][player]
 
-    top = games[str(guild.id)]['current'], bottom = None
+    top = games[str(guild.id)]['current']
+    bottom = None
     if isinstance(top, str):
         if '+4' in top:
             top = '+4'
