@@ -659,11 +659,11 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         await channel.send(file=file, embed=m)
 
     # Specify the first player
-    if str.isdigit(order[0]):
-        d['player'] = int(order[0])
+    if str.isdigit(player_ids[0]):
+        d['player'] = int(player_ids[0])
     else:
-        d['player'] = order[0]
-    cplayer = order[0]
+        d['player'] = player_ids[0]
+    cplayer = player_ids[0]
 
     # Light side first if Flip
     if flip:
@@ -723,10 +723,10 @@ async def game_setup(ctx: ApplicationContext, d: dict):
                 else:
                     await draw(cplayer, guild, 2)
 
-                if str.isdigit(order[1]):
-                    await display_cards(guild.get_member(int(order[1])), guild)
+                if str.isdigit(player_ids[1]):
+                    await display_cards(guild.get_member(int(player_ids[1])), guild)
                 else:
-                    await display_cards(order[1], guild)
+                    await display_cards(player_ids[1], guild)
 
         else:
             if str.isdigit(cplayer):
@@ -761,10 +761,10 @@ async def game_setup(ctx: ApplicationContext, d: dict):
                 else:
                     await draw(guild.get_member(int(cplayer)), guild, 1)
 
-                if not str.isdigit(order[1]):
-                    await display_cards(order[1], guild)
+                if not str.isdigit(player_ids[1]):
+                    await display_cards(player_ids[1], guild)
                 else:
-                    await display_cards(guild.get_member(int(order[1])), guild)
+                    await display_cards(guild.get_member(int(player_ids[1])), guild)
 
         else:
             if not str.isdigit(cplayer):
