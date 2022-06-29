@@ -1044,22 +1044,22 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         bottom = games[str(guild.id)]['current_opposite']
 
         if 'wild' in top[0]:
-            top[0] = 'wild'
+            top = ('wild', top[1])
         elif 'wild' in top[1]:
-            top[1] = 'darkwild'
+            top[1] = (top[0], 'darkwild')
         elif '+2' in top[0]:
-            top[0] = '+2'
+            top[0] = ('+2', top[1])
         elif '+color' in top[1]:
-            top[1] = '+color'
+            top[1] = (top[0], '+color')
 
         if 'wild' in bottom[0]:
-            bottom[0] = 'wild'
+            bottom[0] = ('wild', bottom[1])
         elif 'wild' in bottom[1]:
-            bottom[1] = 'darkwild'
+            bottom[1] = (bottom[0], 'darkwild')
         elif '+2' in bottom[0]:
-            bottom[0] = '+2'
+            bottom[0] = ('+2', bottom[1])
         elif '+color' in bottom[1]:
-            bottom[1] = '+color'
+            bottom[1] = (bottom[0], '+color')
 
     # Wild Draw Color case
     if color:
@@ -4872,10 +4872,10 @@ async def on_message(message):
                                     description=':x: **You aren\'t playing UNO Flip!**',
                                     color=discord.Color.red()))
 
-                except IndexError as e:
-                    raise e
-                except TypeError as e:
-                    raise e
+                except IndexError:
+                    pass
+                except TypeError:
+                    pass
 
                 overwrite.send_messages = True
                 try:
@@ -4884,7 +4884,6 @@ async def on_message(message):
                     pass
 
             else:
-
                 await message.channel.send(
                     embed=discord.Embed(description=':x: **It\'s not your turn yet!**', color=discord.Color.red()))
 
