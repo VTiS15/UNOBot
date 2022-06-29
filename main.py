@@ -471,7 +471,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     # Assign a hand from the deck to bot(s) if they are playing
     for bot in [x for x in player_ids if not str.isdigit(x)]:
-        while len(d['cards']) <= d['settings']['StartingCards']:
+        while len(d['cards']) <= d['settings']['StartingCards'] * len(player_ids):
             if flip:
                 d['cards'] += flip_cards
             else:
@@ -548,7 +548,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     for id in [x for x in player_ids if str.isdigit(x)]:
         # Assign more cards to the deck while the deck is not enough
-        while len(d['cards']) <= d['settings']['StartingCards']:
+        while len(d['cards']) <= d['settings']['StartingCards'] * len(player_ids):
             if flip:
                 d['cards'] += flip_cards
             else:
@@ -1099,7 +1099,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         draw = []  # A list to keep track of the drawn cards
 
         # Draw the player {number} cards
-        for i in range(number):
+        for _ in range(number):
             # Randomly pick a card from the deck
             c = choice(games[str(guild.id)]['cards'])
             games[str(guild.id)]['cards'].remove(c)
