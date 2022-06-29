@@ -1028,6 +1028,8 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
         color: Whether the player is subject to Wild Draw Color's effect
     """
 
+    print(len(games[str(guild.id)]['cards']))
+
     bot = None
     if isinstance(player, str):
         bot = games[str(guild.id)]['players'][player]
