@@ -2961,6 +2961,8 @@ class Bot:
 
                 if self.reccount <= 1000:
                     self.__build_tree(tree, card[0] + '|' + card[1] + str(count))
+                else:
+                    return
 
     async def __execute_card(self, value: str):
         """Executes an UNO card according to its value.
