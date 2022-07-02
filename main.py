@@ -199,7 +199,6 @@ s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                          aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
-sys.setrecursionlimit(10 ** 5)  # Changes the system recursion limit to 100,000 for the AI
 
 
 def main():
@@ -2959,7 +2958,7 @@ class Bot:
                     else:
                         break
 
-                if self.reccount <= 1000:
+                if self.reccount <= 100:
                     self.__build_tree(tree, card[0] + '|' + card[1] + str(count))
                 else:
                     return
