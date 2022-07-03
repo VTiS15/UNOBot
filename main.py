@@ -6648,7 +6648,7 @@ async def leavegame(ctx):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
                                                         ctx.guild.get_member(int(p[0])))
                                 else:
-                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild, p[0])
+                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild, ctx.guild.get_member(int(p[0])))
                             else:
                                 await game_shutdown(games[str(ctx.guild.id)], ctx.guild)
 
