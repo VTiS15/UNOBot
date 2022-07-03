@@ -39,7 +39,6 @@ The UNOBot uses the prefix `/u-` for commands.
 | `/u-guide`| (`start/play/commands/settings/options`) | Gives you a **guide** on using UNOBot | `/u-guide start` |
 | `/u-sg` | (@user mentions), (game settings) | **Starts a game** in the server | `/u-sg @VTiS @Dong Flip`| 
 | `/u-eg` | None | **Ends the ongoing game** in the server |
-| `/u-alerts` | `on/off/view` | Turns your **alerts** on or off | `/u.alerts on` |
 | `/u-kick` | @user mention | **Kicks** a player from a game | `/u-kick @VTiS` |
 | `/u-stats` | (@user mention) | Gives you a user's **stats** only in the current Discord server. Gives you yours if no user is mentioned | `/u-stats @VTiS` |
 | `/u-gstats` | (@user mention) | Gives you a user's **global stats**. Gives you yours if no user is mentioned | `/u-gstats @VTiS`|
