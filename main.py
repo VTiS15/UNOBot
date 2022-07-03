@@ -4947,7 +4947,6 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
         message.add_field(name=prefix + 'eg', value='Ends the ongoing UNO game.\n' + chr(173))
         message.add_field(name=prefix + 'leave', value='Lets you leave the UNO game.\n' + chr(173))
         message.add_field(name=prefix + 'kick', value='Kicks a player from an UNO game.\n' + chr(173))
-        message.add_field(name=prefix + 'spectate', value='Spectate games of UNO.\n' + chr(173))
         message.add_field(name=prefix + 'stats',
                           value='Gives you a user\'s stats from this Discord server.\n' + chr(173))
         message.add_field(name=prefix + 'gstats', value='Gives you a user\'s stats from all servers.\n' + chr(173))
@@ -4965,18 +4964,18 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
         if command == 'sg':
             message = discord.Embed(title=prefix + 'sg', color=discord.Color.red())
             message.add_field(name='Description:',
-                              value='Start a game of UNO. Play with those mentioned in the message. Players can play their cards in their auto-created UNO channels.',
+                              value='Start a game of UNO. Players can play their cards in their auto-created UNO channels.',
                               inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'sg (list of @user-mentions) (game settings)`',
+            message.add_field(name='Usage:', value='`' + prefix + 'sg (game settings)`',
                               inline=False)
             message.add_field(name=chr(173),
-                              value='**Note:** You must have at least 2 players to start a game, bots do not count.\n' + chr(
+                              value='**Note:** You must have at least 2 players to start a game.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Tips:',
                               value='• You can change the default game settings using `' + prefix + 'settings dgs`.',
                               inline=False)
             message.add_field(name='Examples:',
-                              value='• `' + prefix + 'sg @VTiS @CoffinMan`\n• `' + prefix + 'sg QuickStart`')
+                              value='• `' + prefix + 'sg Flip`\n• `' + prefix + 'sg DrawUntilMatch`')
 
             await ctx.respond(embed=message)
 
@@ -5005,13 +5004,6 @@ async def commands(ctx, command: Option(str, 'The command you want to learn', re
                               value='**Note:** Only the game creator, admins, and whitelisted roles from the settings can use this.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Examples:', value='`' + prefix + 'kick @CoffinMan`')
-
-            await ctx.respond(embed=message)
-
-        elif command == 'spectate':
-            message = discord.Embed(title=prefix + 'spectate', color=discord.Color.red())
-            message.add_field(name='Description:', value='Spectate games of UNO.', inline=False)
-            message.add_field(name='Usage:', value='`' + prefix + 'spectate (on|off)`', inline=False)
 
             await ctx.respond(embed=message)
 
