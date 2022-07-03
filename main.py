@@ -4884,7 +4884,7 @@ async def on_message(message):
                                 else:
                                     await message.channel.send(
                                         embed=discord.Embed(
-                                            description=':x: **You don\'t have a ' + color.capitalize() + 'flip here!**',
+                                            description=':x: **You don\'t have a ' + color.capitalize() + 'flip!**',
                                             color=discord.Color.red()))
 
                         else:
