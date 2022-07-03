@@ -736,7 +736,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     else:
         if '+1' in d['current'][0]:
-            if d['settings']['StackCards'] and any('+2' in card for card in hand):
+            if d['settings']['StackCards'] and (any('+2' in card for card in hand) or any('+1' in card for card in hand)):
                 stack[str(guild.id)] = 1
 
                 if str.isdigit(cplayer):
