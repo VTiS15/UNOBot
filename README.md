@@ -34,8 +34,9 @@ The UNOBot uses the prefix `/u-` for commands.
 | Command | Arguments | Description | Example |
 | ------- | --------- | ----------- | ------- |
 | `/u-help` | None | Prints **help info** |
+|`/u-cmds` | (command) | Shows you how to use UNOBot's commands. | `/u-cmds sg` |
 | `/u-rules` | None | [UNO Rules](#rule) |
-| `/u-guide`| (`start/play/commands/settings/options`) | Gives you a **guide** on using bot | `/u-guide start` |
+| `/u-guide`| (`start/play/commands/settings/options`) | Gives you a **guide** on using UNOBot | `/u-guide start` |
 | `/u-sg` | (@user mentions), (game settings) | **Starts a game** in the server | `/u-sg @VTiS @Dong Flip`| 
 | `/u-eg` | None | **Ends the ongoing game** in the server |
 | `/u-alerts` | `on/off/view` | Turns your **alerts** on or off | `/u.alerts on` |
