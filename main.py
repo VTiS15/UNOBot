@@ -6179,6 +6179,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message = interaction.message
                             guild = interaction.guild
                             user = interaction.user
+
                             if search(r'[^\w -]', user.name):
                                 if str(user.id) not in games[str(guild.id)]['players']:
                                     for g in client.guilds:
