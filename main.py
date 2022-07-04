@@ -4,7 +4,6 @@ import asyncio
 import discord
 import json
 import boto3
-import sys
 from typing import Union
 from os import getenv
 from treelib import Tree
@@ -24,7 +23,7 @@ from io import BytesIO
 from datetime import datetime
 from random import shuffle
 from secrets import choice
-from re import search, sub, I
+from re import search, sub, I, ASCII
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
 from discord import ApplicationContext, User, Member, Guild, TextChannel
 
@@ -6180,7 +6179,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             guild = interaction.guild
                             user = interaction.user
 
-                            if search(r'[^\w -]', user.name):
+                            if search(r'[^\w -]', user.name, ASCII):
                                 if str(user.id) not in games[str(guild.id)]['players']:
                                     for g in client.guilds:
                                         user_options[str(user.id)].pop(str(g.id), None)
