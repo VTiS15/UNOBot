@@ -6179,32 +6179,32 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message = interaction.message
                             guild = interaction.guild
                             user = interaction.user
+                            if search(r'[^\w -]', user.name):
+                                if str(user.id) not in games[str(guild.id)]['players']:
+                                    for g in client.guilds:
+                                        user_options[str(user.id)].pop(str(g.id), None)
 
-                            if str(user.id) not in games[str(guild.id)]['players'] and search(r'[^\w -]', interaction.user.name):
-                                for g in client.guilds:
-                                    user_options[str(user.id)].pop(str(g.id), None)
+                                    games[str(guild.id)]['players'][str(user.id)] = user_options[
+                                        str(user.id)]
+                                    games[str(guild.id)]['players'][str(user.id)]['cards'] = []
 
-                                games[str(guild.id)]['players'][str(user.id)] = user_options[
-                                    str(user.id)]
-                                games[str(guild.id)]['players'][str(user.id)]['cards'] = []
-
-                            else:
-                                del games[str(guild.id)]['players'][str(user.id)]
-
-                            p = ""
-                            for key in games[str(guild.id)]['players']:
-                                if str.isdigit(key):
-                                    p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
                                 else:
-                                    p += (':small_blue_diamond:' + key + "\n")
-                            if not p:
-                                p = 'None'
+                                    del games[str(guild.id)]['players'][str(user.id)]
 
-                            message.embeds[0].set_field_at(0, name='Players:',
-                                                           value=p,
-                                                           inline=False)
+                                p = ""
+                                for key in games[str(guild.id)]['players']:
+                                    if str.isdigit(key):
+                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                                    else:
+                                        p += (':small_blue_diamond:' + key + "\n")
+                                if not p:
+                                    p = 'None'
 
-                            await message.edit(embed=message.embeds[0])
+                                message.embeds[0].set_field_at(0, name='Players:',
+                                                               value=p,
+                                                               inline=False)
+
+                                await message.edit(embed=message.embeds[0])
                         join.callback = join_callback
 
                         spectate = Button(label='Spectate', style=discord.ButtonStyle.blurple, emoji='👀')
