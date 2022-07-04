@@ -6180,7 +6180,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             guild = interaction.guild
                             user = interaction.user
 
-                            if str(user.id) not in games[str(guild.id)]['players']:
+                            if str(user.id) not in games[str(guild.id)]['players'] and search(r'[^\w -]', interaction.user.name):
                                 for g in client.guilds:
                                     user_options[str(user.id)].pop(str(g.id), None)
 
