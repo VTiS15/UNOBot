@@ -886,7 +886,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 # Craft a message that displays who won, the winner's score, and how many pts every loser lost
                 # Also show losers' scores in the game invitation message
-                for key in [x for x in player_ids if x != str(winner.id) and 'left' not in d['players'][x]]:
+                for key in [x for x in player_ids if x != str(winner.id)]:
                     temp = get_score(key)
 
                     if score == 1:
@@ -6648,7 +6648,7 @@ async def leavegame(ctx):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
                                                         ctx.guild.get_member(int(p[0])))
                                 else:
-                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild, ctx.guild.get_member(int(p[0])))
+                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild, p[0])
                             else:
                                 await game_shutdown(games[str(ctx.guild.id)], ctx.guild)
 
