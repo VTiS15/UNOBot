@@ -7,6 +7,7 @@ import boto3
 from typing import Union
 from os import getenv
 from treelib import Tree
+from emoji import UNICODE_EMOJI_ENGLISH
 from math import comb, e, ceil
 from botocore.exceptions import ClientError
 from aiohttp.client_exceptions import ClientOSError
@@ -6179,7 +6180,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             guild = interaction.guild
                             user = interaction.user
 
-                            if search(r'[^\w -]', user.name, ASCII):
+                            if not all(x in UNICODE_EMOJI_ENGLISH for x in user.name):
                                 if str(user.id) not in games[str(guild.id)]['players']:
                                     for g in client.guilds:
                                         user_options[str(user.id)].pop(str(g.id), None)
