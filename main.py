@@ -31,8 +31,7 @@ from discord import ApplicationContext, User, Member, Guild, TextChannel
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 prefix = '/u-'  # Prefix used in bot commands
-client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all(),
-                      debug_guilds=[getenv('TEST_GUILD_1'), getenv('TEST_GUILD_2')])  # Instantiates a Discord bot class
+client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())  # Instantiates a Discord bot class
 client.remove_command('help')  # Removes the default help command in Pycord
 default_dgs = {
     "DrawUntilMatch": False,
