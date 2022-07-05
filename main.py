@@ -4398,6 +4398,8 @@ async def on_message(message):
                                             message.channel.category.text_channels])
 
                                     await display_cards(m, message.guild)
+                                else:
+                                    await display_cards(n, message.guild)
 
                     elif value in ('skip', 's'):
                         if not games[str(message.guild.id)]['settings']['Flip']:
