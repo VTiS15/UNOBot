@@ -4155,6 +4155,8 @@ async def on_message(message):
                                 await play_card(value, message.author, message.guild)
 
                                 games[str(message.guild.id)]['total'] += int(value)
+                                if games[str(message.guild.id)]['total'] < 0:
+                                    games[str(message.guild.id)]['total'] = 0
 
                                 await draw(message.author, message.guild, 1)
 
