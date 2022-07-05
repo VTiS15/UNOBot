@@ -527,7 +527,10 @@ async def game_setup(ctx: ApplicationContext, d: dict):
                     d['settings'][x] and x != 'StartingCards' or d['settings'][x] != 7 and x == 'StartingCards']
         if settings:
             for key in settings:
-                gcontents += f'• {key}\n'
+                if key == 'ONO99':
+                    gcontents += '• ONO 99\n'
+                else:
+                    gcontents += f'• {key}\n'
         else:
             gcontents += 'None'
         gsettings = await channel.send(content=gcontents)
