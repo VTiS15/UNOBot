@@ -2472,8 +2472,12 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         else:
             if str.isdigit(card) or card == '-10':
                 total = games[str(guild.id)]["total"] + int(card)
+                if total < 0:
+                    total = 0
                 if total >= 99:
                     m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':skull: {player.name}')
+                else:
+                    m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']), str(total))
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
@@ -6613,7 +6617,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
+                                                             'The current total is **0**.'
                                     else:
                                         message_dict[
                                             'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
@@ -6742,7 +6747,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
+                                                             'The current total is **0**.'
                                     else:
                                         message_dict[
                                             'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
