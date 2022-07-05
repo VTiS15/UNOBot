@@ -831,7 +831,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
         m_dict['fields'][0]['value'] = p
 
-        await m.edit(embed=discord.Embed.from_dict(m_dict))
+        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
     # If there is a winner
     if winner:
