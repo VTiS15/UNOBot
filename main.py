@@ -2552,7 +2552,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         # Send a message to every player and spectator to inform them that the player is out
         await asyncio.gather(*[asyncio.create_task(x.send(
-            embed=discord.Embed(description=':bangbang: **' + player.name + '** is **OUT**!.',
+            embed=discord.Embed(description=':bangbang: **' + player.name + '** is **OUT!**',
                                 color=discord.Color.yellow()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
         # If there is only one man standing, they win
