@@ -22,7 +22,7 @@ from collections import OrderedDict
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
-from random import shuffle
+from random import shuffle, random
 from secrets import choice
 from re import search, sub, I, ASCII
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
@@ -453,10 +453,13 @@ async def game_setup(ctx: ApplicationContext, d: dict):
     if not category:
         category = await guild.create_category('UNO-GAME')
 
-    # Assign cards to the game
+    # Assign cards to the game (and total value of the discard pile if it is ONO 99)
     d['cards'] = []
     if flip:
         d['cards'] += flip_cards
+    elif ono99:
+        d['total'] = 0
+        d['cards'] += ono99_cards
     else:
         d['cards'] += cards
 
@@ -467,14 +470,22 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         while len(d['cards']) <= d['settings']['StartingCards']:
             if flip:
                 d['cards'] += flip_cards
+            elif ono99:
+                d['cards'] += ono99_cards
             else:
-                d['cards'] += cards# # # # #
+                d['cards'] += cards
 
         hand = []
-        for _ in range(d['settings']['StartingCards']):
-            card = choice(d['cards'])
-            d['cards'].remove(card)
-            hand.append(card)
+        if not ono99:
+            for _ in range(d['settings']['StartingCards']):
+                card = choice(d['cards'])
+                d['cards'].remove(card)
+                hand.append(card)
+        else:
+            for _ in range(4):
+                card = choice(d['cards'])
+                d['cards'].remove(card)
+                hand.append(card)
         d['players'][bot] = Bot(bot, guild, games, hand)
 
     # Determine the order of play
@@ -549,14 +560,25 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
         # Assign a hand from the deck to a player
         hand = []
-        for _ in range(d['settings']['StartingCards']):
-            card = choice(d['cards'])
-            d['cards'].remove(card)
-            hand.append(card)
+        if not ono99:
+            for _ in range(d['settings']['StartingCards']):
+                card = choice(d['cards'])
+                d['cards'].remove(card)
+                hand.append(card)
+        else:
+            for _ in range(4):
+                card = choice(d['cards'])
+                d['cards'].remove(card)
+                hand.append(card)
         d['players'][id]['cards'] = hand
 
         # Craft and send an embed message that displays the opening hand of a player
-        m = discord.Embed(title='Your cards:', color=discord.Color.red())
+        if flip:
+            m = discord.Embed(title='Your cards:', color=discord.Color.from_rgb(102, 51, 153))
+        elif ono99:
+            m = discord.Embed(title='Your cards:', color=discord.Color.yellow())
+        else:
+            m = discord.Embed(title='Your cards:', color=discord.Color.red())
 
         if not flip:
             image = Image.new('RGBA', (
@@ -605,7 +627,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
                                                                                         '-')) + '-uno-channel').send(
             file=file, embed=m)
 
-    # Assign the top card of the game
+    # Assign the top card of the game if it is not ONO 99
     if flip:
         c = choice(
             [card for card in d['cards'] if
@@ -614,41 +636,12 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         d['cards'].remove(c)
         d['current'] = c
         d['current_opposite'] = c
+    elif ono99:
+        d['current'] = None
     else:
         d['current'] = choice(
             [card for card in d['cards'] if card != 'wild' and card != '+4'])
         d['cards'].remove(d['current'])
-
-    # Craft and send a message that displays the top card of the game to every player (except UNOBot)
-    if d['settings']['Flip']:
-        color = search(r'red|blue|green|yellow', d['current'][0]).group(0)
-    else:
-        color = search(r'red|blue|green|yellow', d['current']).group(0)
-
-    if color == 'red':
-        m = discord.Embed(title='Top card:', color=discord.Color.red())
-    elif color == 'blue':
-        m = discord.Embed(title='Top card:', color=discord.Color.blue())
-    elif color == 'green':
-        m = discord.Embed(title='Top card:', color=discord.Color.green())
-    else:
-        m = discord.Embed(title='Top card:', color=discord.Color.from_rgb(255, 255, 0))
-
-    if flip:
-        image = Image.open('images/' + d['current'][0] + '.png')
-    else:
-        image = Image.open('images/' + d['current'] + '.png')
-    refined = image.resize((round(image.size[0] / 6.0123456790123456790123456790123),
-                            round(image.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
-
-    for channel in category.text_channels:
-        with BytesIO() as image_binary:
-            refined.save(image_binary, format='PNG', quality=100)
-            image_binary.seek(0)
-            file = discord.File(fp=image_binary, filename='topcard.png')
-
-        m.set_image(url='attachment://topcard.png')
-        await channel.send(file=file, embed=m)
 
     # Specify the first player
     if str.isdigit(player_ids[0]):
@@ -657,15 +650,140 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         d['player'] = player_ids[0]
     cplayer = player_ids[0]
 
-    # Light side first if Flip
-    if flip:
-        d['dark'] = False
+    if not ono99:
+        # Craft and send a message that displays the top card of the game to every player (except UNOBot)
+        if d['settings']['Flip']:
+            color = search(r'red|blue|green|yellow', d['current'][0]).group(0)
+        else:
+            color = search(r'red|blue|green|yellow', d['current']).group(0)
 
-    # Clear the guild's stack data if not done
-    try:
-        del stack[str(guild.id)]
-    except KeyError:
-        pass
+        if color == 'red':
+            m = discord.Embed(title='Top card:', color=discord.Color.red())
+        elif color == 'blue':
+            m = discord.Embed(title='Top card:', color=discord.Color.blue())
+        elif color == 'green':
+            m = discord.Embed(title='Top card:', color=discord.Color.green())
+        else:
+            m = discord.Embed(title='Top card:', color=discord.Color.from_rgb(255, 255, 0))
+
+        if flip:
+            image = Image.open('images/' + d['current'][0] + '.png')
+        else:
+            image = Image.open('images/' + d['current'] + '.png')
+        refined = image.resize((round(image.size[0] / 6.0123456790123456790123456790123),
+                                round(image.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
+
+        for channel in category.text_channels:
+            with BytesIO() as image_binary:
+                refined.save(image_binary, format='PNG', quality=100)
+                image_binary.seek(0)
+                file = discord.File(fp=image_binary, filename='topcard.png')
+
+            m.set_image(url='attachment://topcard.png')
+            await channel.send(file=file, embed=m)
+
+        # Light side first if Flip
+        if flip:
+            d['dark'] = False
+
+        # Clear the guild's stack data if not done
+        try:
+            del stack[str(guild.id)]
+        except KeyError:
+            pass
+
+        # Handle the case where the top card is a draw card
+        # Get the hand of the first player
+        if str.isdigit(cplayer):
+            hand = d['players'][cplayer]['cards']
+        else:
+            hand = d['players'][cplayer].cards
+
+        # Check if the first player has any draw cards that can be used to stack
+        # If they have, allow them to stack
+        # If they do not, draw them
+        if not d['settings']['Flip']:
+            if '+2' in d['current']:
+                if d['settings']['StackCards'] and any('+2' in card for card in hand) or any(
+                        '+4' in card for card in hand):
+                    stack[str(guild.id)] = 2
+
+                    if str.isdigit(cplayer):
+                        await asyncio.gather(
+                            *[asyncio.create_task(x.send(embed=discord.Embed(description='**' + guild.get_member(
+                                int(cplayer)).name + ' can choose to stack cards or draw 2 cards.**',
+                                                                             color=discord.Color.red()))) for x in
+                              category.text_channels])
+
+                        await display_cards(guild.get_member(int(cplayer)), guild)
+                    else:
+                        await asyncio.gather(
+                            *[asyncio.create_task(x.send(embed=discord.Embed(
+                                description='**' + cplayer + ' can choose to stack cards or draw 2 cards.**',
+                                color=discord.Color.red()))) for x in category.text_channels])
+
+                        await display_cards(cplayer, guild)
+
+                else:
+                    if str.isdigit(cplayer):
+                        await draw(guild.get_member(int(cplayer)), guild, 2)
+                    else:
+                        await draw(cplayer, guild, 2)
+
+                    if str.isdigit(player_ids[1]):
+                        await display_cards(guild.get_member(int(player_ids[1])), guild)
+                    else:
+                        await display_cards(player_ids[1], guild)
+
+            else:
+                if str.isdigit(cplayer):
+                    await display_cards(guild.get_member(int(cplayer)), guild)
+                else:
+                    await display_cards(cplayer, guild)
+
+        else:
+            if '+1' in d['current'][0]:
+                if d['settings']['StackCards'] and (
+                        any('+2' in card for card in hand) or any('+1' in card for card in hand)):
+                    stack[str(guild.id)] = 1
+
+                    if str.isdigit(cplayer):
+                        await asyncio.gather(
+                            *[asyncio.create_task(x.send(embed=discord.Embed(
+                                description='**' + guild.get_member(
+                                    int(cplayer)).name + ' can choose to stack cards or draw 1 card.**',
+                                color=discord.Color.red()))) for x in
+                                category.text_channels])
+
+                        await display_cards(guild.get_member(int(cplayer)), guild)
+                    else:
+                        await asyncio.gather(
+                            *[asyncio.create_task(x.send(embed=discord.Embed(
+                                description='**' + cplayer + ' can choose to stack cards or draw 1 card.**',
+                                color=discord.Color.red()))) for x in
+                              category.text_channels])
+
+                        await display_cards(cplayer, guild)
+
+                else:
+                    if not str.isdigit(cplayer):
+                        await draw(cplayer, guild, 1)
+                    else:
+                        await draw(guild.get_member(int(cplayer)), guild, 1)
+
+                    if not str.isdigit(player_ids[1]):
+                        await display_cards(player_ids[1], guild)
+                    else:
+                        await display_cards(guild.get_member(int(player_ids[1])), guild)
+
+            else:
+                if not str.isdigit(cplayer):
+                    await display_cards(cplayer, guild)
+                else:
+                    await display_cards(guild.get_member(int(cplayer)), guild)
+
+    else:
+        await display_cards(guild.get_member(int(player_ids[0])), guild)
 
     # Increment every player's Played count by 1
     users_file = s3_resource.Object('unobot-bucket', 'users.json')
@@ -677,92 +795,6 @@ async def game_setup(ctx: ApplicationContext, d: dict):
     # Print a message to the console stating a game has successfully started in the guild
     print(
         '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(guild) + '.')
-
-    # Handle the case where the top card is a draw card
-    # Get the hand of the first player
-    if str.isdigit(cplayer):
-        hand = d['players'][cplayer]['cards']
-    else:
-        hand = d['players'][cplayer].cards
-
-    # Check if the first player has any draw cards that can be used to stack
-    # If they have, allow them to stack
-    # If they do not, draw them
-    if not d['settings']['Flip']:
-        if '+2' in d['current']:
-            if d['settings']['StackCards'] and any('+2' in card for card in hand) or any('+4' in card for card in hand):
-                stack[str(guild.id)] = 2
-
-                if str.isdigit(cplayer):
-                    await asyncio.gather(
-                        *[asyncio.create_task(x.send(embed=discord.Embed(description='**' + guild.get_member(
-                            int(cplayer)).name + ' can choose to stack cards or draw 2 cards.**',
-                                                                         color=discord.Color.red()))) for x in
-                          category.text_channels])
-
-                    await display_cards(guild.get_member(int(cplayer)), guild)
-                else:
-                    await asyncio.gather(
-                        *[asyncio.create_task(x.send(embed=discord.Embed(
-                            description='**' + cplayer + ' can choose to stack cards or draw 2 cards.**',
-                            color=discord.Color.red()))) for x in category.text_channels])
-
-                    await display_cards(cplayer, guild)
-
-            else:
-                if str.isdigit(cplayer):
-                    await draw(guild.get_member(int(cplayer)), guild, 2)
-                else:
-                    await draw(cplayer, guild, 2)
-
-                if str.isdigit(player_ids[1]):
-                    await display_cards(guild.get_member(int(player_ids[1])), guild)
-                else:
-                    await display_cards(player_ids[1], guild)
-
-        else:
-            if str.isdigit(cplayer):
-                await display_cards(guild.get_member(int(cplayer)), guild)
-            else:
-                await display_cards(cplayer, guild)
-
-    else:
-        if '+1' in d['current'][0]:
-            if d['settings']['StackCards'] and (any('+2' in card for card in hand) or any('+1' in card for card in hand)):
-                stack[str(guild.id)] = 1
-
-                if str.isdigit(cplayer):
-                    await asyncio.gather(
-                        *[asyncio.create_task(x.send(embed=discord.Embed(
-                            description='**' + guild.get_member(int(cplayer)).name + ' can choose to stack cards or draw 1 card.**',
-                            color=discord.Color.red()))) for x in
-                            category.text_channels])
-
-                    await display_cards(guild.get_member(int(cplayer)), guild)
-                else:
-                    await asyncio.gather(
-                        *[asyncio.create_task(x.send(embed=discord.Embed(description='**' + cplayer + ' can choose to stack cards or draw 1 card.**',
-                                                                         color=discord.Color.red()))) for x in
-                          category.text_channels])
-
-                    await display_cards(cplayer, guild)
-
-            else:
-                if not str.isdigit(cplayer):
-                    await draw(cplayer, guild, 1)
-                else:
-                    await draw(guild.get_member(int(cplayer)), guild, 1)
-
-                if not str.isdigit(player_ids[1]):
-                    await display_cards(player_ids[1], guild)
-                else:
-                    await display_cards(guild.get_member(int(player_ids[1])), guild)
-
-        else:
-            if not str.isdigit(cplayer):
-                await display_cards(cplayer, guild)
-            else:
-                await display_cards(guild.get_member(int(cplayer)), guild)
 
 
 async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None):
@@ -817,41 +849,52 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 score = 0
                 for card in cards:
-                    if not games[str(guild.id)]['settings']['Flip']:
+                    if games[str(guild.id)]['settings']['Flip']:
+                        if not games[str(guild.id)]['dark']:
+                            value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+
+                            if value == '+1':
+                                score += 10
+                            elif value in ('reverse', 'flip', 'skip'):
+                                score += 20
+                            elif value == 'wild':
+                                score += 40
+                            elif value == '+2':
+                                score += 50
+                            else:
+                                score += int(value)
+
+                        else:
+                            value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
+
+                            if value in ('+5', 'reverse', 'flip'):
+                                score += 20
+                            elif value == 'skip':
+                                score += 30
+                            elif value == 'wild':
+                                score += 40
+                            elif value == '+c':
+                                score += 60
+                            else:
+                                score += int(value)
+
+                    elif games[str(guild.id)]['settings']['ONO99']:
+                        value = search(r'^\d+$|play2|reverse|ono99', games[str(guild.id)]['current']).group(0)
+
+                        if value in {'play2', 'reverse'}:
+                            score += 20
+                        elif value == 'ono99':
+                            score += 99
+                        else:
+                            score += int(value)
+
+                    else:
                         value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
 
                         if value in ('+2', 'skip', 'reverse'):
                             score += 20
                         elif value in ('+4', 'wild'):
                             score += 50
-                        else:
-                            score += int(value)
-
-                    elif not games[str(guild.id)]['dark']:
-                        value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
-
-                        if value == '+1':
-                            score += 10
-                        elif value in ('reverse', 'flip', 'skip'):
-                            score += 20
-                        elif value == 'wild':
-                            score += 40
-                        elif value == '+2':
-                            score += 50
-                        else:
-                            score += int(value)
-
-                    else:
-                        value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
-
-                        if value in ('+5', 'reverse', 'flip'):
-                            score += 20
-                        elif value == 'skip':
-                            score += 30
-                        elif value == 'wild':
-                            score += 40
-                        elif value == '+c':
-                            score += 60
                         else:
                             score += int(value)
 
@@ -1522,52 +1565,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
             if isinstance(player, Member) and channel.name == sub(r'[^\w -]', '',
                                                                   player.name.lower().replace(' ',
                                                                                               '-')) + '-uno-channel':
-                if not games[str(guild.id)]['settings']['Flip']:
-                    color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
-
-                    if color == 'red':
-                        message = discord.Embed(title='It\'s your turn!',
-                                                description='The current card is **' + games[str(guild.id)][
-                                                    'current'].capitalize() + '**.\n\nYour cards:',
-                                                color=discord.Color.red())
-                    elif color == 'blue':
-                        message = discord.Embed(title='It\'s your turn!',
-                                                description='The current card is **' + games[str(guild.id)][
-                                                    'current'].capitalize() + '**.\n\nYour cards:',
-                                                color=discord.Color.blue())
-                    elif color == 'green':
-                        message = discord.Embed(title='It\'s your turn!',
-                                                description='The current card is **' + games[str(guild.id)][
-                                                    'current'].capitalize() + '**.\n\nYour cards:',
-                                                color=discord.Color.green())
-                    else:
-                        message = discord.Embed(title='It\'s your turn!',
-                                                description='The current card is **' + games[str(guild.id)][
-                                                    'current'].capitalize() + '**.\n\nYour cards:',
-                                                color=discord.Color.from_rgb(255, 255, 0))
-
-                    image = Image.new('RGBA', (
-                        len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
-                            round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
-                        round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
-                                      (255, 0, 0, 0))
-
-                    for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
-                        card = Image.open(
-                            'images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i] + '.png')
-                        refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
-                        image.paste(refined, (i * refined.size[0], 0))
-
-                    with BytesIO() as image_binary:
-                        image.save(image_binary, format='PNG', quality=100)
-                        image_binary.seek(0)
-                        file = discord.File(fp=image_binary, filename='image.png')
-
-                    message.set_image(url='attachment://image.png')
-
-                else:
+                if games[str(guild.id)]['settings']['Flip']:
                     if not games[str(guild.id)]['dark']:
                         color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
 
@@ -1646,109 +1644,163 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
                     message.set_image(url='attachment://image.png')
 
-            else:
-                if isinstance(player, Member):
-                    if not games[str(guild.id)]['settings']['Flip']:
-                        color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
+                elif games[str(guild.id)]['settings']['ONO99']:
+                    message = discord.Embed(title='It\'s your turn!',
+                                            description='The current total is **' + str(games[str(guild.id)][
+                                                'total']) + '**.\n\nYour cards:',
+                                            color=discord.Color.yellow())
 
-                        if color == 'red':
-                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                    description='The current card is **' + games[str(guild.id)][
-                                                        'current'].capitalize() + '**.\n\nTheir cards:',
-                                                    color=discord.Color.red())
-                        elif color == 'blue':
-                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                    description='The current card is **' + games[str(guild.id)][
-                                                        'current'].capitalize() + '**.\n\nTheir cards:',
-                                                    color=discord.Color.blue())
-                        elif color == 'green':
-                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                    description='The current card is **' + games[str(guild.id)][
-                                                        'current'].capitalize() + '**.\n\nTheir cards:',
-                                                    color=discord.Color.green())
-                        else:
-                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                    description='The current card is **' + games[str(guild.id)][
-                                                        'current'].capitalize() + '**.\n\nTheir cards:',
-                                                    color=discord.Color.from_rgb(255, 255, 0))
+                    image = Image.new('RGBA', (
+                        len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
+                            round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
+                        round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
+                                      (255, 0, 0, 0))
 
-                    else:
-                        if not games[str(guild.id)]['dark']:
-                            color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
+                    for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
+                        card = Image.open(
+                            'images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i] + '.png')
+                        refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                               round(card.size[1] / 6.0123456790123456790123456790123)),
+                                              Image.ANTIALIAS)
+                        image.paste(refined, (i * refined.size[0], 0))
 
-                            if color == 'red':
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.red())
-                            elif color == 'blue':
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.blue())
-                            elif color == 'green':
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.green())
-                            else:
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.from_rgb(255, 255, 0))
-                        else:
-                            color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
+                    with BytesIO() as image_binary:
+                        image.save(image_binary, format='PNG', quality=100)
+                        image_binary.seek(0)
+                        file = discord.File(fp=image_binary, filename='image.png')
 
-                            if color == 'pink':
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.from_rgb(255, 20, 147))
-
-                            elif color == 'teal':
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.from_rgb(0, 128, 128))
-
-                            elif color == 'orange':
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.from_rgb(255, 140, 0))
-
-                            else:
-                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                        description='The current card is **' + games[str(guild.id)][
-                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
-                                                        color=discord.Color.from_rgb(102, 51, 153))
+                    message.set_image(url='attachment://image.png')
 
                 else:
-                    if not games[str(guild.id)]['settings']['Flip']:
+                    color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
+
+                    if color == 'red':
+                        message = discord.Embed(title='It\'s your turn!',
+                                                description='The current card is **' + games[str(guild.id)][
+                                                    'current'].capitalize() + '**.\n\nYour cards:',
+                                                color=discord.Color.red())
+                    elif color == 'blue':
+                        message = discord.Embed(title='It\'s your turn!',
+                                                description='The current card is **' + games[str(guild.id)][
+                                                    'current'].capitalize() + '**.\n\nYour cards:',
+                                                color=discord.Color.blue())
+                    elif color == 'green':
+                        message = discord.Embed(title='It\'s your turn!',
+                                                description='The current card is **' + games[str(guild.id)][
+                                                    'current'].capitalize() + '**.\n\nYour cards:',
+                                                color=discord.Color.green())
+                    else:
+                        message = discord.Embed(title='It\'s your turn!',
+                                                description='The current card is **' + games[str(guild.id)][
+                                                    'current'].capitalize() + '**.\n\nYour cards:',
+                                                color=discord.Color.from_rgb(255, 255, 0))
+
+                    image = Image.new('RGBA', (
+                        len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
+                            round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
+                        round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
+                                      (255, 0, 0, 0))
+
+                    for i in range(len(games[str(guild.id)]['players'][str(player.id)]['cards'])):
+                        card = Image.open(
+                            'images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i] + '.png')
+                        refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                               round(card.size[1] / 6.0123456790123456790123456790123)),
+                                              Image.ANTIALIAS)
+                        image.paste(refined, (i * refined.size[0], 0))
+
+                    with BytesIO() as image_binary:
+                        image.save(image_binary, format='PNG', quality=100)
+                        image_binary.seek(0)
+                        file = discord.File(fp=image_binary, filename='image.png')
+
+                    message.set_image(url='attachment://image.png')
+
+            else:
+                if isinstance(player, Member):
+                    if games[str(guild.id)]['settings']['Flip']:
+                        if not games[str(guild.id)]['dark']:
+                            color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
+
+                            if color == 'red':
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.red())
+                            elif color == 'blue':
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.blue())
+                            elif color == 'green':
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.green())
+                            else:
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][0].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.from_rgb(255, 255, 0))
+                        else:
+                            color = search(r'pink|teal|orange|purple', games[str(guild.id)]['current'][1]).group(0)
+
+                            if color == 'pink':
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.from_rgb(255, 20, 147))
+
+                            elif color == 'teal':
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.from_rgb(0, 128, 128))
+
+                            elif color == 'orange':
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.from_rgb(255, 140, 0))
+
+                            else:
+                                message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                        description='The current card is **' + games[str(guild.id)][
+                                                            'current'][1].capitalize() + '**.\n\nTheir cards:',
+                                                        color=discord.Color.from_rgb(102, 51, 153))
+
+                    elif games[str(guild.id)]['settings']['ONO99']:
+                        message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                description='The current total is **' + str(games[str(guild.id)][
+                                                    'total']) + '**.\n\nTheir cards:',
+                                                color=discord.Color.yellow())
+
+                    else:
                         color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
 
                         if color == 'red':
-                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
                                                     description='The current card is **' + games[str(guild.id)][
                                                         'current'].capitalize() + '**.\n\nTheir cards:',
                                                     color=discord.Color.red())
                         elif color == 'blue':
-                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
                                                     description='The current card is **' + games[str(guild.id)][
                                                         'current'].capitalize() + '**.\n\nTheir cards:',
                                                     color=discord.Color.blue())
                         elif color == 'green':
-                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
                                                     description='The current card is **' + games[str(guild.id)][
                                                         'current'].capitalize() + '**.\n\nTheir cards:',
                                                     color=discord.Color.green())
                         else:
-                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
                                                     description='The current card is **' + games[str(guild.id)][
                                                         'current'].capitalize() + '**.\n\nTheir cards:',
                                                     color=discord.Color.from_rgb(255, 255, 0))
 
-                    else:
+                else:
+                    if games[str(guild.id)]['settings']['Flip']:
                         if not games[str(guild.id)]['dark']:
                             color = search(r'red|blue|green|yellow', games[str(guild.id)]['current'][0]).group(0)
 
@@ -1798,6 +1850,36 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                                                         description='The current card is **' + games[str(guild.id)][
                                                             'current'][1].capitalize() + '**.\n\nTheir cards:',
                                                         color=discord.Color.from_rgb(102, 51, 153))
+
+                    elif games[str(guild.id)]['settings']['ONO99']:
+                        message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                description='The current card is **' + str(games[str(guild.id)][
+                                                    'total']) + '**.\n\nTheir cards:',
+                                                color=discord.Color.yellow())
+
+                    else:
+                        color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
+
+                        if color == 'red':
+                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                    description='The current card is **' + games[str(guild.id)][
+                                                        'current'].capitalize() + '**.\n\nTheir cards:',
+                                                    color=discord.Color.red())
+                        elif color == 'blue':
+                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                    description='The current card is **' + games[str(guild.id)][
+                                                        'current'].capitalize() + '**.\n\nTheir cards:',
+                                                    color=discord.Color.blue())
+                        elif color == 'green':
+                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                    description='The current card is **' + games[str(guild.id)][
+                                                        'current'].capitalize() + '**.\n\nTheir cards:',
+                                                    color=discord.Color.green())
+                        else:
+                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                    description='The current card is **' + games[str(guild.id)][
+                                                        'current'].capitalize() + '**.\n\nTheir cards:',
+                                                    color=discord.Color.from_rgb(255, 255, 0))
 
                 if isinstance(player, Member):
                     image = Image.new('RGBA', (
@@ -1814,6 +1896,8 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                             else:
                                 card = Image.open(
                                     'images/' + games[str(guild.id)]['players'][str(player.id)]['cards'][i][0] + '.png')
+                        elif games[str(guild.id)]['settings']['ONO99']:
+                            card = Image.open('images/ono99_back.png')
                         else:
                             card = Image.open('images/back.png')
 
@@ -1838,6 +1922,8 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                             else:
                                 card = Image.open(
                                     'images/' + games[str(guild.id)]['players'][player].cards[i][0] + '.png')
+                        elif games[str(guild.id)]['settings']['ONO99']:
+                            card = Image.open('images/ono99_back.png')
                         else:
                             card = Image.open('images/back.png')
 
@@ -1854,16 +1940,17 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
                 message.set_image(url='attachment://image.png')
 
-            if not games[str(guild.id)]['settings']['Flip']:
-                thumbnail = discord.File('images/' + games[str(guild.id)]['current'] + '.png', filename='thumbnail.png')
-            else:
-                if not games[str(guild.id)]['dark']:
-                    thumbnail = discord.File('images/' + games[str(guild.id)]['current'][0] + '.png',
-                                             filename='thumbnail.png')
+            if games[str(guild.id)]['current']:
+                if not games[str(guild.id)]['settings']['Flip']:
+                    thumbnail = discord.File('images/' + games[str(guild.id)]['current'] + '.png', filename='thumbnail.png')
                 else:
-                    thumbnail = discord.File('images/' + games[str(guild.id)]['current'][1] + '.png',
-                                             filename='thumbnail.png')
-            message.set_thumbnail(url='attachment://thumbnail.png')
+                    if not games[str(guild.id)]['dark']:
+                        thumbnail = discord.File('images/' + games[str(guild.id)]['current'][0] + '.png',
+                                                 filename='thumbnail.png')
+                    else:
+                        thumbnail = discord.File('images/' + games[str(guild.id)]['current'][1] + '.png',
+                                                 filename='thumbnail.png')
+                message.set_thumbnail(url='attachment://thumbnail.png')
 
             n = None
             p = [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in games[str(guild.id)]['players'][x]]
@@ -1978,30 +2065,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         bot = games[str(guild.id)]['players'][player]
 
     # Removes the played card from player's hand (plus something else)
-    if not games[str(guild.id)]['settings']['Flip']:
-        if not bot:
-            if '+4' in card:
-                games[str(guild.id)]['players'][str(player.id)]['cards'].remove('+4')
-
-                if str(client.user.id) in games[str(guild.id)]['players']:
-                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('+4', ''))
-            elif 'wild' in card:
-                games[str(guild.id)]['players'][str(player.id)]['cards'].remove('wild')
-
-                if str(client.user.id) in games[str(guild.id)]['players']:
-                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('wild', ''))
-            else:
-                games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
-
-        else:
-            if '+4' in card:
-                bot.cards.remove('+4')
-            elif 'wild' in card:
-                bot.cards.remove('wild')
-            else:
-                bot.cards.remove(card)
-
-    else:
+    if games[str(guild.id)]['settings']['Flip']:
         c = None
         if not games[str(guild.id)]['dark']:
             if '+2' in card[0]:
@@ -2066,12 +2130,13 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         if not games[str(guild.id)]['dark'] and 'flip' in card[0] or games[str(guild.id)]['dark'] and 'flip' in card[1]:
             for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
-                games[str(guild.id)]['players'][b].losing_colors, games[str(guild.id)]['players'][b].losing_values = [], []
+                games[str(guild.id)]['players'][b].losing_colors, games[str(guild.id)]['players'][
+                    b].losing_values = [], []
 
                 if not games[str(guild.id)]['dark']:
                     if isinstance(player, Member) and len(
                             games[str(guild.id)]['players'][str(player.id)]['cards']) < 3 or isinstance(player,
-                                                                                                         str) and len(
+                                                                                                        str) and len(
                         games[str(guild.id)]['players'][player].cards) < 3:
                         color = search(r'pink|teal|orange|purple', card[1])
                         if color:
@@ -2178,13 +2243,41 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         if isinstance(player, Member) and len(
                 games[str(guild.id)]['players'][str(player.id)]['cards']) == 1 or isinstance(player, str) and len(
-                games[str(guild.id)]['players'][player].cards) == 1:
+            games[str(guild.id)]['players'][player].cards) == 1:
             if not games[str(guild.id)]['dark'] and any(x in card[0] for x in {'wild', '+2'}):
                 for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
-                    games[str(guild.id)]['players'][b].losing_colors.append(search(r'red|blue|green|yellow', card[0]).group(0))
+                    games[str(guild.id)]['players'][b].losing_colors.append(
+                        search(r'red|blue|green|yellow', card[0]).group(0))
             elif games[str(guild.id)]['dark'] and any(x in card[1] for x in {'wild', '+color'}):
                 for b in [x for x in games[str(guild.id)]['players'] if not str.isdigit(x) and x != player]:
-                    games[str(guild.id)]['players'][b].losing_colors.append(search(r'pink|teal|orange|purple', card[1]).group(0))
+                    games[str(guild.id)]['players'][b].losing_colors.append(
+                        search(r'pink|teal|orange|purple', card[1]).group(0))
+
+    elif games[str(guild.id)]['settings']['ONO99']:
+        games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
+
+    else:
+        if not bot:
+            if '+4' in card:
+                games[str(guild.id)]['players'][str(player.id)]['cards'].remove('+4')
+
+                if str(client.user.id) in games[str(guild.id)]['players']:
+                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('+4', ''))
+            elif 'wild' in card:
+                games[str(guild.id)]['players'][str(player.id)]['cards'].remove('wild')
+
+                if str(client.user.id) in games[str(guild.id)]['players']:
+                    games[str(guild.id)]['players'][str(client.user.id)].losing_colors.append(card.replace('wild', ''))
+            else:
+                games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
+
+        else:
+            if '+4' in card:
+                bot.cards.remove('+4')
+            elif 'wild' in card:
+                bot.cards.remove('wild')
+            else:
+                bot.cards.remove(card)
 
     # Make the played card the first card on the discard pile
     games[str(guild.id)]['current'] = card
@@ -2234,6 +2327,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 else:
                     message = discord.Embed(title=player + ':', color=discord.Color.from_rgb(102, 51, 153))
 
+    elif games[str(guild.id)]['settings']['ONO99']:
+        message = discord.Embed(title=player.name + ':', color=discord.Color.yellow())
+
     else:
         color = search(r'red|blue|green|yellow', card).group(0)
 
@@ -2256,13 +2352,13 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             else:
                 message = discord.Embed(title=player + ':', color=discord.Color.from_rgb(255, 255, 0))
 
-    if not games[str(guild.id)]['settings']['Flip']:
-        image = Image.open('images/' + card + '.png')
-    else:
+    if games[str(guild.id)]['settings']['Flip']:
         if not games[str(guild.id)]['dark']:
             image = Image.open('images/' + card[0] + '.png')
         else:
             image = Image.open('images/' + card[1] + '.png')
+    else:
+        image = Image.open('images/' + card + '.png')
     refined = image.resize(
         (round(image.size[0] / 6.0123456790123456790123456790123),
          round(image.size[1] / 6.0123456790123456790123456790123)), Image.ANTIALIAS)
@@ -2413,6 +2509,23 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         # Shut down the game where the player wins
         await game_shutdown(games[str(guild.id)], guild, player)
+
+    # If the player plays an ONO 99 card that makes the total value of the discard pile hit or exceed 99
+    if games[str(guild.id)]['settings']['ONO99'] and (str.isdigit(card) and games[str(guild.id)]['total'] + int(card) >= 99):
+        # Disallow the player to play anymore
+        games[str(guild.id)]['players'][str(player.id)]['left'] = True
+
+        # Send a message to every player and spectator to inform them that the player is out
+        await asyncio.gather(*[asyncio.create_task(x.send(
+            embed=discord.Embed(description=':bangbang: **' + player.name + '** is **OUT**!.',
+                                color=discord.Color.yellow()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+
+        # If there is only one man standing, they win
+        if sum(1 for x in games[str(guild.id)]['players'] if 'left' in games[str(guild.id)]['players'][x]) == len(games[str(guild.id)]['players']) - 1:
+            for id in games[str(guild.id)]['players']:
+                if 'left' not in games[str(guild.id)]['players'][id]:
+                    await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
+                    break
 
 
 class Bot:
@@ -3722,14 +3835,18 @@ async def on_message(message):
                 color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
 
             if not color:
-                await message.channel.send(
-                    embed=discord.Embed(
-                        description=':x: **I don\'t understand your command.**',
-                        color=discord.Color.red()))
+                if not games[str(message.guild.id)]['settings']['ONO99']:
+                    await message.channel.send(
+                        embed=discord.Embed(
+                            description=':x: **I don\'t understand your command.**',
+                            color=discord.Color.red()))
             else:
                 color = color.group(0)
 
-            value = search(r'(?<=[a-z ])(skip|reverse|wild|flip|\d|[+d](raw)* *([c4251]|colou*r)|[srwf]$)', card)
+            if games[str(message.guild.id)]['settings']['ONO99']:
+                value = search(r'^\d+$|-*10|r(everse)*|p(lay)* *2|ono* *9+', card)
+            else:
+                value = search(r'(?<=[a-z ])(skip|reverse|wild|flip|\d|[+d](raw)* *([c4251]|colou*r)|[srwf]$)', card)
             if value:
                 value = value.group(0)
 
@@ -3749,8 +3866,10 @@ async def on_message(message):
                 color = 'orange'
             elif color == 'z':
                 color = 'purple'
+
             elif color and any(x in color for x in ('d', 'draw')) and games[str(message.guild.id)][
-                'player'] == message.author.id:
+                'player'] == message.author.id and not games[str(message.guild.id)][
+                'settings']['ONO99']:
                 overwrite = message.channel.overwrites_for(message.author)
                 overwrite.send_messages = False
                 overwrite.read_messages = True
@@ -3888,92 +4007,31 @@ async def on_message(message):
                 except (discord.NotFound, ClientOSError):
                     pass
 
-                if not games[str(message.guild.id)]['settings']['Flip']:
+                if games[str(message.guild.id)]['settings']['Flip']:
+                    if not games[str(message.guild.id)]['dark']:
+                        current_color = search(r'red|blue|green|yellow',
+                                               games[str(message.guild.id)]['current'][0]).group(0)
+                        current_value = search(r'\+[21]|wild|skip|reverse|flip|\d',
+                                               games[str(message.guild.id)]['current'][0]).group(0)
+
+                    else:
+                        current_color = search(r'pink|teal|orange|purple',
+                                               games[str(message.guild.id)]['current'][1]).group(0)
+                        current_value = search(r'\+(5|color)|wild|skip|reverse|flip|\d',
+                                               games[str(message.guild.id)]['current'][1]).group(0)
+
+                elif games[str(message.guild.id)]['settings']['ONO99']:
+                    current_value = search(r'^\d+$|play2|reverse|ono99', games[str(message.guild.id)]['current']).group(0)
+
+                else:
                     current_color = search(r'red|blue|green|yellow',
                                            games[str(message.guild.id)]['current']).group(0)
                     current_value = search(r'\+[42]|wild|skip|reverse|\d',
                                            games[str(message.guild.id)]['current']).group(0)
 
-                elif not games[str(message.guild.id)]['dark']:
-                    current_color = search(r'red|blue|green|yellow',
-                                           games[str(message.guild.id)]['current'][0]).group(0)
-                    current_value = search(r'\+[21]|wild|skip|reverse|flip|\d',
-                                           games[str(message.guild.id)]['current'][0]).group(0)
-
-                else:
-                    current_color = search(r'pink|teal|orange|purple',
-                                           games[str(message.guild.id)]['current'][1]).group(0)
-                    current_value = search(r'\+(5|color)|wild|skip|reverse|flip|\d',
-                                           games[str(message.guild.id)]['current'][1]).group(0)
-
                 try:
-                    if value in [str(x) for x in range(10)]:
-                        if not games[str(message.guild.id)]['settings']['Flip']:
-                            if color + value in games[str(message.guild.id)]['players'][str(message.author.id)][
-                                'cards']:
-                                if (current_color == color or current_value == value) and not (
-                                        '+' in current_value and str(message.guild.id) in stack):
-                                    await play_card(color + value, message.author, message.guild)
-
-                                    if games[str(message.guild.id)]['settings']['7-0']:
-                                        if value == '7':
-                                            view = View()
-                                            view.add_item(get_hands(message.guild, message.author, n))
-
-                                            await message.channel.send(
-                                                embed=discord.Embed(
-                                                    description='**Who do you want to switch hands with?**',
-                                                    color=discord.Color.red()), view=view)
-
-                                        elif value == '0':
-                                            d = deepcopy(games[str(message.guild.id)]['players'])
-
-                                            player_ids = list(games[str(message.guild.id)]['players'].keys())
-                                            for i in range(len(player_ids)):
-                                                if player_ids[i] != str(client.user.id) and player_ids[
-                                                    (i + 1) % len(player_ids)] != str(client.user.id):
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]][
-                                                        'cards'] = d[player_ids[i]]['cards']
-                                                elif player_ids[i] == str(client.user.id):
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]][
-                                                        'cards'] = d[player_ids[i]].cards
-                                                else:
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]].cards = \
-                                                        d[player_ids[i]]['cards']
-
-                                            if str(message.guild.id) in games:
-                                                await asyncio.gather(
-                                                    *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                        description='**Everyone switched hands!**',
-                                                        color=discord.Color.red()))) for x in
-                                                        message.channel.category.text_channels])
-
-                                                await display_cards(n, message.guild)
-
-                                        else:
-                                            if str(message.guild.id) in games:
-                                                await display_cards(n, message.guild)
-
-                                    else:
-                                        if str(message.guild.id) in games:
-                                            await display_cards(n, message.guild)
-
-                                else:
-                                    await message.channel.send(
-                                        embed=discord.Embed(
-                                            description=':x: **You can\'t play a ' + color.capitalize() + value + ' here!**',
-                                            color=discord.Color.red()))
-
-                            else:
-                                await message.channel.send(
-                                    embed=discord.Embed(
-                                        description=':x: **You don\'t have a ' + color.capitalize() + value + '!**',
-                                        color=discord.Color.red()))
-
-                        else:
+                    if value in [str(x) for x in range(10)] or value in {'10', '-10'}:
+                        if games[str(message.guild.id)]['settings']['Flip']:
                             if not games[str(message.guild.id)]['dark']:
                                 if color + value in [x[0] for x in
                                                      games[str(message.guild.id)]['players'][str(message.author.id)][
@@ -4055,37 +4113,86 @@ async def on_message(message):
                                             description=':x: **You don\'t have a ' + color.capitalize() + value + '!**',
                                             color=discord.Color.red()))
 
-                    elif value in ('reverse', 'r'):
-                        if not games[str(message.guild.id)]['settings']['Flip']:
-                            if color + 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)][
+                        elif games[str(message.guild.id)]['settings']['ONO99']:
+                            if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
+                                await play_card(value, message.author, message.guild)
+
+                                games[str(message.guild.id)]['total'] += int(value)
+
+                                await draw(message.author, message.guild, 1)
+
+                                if current_value == 'play2':
+                                    await display_cards(message.author, message.guild)
+                                else:
+                                    await display_cards(n, message.guild)
+
+                        else:
+                            if color + value in games[str(message.guild.id)]['players'][str(message.author.id)][
                                 'cards']:
-                                if (current_color == color or current_value == 'reverse') and not (
+                                if (current_color == color or current_value == value) and not (
                                         '+' in current_value and str(message.guild.id) in stack):
-                                    await play_card(color + 'reverse', message.author, message.guild)
+                                    await play_card(color + value, message.author, message.guild)
+
+                                    if games[str(message.guild.id)]['settings']['7-0']:
+                                        if value == '7':
+                                            view = View()
+                                            view.add_item(get_hands(message.guild, message.author, n))
+
+                                            await message.channel.send(
+                                                embed=discord.Embed(
+                                                    description='**Who do you want to switch hands with?**',
+                                                    color=discord.Color.red()), view=view)
+
+                                        elif value == '0':
+                                            d = deepcopy(games[str(message.guild.id)]['players'])
+
+                                            player_ids = list(games[str(message.guild.id)]['players'].keys())
+                                            for i in range(len(player_ids)):
+                                                if player_ids[i] != str(client.user.id) and player_ids[
+                                                    (i + 1) % len(player_ids)] != str(client.user.id):
+                                                    games[str(message.guild.id)]['players'][
+                                                        player_ids[(i + 1) % len(player_ids)]][
+                                                        'cards'] = d[player_ids[i]]['cards']
+                                                elif player_ids[i] == str(client.user.id):
+                                                    games[str(message.guild.id)]['players'][
+                                                        player_ids[(i + 1) % len(player_ids)]][
+                                                        'cards'] = d[player_ids[i]].cards
+                                                else:
+                                                    games[str(message.guild.id)]['players'][
+                                                        player_ids[(i + 1) % len(player_ids)]].cards = \
+                                                        d[player_ids[i]]['cards']
+
+                                            if str(message.guild.id) in games:
+                                                await asyncio.gather(
+                                                    *[asyncio.create_task(x.send(embed=discord.Embed(
+                                                        description='**Everyone switched hands!**',
+                                                        color=discord.Color.red()))) for x in
+                                                        message.channel.category.text_channels])
+
+                                                await display_cards(n, message.guild)
+
+                                        else:
+                                            if str(message.guild.id) in games:
+                                                await display_cards(n, message.guild)
+
+                                    else:
+                                        if str(message.guild.id) in games:
+                                            await display_cards(n, message.guild)
 
                                 else:
                                     await message.channel.send(
                                         embed=discord.Embed(
-                                            description=':x: **You can\'t play a ' + color.capitalize() + 'Reverse here!**',
+                                            description=':x: **You can\'t play a ' + color.capitalize() + value + ' here!**',
                                             color=discord.Color.red()))
-
-                                    overwrite.send_messages = True
-                                    await message.channel.set_permissions(message.author, overwrite=overwrite)
-
-                                    return
 
                             else:
                                 await message.channel.send(
                                     embed=discord.Embed(
-                                        description=':x: **You don\'t have a ' + color.capitalize() + 'Reverse!**',
+                                        description=':x: **You don\'t have a ' + color.capitalize() + value + '!**',
                                         color=discord.Color.red()))
 
-                                overwrite.send_messages = True
-                                await message.channel.set_permissions(message.author, overwrite=overwrite)
-
-                                return
-
-                        else:
+                    elif value in ('reverse', 'r'):
+                        if games[str(message.guild.id)]['settings']['Flip']:
                             if not games[str(message.guild.id)]['dark']:
                                 if color + 'reverse' in [x[0] for x in
                                                          games[str(message.guild.id)]['players'][
@@ -4153,6 +4260,52 @@ async def on_message(message):
                                     await message.channel.set_permissions(message.author, overwrite=overwrite)
 
                                     return
+
+                        elif games[str(message.guild.id)]['settings']['ONO99']:
+                            if 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
+                                await play_card('reverse', message.author, message.guild)
+
+                                await draw(message.author, message.guild, 1)
+
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You don\'t have a Reverse!**',
+                                        color=discord.Color.red()))
+
+                                overwrite.send_messages = True
+                                await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                return
+
+                        else:
+                            if color + 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)][
+                                'cards']:
+                                if (current_color == color or current_value == 'reverse') and not (
+                                        '+' in current_value and str(message.guild.id) in stack):
+                                    await play_card(color + 'reverse', message.author, message.guild)
+
+                                else:
+                                    await message.channel.send(
+                                        embed=discord.Embed(
+                                            description=':x: **You can\'t play a ' + color.capitalize() + 'Reverse here!**',
+                                            color=discord.Color.red()))
+
+                                    overwrite.send_messages = True
+                                    await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                    return
+
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You don\'t have a ' + color.capitalize() + 'Reverse!**',
+                                        color=discord.Color.red()))
+
+                                overwrite.send_messages = True
+                                await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                                return
 
                         if str(message.guild.id) in games:
                             d = games[str(message.guild.id)]
@@ -4884,6 +5037,63 @@ async def on_message(message):
                                 embed=discord.Embed(
                                     description=':x: **You aren\'t playing UNO Flip!**',
                                     color=discord.Color.red()))
+
+                    elif search(r'p(lay)* *2', value):
+                        if games[str(message.guild.id)]['settings']['ONO99']:
+                            if 'play2' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
+                                await play_card('play2', message.author, message.guild)
+
+                                await draw(message.author, message.guild, 1)
+
+                                await display_cards(n, message.guild)
+
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You don\'t have a Play2!**',
+                                        color=discord.Color.red()))
+
+                        else:
+                            if random() < 0.001:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **Don\'t be on9, you aren\'t playing ONO 99!**',
+                                        color=discord.Color.red()))
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You aren\'t playing ONO 99!**',
+                                        color=discord.Color.red()))
+
+                    elif search(r'ono* *9+', value):
+                        if games[str(message.guild.id)]['settings']['ONO99']:
+                            if all(x == 'ono99' for x in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']):
+                                hand = []
+                                while all(x == 'ono99' for x in hand):
+                                    for _ in range(4):
+                                        card = choice(games[str(message.guild.id)]['cards'])
+                                        games[str(message.guild.id)]['cards'].remove(card)
+                                        hand.append(card)
+
+                                games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = hand
+
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You have a playable card (even if it makes you lose)!**',
+                                        color=discord.Color.red()))
+
+                        else:
+                            if random() < 0.001:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **Don\'t be on9, you aren\'t playing ONO 99!**',
+                                        color=discord.Color.red()))
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You aren\'t playing ONO 99!**',
+                                        color=discord.Color.red()))
 
                 except IndexError:
                     pass
@@ -6268,7 +6478,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict = interaction.message.embeds[0].to_dict()
 
-                                    message_dict['title'] = 'A game of UNO has started!'
+                                    message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     message_dict[
                                         'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
@@ -6295,7 +6505,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 games[str(interaction.guild.id)]['seconds'] = -1
 
                                 message_dict = interaction.message.embeds[0].to_dict()
-                                message_dict['title'] = 'A game of UNO was cancelled!'
+                                message_dict['title'] = message_dict['title'].replace('is going to start', 'was cancelled')
 
                                 if interaction.user == interaction.guild.owner:
                                     message_dict['description'] = ':x: The server owner cancelled the game.'
@@ -6393,7 +6603,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
                                     message_dict = m.to_dict()
-                                    message_dict['title'] = 'A game of UNO has started!'
+                                    message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     message_dict[
                                         'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
@@ -6433,7 +6643,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 else:
                                     message_dict = m.to_dict()
-                                    message_dict['title'] = 'A game of UNO failed to start!'
+                                    message_dict['title'] = message_dict['title'].replace('is going to start', 'failed to start')
                                     message_dict[
                                         'description'] = ':x: Not enough players! At least 2 players are needed.'
 
