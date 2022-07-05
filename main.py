@@ -6582,7 +6582,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n' \
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
                                                              'The current total is **0**.'
                                     else:
                                         message_dict[
@@ -6712,7 +6712,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n' \
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
                                                              'The current total is **0**.'
                                     else:
                                         message_dict[
