@@ -810,6 +810,15 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     player_ids = list(d['players'].keys())
 
+    m = None
+    for channel in guild.text_channels:
+        try:
+            m = await channel.fetch_message(games[str(guild.id)]['message'])
+        except (discord.NotFound, discord.Forbidden):
+            continue
+        else:
+            break
+
     # If there is a winner
     if winner:
         # Load users' data
