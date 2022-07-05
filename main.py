@@ -1481,68 +1481,69 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                                         color=discord.Color.red()))) for x in guild.text_channels if
                     x.category.name == 'UNO-GAME'])
 
-    # Edit the game invitation message to show game results
-    m = None
-    for channel in guild.text_channels:
-        try:
-            m = await channel.fetch_message(games[str(guild.id)]['message'])
-        except (discord.NotFound, discord.Forbidden):
-            continue
-        else:
-            break
-    if m:
-        m_dict = m.embeds[0].to_dict()
-        for f in m_dict['fields']:
-            if f['name'] == 'Players:':
-                l = max(len(max(
-                    [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
-                    key=len, default=[])), len(max(
-                    [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
-                     str.isdigit(x)], key=len, default=[])))
-                if isinstance(player, str):
-                    if len(player) == l:
-                        if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
-                            f['value'] = f['value'].replace(
-                                f'{player} - UNO!',
-                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))} cards')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
-                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
-                    else:
-                        if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
-                            f['value'] = f['value'].replace(
-                                f'{player} '.ljust(l + 3, '-') + ' UNO!',
-                                f'{player} '.ljust(l + 3,
-                                                   '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))} cards')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
-                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
-                else:
-                    if len(player.name) == l:
-                        if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} - UNO!',
-                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
-                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
-                    else:
-                        if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} '.ljust(l + 3, '-') + ' UNO!',
-                                f'{player.name} '.ljust(l + 3,
-                                                        '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
-                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
-
+    # Edit the game invitation message to show game details in real time if it is not ONO 99
+    if not games[str(guild.id)]['settings']['ONO99']:
+        m = None
+        for channel in guild.text_channels:
+            try:
+                m = await channel.fetch_message(games[str(guild.id)]['message'])
+            except (discord.NotFound, discord.Forbidden):
+                continue
+            else:
                 break
+        if m:
+            m_dict = m.embeds[0].to_dict()
+            for f in m_dict['fields']:
+                if f['name'] == 'Players:':
+                    l = max(len(max(
+                        [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
+                        key=len, default=[])), len(max(
+                        [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
+                         str.isdigit(x)], key=len, default=[])))
+                    if isinstance(player, str):
+                        if len(player) == l:
+                            if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
+                                f['value'] = f['value'].replace(
+                                    f'{player} - UNO!',
+                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))} cards')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
+                        else:
+                            if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
+                                f['value'] = f['value'].replace(
+                                    f'{player} '.ljust(l + 3, '-') + ' UNO!',
+                                    f'{player} '.ljust(l + 3,
+                                                       '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))} cards')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                    else:
+                        if len(player.name) == l:
+                            if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} - UNO!',
+                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                        else:
+                            if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} '.ljust(l + 3, '-') + ' UNO!',
+                                    f'{player.name} '.ljust(l + 3,
+                                                            '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
-        await m.edit(embed=discord.Embed.from_dict(m_dict))
+                    break
+
+            await m.edit(embed=discord.Embed.from_dict(m_dict))
 
 
 async def display_cards(player: Union[Member, str], guild: Guild):
@@ -2388,65 +2389,67 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     except discord.NotFound:
         pass
 
-    m = None
-    for channel in guild.text_channels:
-        try:
-            m = await channel.fetch_message(games[str(guild.id)]['message'])
-        except (discord.NotFound, discord.Forbidden):
-            continue
-        else:
-            break
-    if m:
-        m_dict = m.embeds[0].to_dict()
-        for f in m_dict['fields']:
-            if f['name'] == 'Players:':
-                l = max(len(max(
-                    [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
-                    key=len, default=[])), len(max(
-                    [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
-                     str.isdigit(x)], key=len, default=[])))
-                if isinstance(player, str):
-                    if len(games[str(guild.id)]["players"][player].cards) == 1:
-                        if len(player) == l:
-                            f['value'] = f['value'].replace(
-                                f'{player} - 2 cards',
-                                f'{player} - UNO!')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player} '.ljust(l + 3, '-') + ' 2 cards',
-                                f'{player} '.ljust(l + 3, '-') + ' UNO!')
-                    else:
-                        if len(player) == l:
-                            f['value'] = f['value'].replace(
-                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
-                                f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
-                                f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
-                else:
-                    if len(games[str(guild.id)]["players"][str(player.id)]['cards']) == 1:
-                        if len(player.name) == l:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} - 2 cards',
-                                f'{player.name} - UNO!')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} '.ljust(l + 3, '-') + ' 2 cards',
-                                f'{player.name} '.ljust(l + 3, '-') + ' UNO!')
-                    else:
-                        if len(player.name) == l:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
-                                f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
-                        else:
-                            f['value'] = f['value'].replace(
-                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
-                                f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
-
+    # Edit the game invitation message to show game details in real time if it is not ONO 99
+    if not games[str(guild.id)]['settings']['ONO99']:
+        m = None
+        for channel in guild.text_channels:
+            try:
+                m = await channel.fetch_message(games[str(guild.id)]['message'])
+            except (discord.NotFound, discord.Forbidden):
+                continue
+            else:
                 break
+        if m:
+            m_dict = m.embeds[0].to_dict()
+            for f in m_dict['fields']:
+                if f['name'] == 'Players:':
+                    l = max(len(max(
+                        [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
+                        key=len, default=[])), len(max(
+                        [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
+                         str.isdigit(x)], key=len, default=[])))
+                    if isinstance(player, str):
+                        if len(games[str(guild.id)]["players"][player].cards) == 1:
+                            if len(player) == l:
+                                f['value'] = f['value'].replace(
+                                    f'{player} - 2 cards',
+                                    f'{player} - UNO!')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player} '.ljust(l + 3, '-') + ' 2 cards',
+                                    f'{player} '.ljust(l + 3, '-') + ' UNO!')
+                        else:
+                            if len(player) == l:
+                                f['value'] = f['value'].replace(
+                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+                    else:
+                        if len(games[str(guild.id)]["players"][str(player.id)]['cards']) == 1:
+                            if len(player.name) == l:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} - 2 cards',
+                                    f'{player.name} - UNO!')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} '.ljust(l + 3, '-') + ' 2 cards',
+                                    f'{player.name} '.ljust(l + 3, '-') + ' UNO!')
+                        else:
+                            if len(player.name) == l:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                            else:
+                                f['value'] = f['value'].replace(
+                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
-        await m.edit(embed=discord.Embed.from_dict(m_dict))
+                    break
+
+            await m.edit(embed=discord.Embed.from_dict(m_dict))
 
     # Get the next player
     n = None
@@ -4345,28 +4348,29 @@ async def on_message(message):
                                 await display_cards(m, message.guild)
 
                             else:
-                                m = next(temp, next(iter(p)))
-                                if str.isdigit(m):
-                                    m = message.guild.get_member(int(m))
-                                if m == n:
-                                    iterable = iter(p)
-                                    next(iterable)
-                                    m = next(temp, next(iterable))
+                                if not d['settings']['ONO99']:
+                                    m = next(temp, next(iter(p)))
                                     if str.isdigit(m):
                                         m = message.guild.get_member(int(m))
+                                    if m == n:
+                                        iterable = iter(p)
+                                        next(iterable)
+                                        m = next(temp, next(iterable))
+                                        if str.isdigit(m):
+                                            m = message.guild.get_member(int(m))
 
-                                if isinstance(n, Member):
-                                    await asyncio.gather(*[asyncio.create_task(x.send(
-                                        embed=discord.Embed(description='**' + n.name + ' is skipped.**',
-                                                            color=discord.Color.red()))) for x in
-                                        message.channel.category.text_channels])
-                                else:
-                                    await asyncio.gather(*[asyncio.create_task(x.send(
-                                        embed=discord.Embed(description='**' + n + ' is skipped.**',
-                                                            color=discord.Color.red()))) for x in
-                                        message.channel.category.text_channels])
+                                    if isinstance(n, Member):
+                                        await asyncio.gather(*[asyncio.create_task(x.send(
+                                            embed=discord.Embed(description='**' + n.name + ' is skipped.**',
+                                                                color=discord.Color.red()))) for x in
+                                            message.channel.category.text_channels])
+                                    else:
+                                        await asyncio.gather(*[asyncio.create_task(x.send(
+                                            embed=discord.Embed(description='**' + n + ' is skipped.**',
+                                                                color=discord.Color.red()))) for x in
+                                            message.channel.category.text_channels])
 
-                                await display_cards(m, message.guild)
+                                    await display_cards(m, message.guild)
 
                     elif value in ('skip', 's'):
                         if not games[str(message.guild.id)]['settings']['Flip']:
@@ -6456,28 +6460,35 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(interaction.guild.id)]['seconds'] = -2
 
                                     p = ""
-                                    l = max(len(max(
-                                        [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
-                                        key=len, default=[])), len(max(
-                                        [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players'] if
-                                         str.isdigit(x)], key=len, default=[])))
-                                    for key in games[str(ctx.guild.id)]['players']:
-                                        if str.isdigit(key):
-                                            if len(client.get_user(int(key)).name) == l:
-                                                p += (':small_blue_diamond:' + client.get_user(
-                                                    int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                    if not games[str(interaction.guild.id)]['settings']['ONO99']:
+                                        l = max(len(max(
+                                            [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
+                                            key=len, default=[])), len(max(
+                                            [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players'] if
+                                             str.isdigit(x)], key=len, default=[])))
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            if str.isdigit(key):
+                                                if len(client.get_user(int(key)).name) == l:
+                                                    p += (':small_blue_diamond:' + client.get_user(
+                                                        int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                else:
+                                                    p += (
+                                                                ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
+                                                            l + 3,
+                                                            '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
                                             else:
-                                                p += (
-                                                            ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
-                                                        l + 3,
-                                                        '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                        else:
-                                            if len(key) == l:
-                                                p += (
-                                                            ':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                if len(key) == l:
+                                                    p += (
+                                                                ':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                else:
+                                                    p += (
+                                                    ':small_blue_diamond:' + f'{key} '.ljust(l + 3, '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                    else:
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            if str.isdigit(key):
+                                                p += (':small_blue_diamond:' + client.get_user(int(key)).name + "\n")
                                             else:
-                                                p += (
-                                                ':small_blue_diamond:' + f'{key} '.ljust(l + 3, '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                p += (':small_blue_diamond:' + f'{key}\n')
 
                                     interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
                                                                                inline=False)
@@ -6616,29 +6627,38 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                                     p = ""
-                                    l = max(len(max(
-                                        [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
-                                        key=len, default=[])), len(max(
-                                        [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players'] if
-                                         str.isdigit(x)], key=len, default=[])))
-                                    for key in games[str(ctx.guild.id)]['players']:
-                                        if str.isdigit(key):
-                                            if len(client.get_user(int(key)).name) == l:
+                                    if not games[str(ctx.guild.id)]['settings']['ONO99']:
+                                        l = max(len(max(
+                                            [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
+                                            key=len, default=[])), len(max(
+                                            [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players']
+                                             if
+                                             str.isdigit(x)], key=len, default=[])))
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            if str.isdigit(key):
+                                                if len(client.get_user(int(key)).name) == l:
+                                                    p += (':small_blue_diamond:' + client.get_user(
+                                                        int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                else:
+                                                    p += (
+                                                            ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
+                                                        l + 3,
+                                                        '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                            else:
+                                                if len(key) == l:
+                                                    p += (
+                                                            ':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                else:
+                                                    p += (
+                                                            ':small_blue_diamond:' + f'{key} '.ljust(l + 3,
+                                                                                                     '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                    else:
+                                        for key in games[str(ctx.guild.id)]['players']:
+                                            if str.isdigit(key):
                                                 p += (':small_blue_diamond:' + client.get_user(
-                                                    int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                    int(key)).name + "\n")
                                             else:
-                                                p += (
-                                                        ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
-                                                    l + 3,
-                                                    '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                        else:
-                                            if len(key) == l:
-                                                p += (
-                                                        ':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                            else:
-                                                p += (
-                                                        ':small_blue_diamond:' + f'{key} '.ljust(l + 3,
-                                                                                                 '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
+                                                p += (':small_blue_diamond:' + f'{key}\n')
 
                                     for field in message_dict['fields']:
                                         if field['name'] == 'Players:':
