@@ -5126,6 +5126,33 @@ async def on_message(message):
 
                                 games[str(message.guild.id)]['players'][str(message.author.id)]['cards'] = hand
 
+                                m = discord.Embed(title='Your new hand:', color=discord.Color.yellow())
+
+                                image = Image.new('RGBA', (
+                                    len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
+                                        round(Image.open('images/empty.png').size[
+                                                  0] / 6.0123456790123456790123456790123)),
+                                    round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
+                                                  (255, 0, 0, 0))
+
+                                for i in range(len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards'])):
+                                    card = Image.open(
+                                        'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
+                                            i] + '.png')
+                                    refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                                           round(card.size[1] / 6.0123456790123456790123456790123)),
+                                                          Image.ANTIALIAS)
+                                    image.paste(refined, (i * refined.size[0], 0))
+
+                                with BytesIO() as image_binary:
+                                    image.save(image_binary, format='PNG', quality=100)
+                                    image_binary.seek(0)
+                                    file = discord.File(fp=image_binary, filename='image.png')
+
+                                m.set_image(url='attachment://image.png')
+
+                                await message.channel.send(file=file, embed=message)
+
                             else:
                                 await message.channel.send(
                                     embed=discord.Embed(
