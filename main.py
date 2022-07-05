@@ -2553,9 +2553,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         # If there is only one man standing, they win
         if sum(1 for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]) == 1:
-            # Make the game ending
-            ending.append(str(guild.id))
-
             await draw(player, guild, 1)
 
             for id in games[str(guild.id)]['players']:
@@ -2577,6 +2574,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
                         await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
+                    ending.append(str(guild.id))
                     await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
                     break
 
