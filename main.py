@@ -1967,10 +1967,11 @@ async def display_cards(player: Union[Member, str], guild: Guild):
             else:
                 message.set_footer(text=n + ' is next!')
 
-            try:
-                await channel.send(files=[thumbnail, file], embed=message)
-            except ClientOSError:
-                pass
+            if games[str(guild.id)]['current']:
+                try:
+                    await channel.send(files=[thumbnail, file], embed=message)
+                except ClientOSError:
+                    pass
 
         # Send the current player's hand to every UNO channel
         await asyncio.gather(
@@ -6297,6 +6298,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(ctx.guild.id)]['settings']['StackCards'] = False
                                     games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = False
                                     games[str(ctx.guild.id)]['settings']['Flip'] = False
+                                    games[str(ctx.guild.id)]['settings']['StartingCards'] = 4
 
                                 elif a[i] == '7-0' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
