@@ -827,12 +827,13 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             p = ""
             for key in games[str(guild.id)]['players']:
                 if str.isdigit(key):
-                    p += (':small_blue_diamond:' + client.get_user(int(key)).name + "\n")
+                    p += f':small_blue_diamond:{client.get_user(int(key)).name}\n'
                 else:
-                    p += (':small_blue_diamond:' + key + "\n")
+                    p += f':small_blue_diamond:{key}\n'
             m_dict['fields'][0]['value'] = p
 
-        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+        embed = discord.Embed.from_dict(m_dict)
+        await m.edit(embed=embed, view=None)
 
     # If there is a winner
     if winner:
@@ -2488,10 +2489,11 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 total = games[str(guild.id)]["total"] + int(card)
                 if total < 0:
                     total = 0
+
                 if total <= 99:
                     m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{total}')
                 else:
-                    m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':cross:{player.name}')
+                    m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':skull: {player.name}')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
