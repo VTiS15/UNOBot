@@ -821,18 +821,17 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     if m:
         # Prepare the player list if it is not ONO 99
         m_dict = m.embeds[0].to_dict()
-        if not games[str(guild.id)]['settings']['ONO99']:
-            p = ""
-            for key in games[str(guild.id)]['players']:
-                if str.isdigit(key):
-                    p += f':small_blue_diamond:{client.get_user(int(key)).name}\n'
-                else:
-                    p += f':small_blue_diamond:{key}\n'
+        p = ""
+        for key in games[str(guild.id)]['players']:
+            if str.isdigit(key):
+                p += f':small_blue_diamond:{client.get_user(int(key)).name}\n'
+            else:
+                p += f':small_blue_diamond:{key}\n'
 
-            for f in m_dict['fields']:
-                if f['name'] == 'Players:':
-                    f['value'] = p
-                    break
+        for f in m_dict['fields']:
+            if f['name'] == 'Players:':
+                f['value'] = p
+                break
 
         await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
