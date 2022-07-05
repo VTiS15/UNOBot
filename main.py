@@ -5176,19 +5176,16 @@ async def on_message(message):
 
                                 m.set_image(url='attachment://image.png')
 
-                                tasks = []
-
-                                tasks.append(asyncio.create_task(message.channel.send(file=file, embed=m)))
-
+                                tasks = [asyncio.create_task(message.channel.send(file=file, embed=m))]
                                 for channel in [x for x in message.guild.text_channels if
                                                 x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
                                                                                                 message.author.name.lower().replace(
                                                                                                     ' ',
                                                                                                     '-')) + '-uno-channel']:
-                                    tasks.append(channel.send(
+                                    tasks.append(asyncio.create_task(channel.send(
                                     embed=discord.Embed(
                                         description=f'**{message.author.name}** renewed their hand.',
-                                        color=discord.Color.red())))
+                                        color=discord.Color.red()))))
 
                                 await asyncio.gather(*tasks)
 
