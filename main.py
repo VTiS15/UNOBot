@@ -2417,17 +2417,17 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         pass
 
     # Edit the game invitation message to show game details in real time if it is not ONO 99
-    if not games[str(guild.id)]['settings']['ONO99']:
-        m = None
-        for channel in guild.text_channels:
-            try:
-                m = await channel.fetch_message(games[str(guild.id)]['message'])
-            except (discord.NotFound, discord.Forbidden):
-                continue
-            else:
-                break
-        if m:
-            m_dict = m.embeds[0].to_dict()
+    m = None
+    for channel in guild.text_channels:
+        try:
+            m = await channel.fetch_message(games[str(guild.id)]['message'])
+        except (discord.NotFound, discord.Forbidden):
+            continue
+        else:
+            break
+    if m:
+        m_dict = m.embeds[0].to_dict()
+        if not games[str(guild.id)]['settings']['ONO99']:
             for f in m_dict['fields']:
                 if f['name'] == 'Players:':
                     l = max(len(max(
@@ -2475,8 +2475,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                     f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
                     break
+        else:
+            m_dict['description'] += f'\n The current total is **{games[str(guild.id)]["total"]}**.'
 
-            await m.edit(embed=discord.Embed.from_dict(m_dict))
+        await m.edit(embed=discord.Embed.from_dict(m_dict))
 
     # Get the next player
     n = None
@@ -6577,8 +6579,13 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict = interaction.message.embeds[0].to_dict()
 
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
-                                    message_dict[
-                                        'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+                                    if games[str(ctx.guild.id)]['settings']['ONO99']:
+                                        message_dict[
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n' \
+                                                             'The current total is **0**.'
+                                    else:
+                                        message_dict[
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                                     try:
                                         v = View()
@@ -6702,8 +6709,13 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 if n > 1:
                                     message_dict = m.to_dict()
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
-                                    message_dict[
-                                        'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+                                    if games[str(ctx.guild.id)]['settings']['ONO99']:
+                                        message_dict[
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n' \
+                                                             'The current total is **0**.'
+                                    else:
+                                        message_dict[
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                                     p = ""
                                     if not games[str(ctx.guild.id)]['settings']['ONO99']:
