@@ -98,6 +98,22 @@ The scoring for the cards is as follows:
 | Wild Draw 2 | 50 pts |
 | Wild Draw Color | 60 pts |
 
+## ONO 99
+### Setup
+Each player is dealt 4 cards. The number of cards each player has never changes during a game.
+### Gameplay
+You play cards from your hand onto the Discard Pile. Most cards have numbers on them, and as you add them to the pile the total number of the pile increases. A 3 placed onto a 7 puts the pile at 10. Add a 6 to the pile and now it's 16 and so on. As the total number of the pile builds and builds, you must keep it **UNDER 99**. If you are unable to play a card without making the total hit 99 or above, you are out of the game.\
+Last man standing wins.
+
+Since colors are unimportant, you want to enter only the value of the card every time you play.
+#### Scoring
+The scoring for the cards is as follows:
+| Card Type | Score |
+| --------- | ----- |
+| Numbered cards (0-10) | Face value |
+| -10/Reverse/Play 2 | 20 pts |
+| ONO 99 | 99 pts |
+
 # Troubleshooting🛠️
 ### There are more than one UNO games happening in my server.
 Remove the extra games by deleting the text channels. If UNOBot gets stuck afterwards, end the remaining game by entering `/u-eg`.\
