@@ -1367,7 +1367,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                         colour = colour.group(0)
                     value = search(r'\+(5|color)|wild|skip|reverse|flip|\d', c[1]).group(0)
 
-    # Craft a message that displays the details of the drawn card(s) to every player (except UNOBot)
+    # Craft a message that displays the details of the drawn card(s) to every player (except bots)
     message = None
     if not bot:
         description = 'You drew '
@@ -1445,44 +1445,68 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
 
     if len(draw) == 1:
         if message:
-            await asyncio.gather(
-                discord.utils.get(guild.channels,
-                                  name=sub(r'[^\w -]', '',
-                                           player.name.lower().replace(' ', '-')) + '-uno-channel',
-                                  type=discord.ChannelType.text).send(file=file, embed=message),
-                *[asyncio.create_task(x.send(
-                    embed=discord.Embed(description='**' + player.name + '** drew a card.',
-                                        color=discord.Color.red()))) for x in guild.text_channels if
-                    x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
-                                                                    player.name.lower().replace(' ',
-                                                                                                '-')) + '-uno-channel']
-            )
+            if not games[str(guild.id)]['settings']['ONO99']:
+                await asyncio.gather(
+                    discord.utils.get(guild.channels,
+                                      name=sub(r'[^\w -]', '',
+                                               player.name.lower().replace(' ', '-')) + '-uno-channel',
+                                      type=discord.ChannelType.text).send(file=file, embed=message),
+                    *[asyncio.create_task(x.send(
+                        embed=discord.Embed(description='**' + player.name + '** drew a card.',
+                                            color=discord.Color.red()))) for x in guild.text_channels if
+                        x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
+                                                                        player.name.lower().replace(' ',
+                                                                                                    '-')) + '-uno-channel']
+                )
+            else:
+                await discord.utils.get(guild.channels,
+                                      name=sub(r'[^\w -]', '',
+                                               player.name.lower().replace(' ', '-')) + '-uno-channel',
+                                      type=discord.ChannelType.text).send(file=file, embed=message)
         else:
-            await asyncio.gather(
-                *[asyncio.create_task(x.send(
-                    embed=discord.Embed(description=f'**{bot.name}** drew a card.',
-                                        color=discord.Color.red()))) for x in guild.text_channels if
-                    x.category.name == 'UNO-GAME'])
+            if not games[str(guild.id)]['settings']['ONO99']:
+                await asyncio.gather(
+                    *[asyncio.create_task(x.send(
+                        embed=discord.Embed(description=f'**{bot.name}** drew a card.',
+                                            color=discord.Color.red()))) for x in guild.text_channels if
+                        x.category.name == 'UNO-GAME'])
+            else:
+                await discord.utils.get(guild.channels,
+                                        name=sub(r'[^\w -]', '',
+                                                 player.name.lower().replace(' ', '-')) + '-uno-channel',
+                                        type=discord.ChannelType.text).send(file=file, embed=message)
     else:
         if message:
-            await asyncio.gather(
-                discord.utils.get(guild.channels,
-                                  name=sub(r'[^\w -]', '',
-                                           player.name.lower().replace(' ', '-')) + '-uno-channel',
-                                  type=discord.ChannelType.text).send(file=file, embed=message),
-                *[asyncio.create_task(x.send(
-                    embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
-                                        color=discord.Color.red()))) for x in guild.text_channels if
-                    x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
-                                                                    player.name.lower().replace(' ',
-                                                                                                '-')) + '-uno-channel']
-            )
+            if not games[str(guild.id)]['settings']['ONO99']:
+                await asyncio.gather(
+                    discord.utils.get(guild.channels,
+                                      name=sub(r'[^\w -]', '',
+                                               player.name.lower().replace(' ', '-')) + '-uno-channel',
+                                      type=discord.ChannelType.text).send(file=file, embed=message),
+                    *[asyncio.create_task(x.send(
+                        embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
+                                            color=discord.Color.red()))) for x in guild.text_channels if
+                        x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
+                                                                        player.name.lower().replace(' ',
+                                                                                                    '-')) + '-uno-channel']
+                )
+            else:
+                await discord.utils.get(guild.channels,
+                                        name=sub(r'[^\w -]', '',
+                                                 player.name.lower().replace(' ', '-')) + '-uno-channel',
+                                        type=discord.ChannelType.text).send(file=file, embed=message)
         else:
-            await asyncio.gather(
-                *[asyncio.create_task(x.send(
-                    embed=discord.Embed(description=f'**{bot.name}** drew **' + str(len(draw)) + '** cards.',
-                                        color=discord.Color.red()))) for x in guild.text_channels if
-                    x.category.name == 'UNO-GAME'])
+            if not games[str(guild.id)]['settings']['ONO99']:
+                await asyncio.gather(
+                    *[asyncio.create_task(x.send(
+                        embed=discord.Embed(description=f'**{bot.name}** drew **' + str(len(draw)) + '** cards.',
+                                            color=discord.Color.red()))) for x in guild.text_channels if
+                        x.category.name == 'UNO-GAME'])
+            else:
+                await discord.utils.get(guild.channels,
+                                        name=sub(r'[^\w -]', '',
+                                                 player.name.lower().replace(' ', '-')) + '-uno-channel',
+                                        type=discord.ChannelType.text).send(file=file, embed=message)
 
     # Edit the game invitation message to show game details in real time if it is not ONO 99
     if not games[str(guild.id)]['settings']['ONO99']:
