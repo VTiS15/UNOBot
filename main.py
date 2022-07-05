@@ -810,15 +810,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     player_ids = list(d['players'].keys())
 
-    # Prepare the player list
-    if not games[str(guild.id)]['settings']['ONO99']:
-        p = ""
-        for key in games[str(guild.id)]['players']:
-            if str.isdigit(key):
-                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-            else:
-                p += (':small_blue_diamond:' + key + "\n")
-
     m = None
     for channel in guild.text_channels:
         try:
@@ -830,7 +821,15 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     if m:
         m_dict = m.embeds[0].to_dict()
         m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+
+        # Prepare the player list if it is not ONO 99
         if not games[str(guild.id)]['settings']['ONO99']:
+            p = ""
+            for key in games[str(guild.id)]['players']:
+                if str.isdigit(key):
+                    p += (':small_blue_diamond:' + client.get_user(int(key)).name + "\n")
+                else:
+                    p += (':small_blue_diamond:' + key + "\n")
             m_dict['fields'][0]['value'] = p
 
         await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
@@ -2489,7 +2488,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 total = games[str(guild.id)]["total"] + int(card)
                 if total < 0:
                     total = 0
-                m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{total}')
+                if total <= 99:
+                    m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{total}')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
@@ -4087,7 +4087,7 @@ async def on_message(message):
                                            games[str(message.guild.id)]['current']).group(0)
 
                 try:
-                    if value in [str(x) for x in range(10)] or value in {'10', '-10'}:
+                    if value in [str(x) for x in range(11)] or value == '-10':
                         if games[str(message.guild.id)]['settings']['Flip']:
                             if not games[str(message.guild.id)]['dark']:
                                 if color + value in [x[0] for x in
@@ -5187,7 +5187,7 @@ async def on_message(message):
                                     tasks.append(asyncio.create_task(channel.send(
                                     embed=discord.Embed(
                                         description=f'**{message.author.name}** renewed their hand.',
-                                        color=discord.Color.red()))))
+                                        color=discord.Color.yellow()))))
 
                                 await asyncio.gather(*tasks)
 
