@@ -883,7 +883,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                     elif games[str(guild.id)]['settings']['ONO99']:
                         value = search(r'^-*\d+$|play2|reverse|ono99', games[str(guild.id)]['current']).group(0)
 
-                        if value in {'play2', 'reverse'}:
+                        if value in {'play2', 'reverse', '-10'}:
                             score += 20
                         elif value == 'ono99':
                             score += 99
@@ -4403,7 +4403,10 @@ async def on_message(message):
 
                                     await display_cards(m, message.guild)
                                 else:
-                                    await display_cards(n, message.guild)
+                                    if games[str(message.guild.id)]['current'] == 'play2':
+                                        await display_cards(message.author, message.guild)
+                                    else:
+                                        await display_cards(n, message.guild)
 
                     elif value in ('skip', 's'):
                         if not games[str(message.guild.id)]['settings']['Flip']:
