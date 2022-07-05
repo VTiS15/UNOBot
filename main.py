@@ -881,7 +881,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                 score += int(value)
 
                     elif games[str(guild.id)]['settings']['ONO99']:
-                        value = search(r'^-*\d+$|play2|reverse|ono99', games[str(guild.id)]['current']).group(0)
+                        value = search(r'^-*\d+$|play2|reverse|ono99', card).group(0)
 
                         if value in {'play2', 'reverse', '-10'}:
                             score += 20
@@ -2556,6 +2556,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         if sum(1 for x in games[str(guild.id)]['players'] if 'left' in games[str(guild.id)]['players'][x]) == len(games[str(guild.id)]['players']) - 1:
             for id in games[str(guild.id)]['players']:
                 if 'left' not in games[str(guild.id)]['players'][id]:
+                    await draw(guild.get_member(int(id)), guild, 1)
+
                     await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
                     break
 
