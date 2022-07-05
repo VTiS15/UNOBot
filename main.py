@@ -6361,7 +6361,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     return
 
                         if games[str(ctx.guild.id)]['settings']['Flip']:
-                            message = discord.Embed(title='A game of UNO is going to start!',
+                            message = discord.Embed(title='A game of UNO FLIP is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.from_rgb(102, 51, 153))
                         elif games[str(ctx.guild.id)]['settings']['ONO99']:
@@ -6369,7 +6369,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.yellow())
                         else:
-                            message = discord.Embed(title='A game of UNO FLIP is going to start!',
+                            message = discord.Embed(title='A game of UNO is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.red())
 
