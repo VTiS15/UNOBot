@@ -6409,8 +6409,12 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 if a[i].lower() == 'spectategame':
                                     games[str(ctx.guild.id)]['settings']['SpectateGame'] = True
 
-                                elif a[i].lower() in {'ono99', 'ono', '99', 'on', 'on99', 'on9'} and not any(games[str(ctx.guild.id)]['settings'][x] for x in {'StackCards', 'DrawUntilMatch', 'Flip', '7-0'}):
+                                elif a[i].lower() in {'ono99', 'ono', '99', 'on', 'on99', 'on9'}:
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = True
+                                    games[str(ctx.guild.id)]['settings']['StackCards'] = False
+                                    games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = False
+                                    games[str(ctx.guild.id)]['settings']['Flip'] = False
+                                    games[str(ctx.guild.id)]['settings']['7-0'] = False
                                     games[str(ctx.guild.id)]['settings']['StartingCards'] = 4
 
                                 elif a[i].lower() == 'flip' and not games[str(ctx.guild.id)]['settings']['ONO99']:
