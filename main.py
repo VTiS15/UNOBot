@@ -6080,21 +6080,23 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             a = args.split()
                             for i in range(len(a)):
                                 if a[i] in (
-                                        'DrawUntilMatch', 'DisableJoin', 'SpectateGame', 'StackCards',
-                                        'Flip'):
+                                        'DrawUntilMatch', 'SpectateGame', 'StackCards', 'Flip'):
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
 
                                 elif a[i].lower() in {'ono99', 'ono', '99', 'on', 'on99', 'on9'}:
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = True
+                                    games[str(ctx.guild.id)]['settings']['StackCards'] = False
+                                    games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = False
+                                    games[str(ctx.guild.id)]['settings']['Flip'] = False
 
-                                elif a[i] == '7-0':
-                                    games[str(ctx.guild.id)]['settings'][a[i]] = True
+                                elif a[i] == '7-0' and not games[str(ctx.guild.id)]['settings']['ONO99']:
+                                        games[str(ctx.guild.id)]['settings'][a[i]] = True
 
                                 elif a[i] == 'StartingCards':
                                     continue
 
                                 elif a[i].lower() == 'set':
-                                    if a[i - 1] == 'StartingCards':
+                                    if a[i - 1] == 'StartingCards' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                         try:
                                             if 3 <= int(a[i + 1]) <= 15:
                                                 games[str(ctx.guild.id)]['settings']['StartingCards'] = int(
@@ -6130,7 +6132,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                         return
 
-                                elif a[i].lower() == 'dum':
+                                elif a[i].lower() == 'dum' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = True
 
                                 else:
