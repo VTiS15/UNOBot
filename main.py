@@ -829,10 +829,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     if m:
         m_dict = m.embeds[0].to_dict()
         m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-        for f in m_dict['fields']:
-            if f['name'] == 'Players:':
-                f['value'] = p
-                break
+        m_dict['fields'][0]['value'] = p
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
