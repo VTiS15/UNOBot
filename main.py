@@ -3996,6 +3996,9 @@ async def on_message(message):
 
                 return
 
+            elif value and games[str(message.guild.id)]['settings']['ONO99']:
+                pass
+
             else:
                 return
 
