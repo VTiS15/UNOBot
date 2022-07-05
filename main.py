@@ -4329,9 +4329,6 @@ async def on_message(message):
                             if 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 await play_card('reverse', message.author, message.guild)
 
-                                if current_value == 'play2':
-                                    games[str(message.guild.id)]['current'] = 'play2'
-
                                 await draw(message.author, message.guild, 1)
 
                             else:
@@ -4401,6 +4398,10 @@ async def on_message(message):
                                         if str.isdigit(m):
                                             m = message.guild.get_member(int(m))
                                         break
+
+                                if games[str(message.guild.id)]['settings']['ONO99']:
+                                    if current_value == 'play2':
+                                        games[str(message.guild.id)]['current'] = 'play2'
 
                                 await display_cards(m, message.guild)
 
