@@ -878,7 +878,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                 score += int(value)
 
                     elif games[str(guild.id)]['settings']['ONO99']:
-                        value = search(r'^\d+$|play2|reverse|ono99', games[str(guild.id)]['current']).group(0)
+                        value = search(r'^-*\d+$|play2|reverse|ono99', games[str(guild.id)]['current']).group(0)
 
                         if value in {'play2', 'reverse'}:
                             score += 20
@@ -3846,7 +3846,7 @@ async def on_message(message):
                 color = color.group(0)
 
             if games[str(message.guild.id)]['settings']['ONO99']:
-                value = search(r'^\d+$|-*10|r(everse)*|p(lay)* *2|ono* *9+', card)
+                value = search(r'^-*\d+$|r(everse)*|p(lay)* *2|ono* *9+', card)
             else:
                 value = search(r'(?<=[a-z ])(skip|reverse|wild|flip|\d|[+d](raw)* *([c4251]|colou*r)|[srwf]$)', card)
             if value:
@@ -4028,7 +4028,7 @@ async def on_message(message):
 
                 elif games[str(message.guild.id)]['settings']['ONO99']:
                     if games[str(message.guild.id)]['current']:
-                        current_value = search(r'^\d+$|play2|reverse|ono99', games[str(message.guild.id)]['current']).group(0)
+                        current_value = search(r'^-*\d+$|play2|reverse|ono99', games[str(message.guild.id)]['current']).group(0)
 
                 else:
                     current_color = search(r'red|blue|green|yellow',
