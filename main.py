@@ -824,9 +824,9 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         p = ""
         for key in games[str(guild.id)]['players']:
             if str.isdigit(key):
-                p += f':small_blue_diamond:{client.get_user(int(key)).name}\n'
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
             else:
-                p += f':small_blue_diamond:{key}\n'
+                p += (':small_blue_diamond:' + key + "\n")
 
         for f in m_dict['fields']:
             if f['name'] == 'Players:':
