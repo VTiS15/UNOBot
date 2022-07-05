@@ -5100,10 +5100,10 @@ async def on_message(message):
                                         description=':x: **You aren\'t playing ONO 99!**',
                                         color=discord.Color.red()))
 
-                except IndexError:
-                    pass
-                except TypeError:
-                    pass
+                except IndexError as e:
+                    raise e
+                except TypeError as e:
+                    raise e
 
                 overwrite.send_messages = True
                 try:
