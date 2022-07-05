@@ -5193,6 +5193,8 @@ async def on_message(message):
                                         description=f'**{message.author.name}** renewed their hand.',
                                         color=discord.Color.red())))
 
+                                await asyncio.gather(*tasks)
+
                                 if current_value == 'play2':
                                     await display_cards(message.author, message.guild)
                                 else:
