@@ -111,7 +111,7 @@ The scoring for the cards is as follows:
 | Card Type | Score |
 | --------- | ----- |
 | Numbered cards (0-10) | Face value |
-| Reverse/Play 2/-10 | 20 pts |
+| -10/Reverse/Play 2 | 20 pts |
 | ONO 99 | 99 pts |
 
 # Troubleshooting🛠️
