@@ -4405,7 +4405,7 @@ async def on_message(message):
 
                                     await display_cards(m, message.guild)
                                 else:
-                                    if games[str(message.guild.id)]['current'] == 'play2':
+                                    if current_value == 'play2':
                                         await display_cards(message.author, message.guild)
                                     else:
                                         await display_cards(n, message.guild)
