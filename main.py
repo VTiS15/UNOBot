@@ -4012,6 +4012,7 @@ async def on_message(message):
                 except (discord.NotFound, ClientOSError):
                     pass
 
+                current_color, current_value = None, None
                 if games[str(message.guild.id)]['settings']['Flip']:
                     if not games[str(message.guild.id)]['dark']:
                         current_color = search(r'red|blue|green|yellow',
@@ -4026,7 +4027,8 @@ async def on_message(message):
                                                games[str(message.guild.id)]['current'][1]).group(0)
 
                 elif games[str(message.guild.id)]['settings']['ONO99']:
-                    current_value = search(r'^\d+$|play2|reverse|ono99', games[str(message.guild.id)]['current']).group(0)
+                    if games[str(message.guild.id)]['current']:
+                        current_value = search(r'^\d+$|play2|reverse|ono99', games[str(message.guild.id)]['current']).group(0)
 
                 else:
                     current_color = search(r'red|blue|green|yellow',
