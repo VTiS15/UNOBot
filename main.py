@@ -6407,7 +6407,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             a = args.split()
                             for i in range(len(a)):
                                 if a[i].lower() == 'spectategame':
-                                    games[str(ctx.guild.id)]['settings'][a[i]] = True
+                                    games[str(ctx.guild.id)]['settings']['SpectateGame'] = True
 
                                 elif a[i].lower() in {'ono99', 'ono', '99', 'on', 'on99', 'on9'}:
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = True
@@ -6416,27 +6416,25 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(ctx.guild.id)]['settings']['Flip'] = False
                                     games[str(ctx.guild.id)]['settings']['StartingCards'] = 4
 
-                                elif a[i].lower() == 'flip':
+                                elif a[i].lower() == 'flip' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['Flip'] = True
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = False
 
-                                elif a[i] == '7-0':
-                                    games[str(ctx.guild.id)]['settings'][a[i]] = True
-                                    games[str(ctx.guild.id)]['settings']['ONO99'] = False
+                                elif a[i] == '7-0' and not games[str(ctx.guild.id)]['settings']['ONO99']:
+                                    games[str(ctx.guild.id)]['settings']['7-0'] = True
 
                                 elif a[i].lower() == 'dum' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = True
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = False
 
-                                elif a[i].lower() == 'stackcards':
+                                elif a[i].lower() == 'stackcards' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['StackCards'] = True
-                                    games[str(ctx.guild.id)]['settings']['ONO99'] = False
 
-                                elif a[i].lower() == 'startingcards':
+                                elif a[i].lower() == 'startingcards' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = False
                                     continue
 
-                                elif a[i].lower() == 'set':
+                                elif a[i].lower() == 'set' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     if a[i - 1] == 'StartingCards':
                                         try:
                                             if 3 <= int(a[i + 1]) <= 15:
