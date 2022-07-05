@@ -6090,7 +6090,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(ctx.guild.id)]['settings']['Flip'] = False
 
                                 elif a[i] == '7-0' and not games[str(ctx.guild.id)]['settings']['ONO99']:
-                                        games[str(ctx.guild.id)]['settings'][a[i]] = True
+                                    games[str(ctx.guild.id)]['settings'][a[i]] = True
 
                                 elif a[i] == 'StartingCards':
                                     continue
