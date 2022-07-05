@@ -4172,6 +4172,12 @@ async def on_message(message):
                                 else:
                                     await display_cards(n, message.guild)
 
+                            else:
+                                await message.channel.send(
+                                    embed=discord.Embed(
+                                        description=':x: **You don\'t have a ' + value + '!**',
+                                        color=discord.Color.red()))
+
                         else:
                             if color + value in games[str(message.guild.id)]['players'][str(message.author.id)][
                                 'cards']:
