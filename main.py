@@ -810,31 +810,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     player_ids = list(d['players'].keys())
 
-    m = None
-    for channel in guild.text_channels:
-        try:
-            m = await channel.fetch_message(games[str(guild.id)]['message'])
-        except (discord.NotFound, discord.Forbidden):
-            continue
-        else:
-            break
-    if m:
-        # Prepare the player list if it is not ONO 99
-        m_dict = m.embeds[0].to_dict()
-        p = ""
-        for key in games[str(guild.id)]['players']:
-            if str.isdigit(key):
-                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-            else:
-                p += (':small_blue_diamond:' + key + "\n")
-
-        for f in m_dict['fields']:
-            if f['name'] == 'Players:':
-                f['value'] = p
-                break
-
-        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
-
     # If there is a winner
     if winner:
         # Load users' data
@@ -2576,6 +2551,23 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
             for id in games[str(guild.id)]['players']:
                 if 'left' not in games[str(guild.id)]['players'][id]:
+                    if m:
+                        # Prepare the player list if it is not ONO 99
+                        m_dict = m.embeds[0].to_dict()
+                        p = ""
+                        for key in games[str(guild.id)]['players']:
+                            if str.isdigit(key):
+                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                            else:
+                                p += (':small_blue_diamond:' + key + "\n")
+
+                        for f in m_dict['fields']:
+                            if f['name'] == 'Players:':
+                                f['value'] = p
+                                break
+
+                        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+
                     await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
                     break
 
