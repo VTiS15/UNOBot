@@ -2544,6 +2544,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
     # If the player plays an ONO 99 card that makes the total value of the discard pile hit or exceed 99
     if games[str(guild.id)]['settings']['ONO99'] and (str.isdigit(card) and games[str(guild.id)]['total'] + int(card) >= 99):
+        # Make the game ending
+        ending.append(str(guild.id))
+
         # Disallow the player to play anymore
         games[str(guild.id)]['players'][str(player.id)]['left'] = True
 
@@ -5176,10 +5179,10 @@ async def on_message(message):
                                         description=':x: **You aren\'t playing ONO 99!**',
                                         color=discord.Color.red()))
 
-                except IndexError as e:
-                    raise e
-                except TypeError as e:
-                    raise e
+                except IndexError:
+                    pass
+                except TypeError:
+                    pass
 
                 overwrite.send_messages = True
                 try:
