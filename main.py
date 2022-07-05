@@ -4179,7 +4179,7 @@ async def on_message(message):
 
                                 await draw(message.author, message.guild, 1)
 
-                                if current_value == 'play2':
+                                if current_value == 'play2' and 'left' not in games[str(message.guild.id)]['players'][str(message.author.id)]:
                                     await display_cards(message.author, message.guild)
                                 else:
                                     await display_cards(n, message.guild)
