@@ -6424,8 +6424,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(ctx.guild.id)]['settings']['Flip'] = True
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = False
 
-                                elif a[i] == '7-0' and not games[str(ctx.guild.id)]['settings']['ONO99']:
+                                elif a[i] == '7-0':
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
+                                    games[str(ctx.guild.id)]['settings']['ONO99'] = False
 
                                 elif a[i].lower() == 'dum' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = True
@@ -6436,10 +6437,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     games[str(ctx.guild.id)]['settings']['ONO99'] = False
 
                                 elif a[i].lower() == 'startingcards':
+                                    games[str(ctx.guild.id)]['settings']['ONO99'] = False
                                     continue
 
                                 elif a[i].lower() == 'set':
-                                    if a[i - 1] == 'StartingCards' and not games[str(ctx.guild.id)]['settings']['ONO99']:
+                                    if a[i - 1] == 'StartingCards':
                                         try:
                                             if 3 <= int(a[i + 1]) <= 15:
                                                 games[str(ctx.guild.id)]['settings']['StartingCards'] = int(
