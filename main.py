@@ -1230,18 +1230,25 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     hands.extend(games[str(guild.id)]['players'][id].cards)
             hands.append(top)
 
-            if not games[str(guild.id)]['settings']['Flip']:
-                games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
-
-                if not games[str(guild.id)]['cards']:
-                    games[str(guild.id)]['cards'] += cards
-            else:
+            if games[str(guild.id)]['settings']['Flip']:
                 hands.append(bottom)
 
                 games[str(guild.id)]['cards'] += [x for x in flip_cards if x not in hands]
 
                 if not games[str(guild.id)]['cards']:
                     games[str(guild.id)]['cards'] += flip_cards
+
+            elif games[str(guild.id)]['settings']['ONO99']:
+                games[str(guild.id)]['cards'] += [x for x in ono99_cards if x not in hands]
+
+                if not games[str(guild.id)]['cards']:
+                    games[str(guild.id)]['cards'] += ono99_cards
+
+            else:
+                games[str(guild.id)]['cards'] += [x for x in cards if x not in hands]
+
+                if not games[str(guild.id)]['cards']:
+                    games[str(guild.id)]['cards'] += cards
 
         # Append the card to the draw list
         draw.append(c)
@@ -2559,7 +2566,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                 color=discord.Color.yellow()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
 
         # If there is only one man standing, they win
-        if sum(1 for x in games[str(guild.id)]['players'] if 'left' in games[str(guild.id)]['players'][x]) == len(games[str(guild.id)]['players']) - 1:
+        if sum(1 for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]) == 1:
             # Make the game ending
             ending.append(str(guild.id))
 
@@ -3872,21 +3879,19 @@ async def on_message(message):
 
                 return
 
-            color = None
-            if not games[str(message.guild.id)]['settings']['ONO99']:
-                if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
-                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
-                else:
-                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
+            if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
+                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
+            else:
+                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
 
-                if not color:
-                    if not games[str(message.guild.id)]['settings']['ONO99']:
-                        await message.channel.send(
-                            embed=discord.Embed(
-                                description=':x: **I don\'t understand your command.**',
-                                color=discord.Color.red()))
-                else:
-                    color = color.group(0)
+            if not color:
+                if not games[str(message.guild.id)]['settings']['ONO99']:
+                    await message.channel.send(
+                        embed=discord.Embed(
+                            description=':x: **I don\'t understand your command.**',
+                            color=discord.Color.red()))
+            else:
+                color = color.group(0)
 
             if games[str(message.guild.id)]['settings']['ONO99']:
                 value = search(r'^-*\d+$|r(everse)*|p(lay)* *2|ono* *9+', card)
@@ -4167,9 +4172,10 @@ async def on_message(message):
                             if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 await play_card(value, message.author, message.guild)
 
-                                games[str(message.guild.id)]['total'] += int(value)
-                                if games[str(message.guild.id)]['total'] < 0:
-                                    games[str(message.guild.id)]['total'] = 0
+                                if games[str(message.guild.id)]['total'] + int(value) < 99:
+                                    games[str(message.guild.id)]['total'] += int(value)
+                                    if games[str(message.guild.id)]['total'] < 0:
+                                        games[str(message.guild.id)]['total'] = 0
 
                                 await draw(message.author, message.guild, 1)
 
@@ -4322,6 +4328,9 @@ async def on_message(message):
                         elif games[str(message.guild.id)]['settings']['ONO99']:
                             if 'reverse' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 await play_card('reverse', message.author, message.guild)
+
+                                if current_value == 'play2':
+                                    games[str(message.guild.id)]['current'] = 'play2'
 
                                 await draw(message.author, message.guild, 1)
 
