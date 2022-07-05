@@ -819,10 +819,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         else:
             break
     if m:
-        m_dict = m.embeds[0].to_dict()
-        m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-
         # Prepare the player list if it is not ONO 99
+        m_dict = m.embeds[0].to_dict()
         if not games[str(guild.id)]['settings']['ONO99']:
             p = ""
             for key in games[str(guild.id)]['players']:
@@ -2491,12 +2489,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         else:
             if str.isdigit(card) or card == '-10':
                 total = games[str(guild.id)]["total"] + int(card)
-                if total < 0:
-                    total = 0
-
-                if total <= 99:
-                    m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{total}')
-                else:
+                if total >= 99:
                     m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':skull: {player.name}')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
@@ -6622,8 +6615,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
-                                                             'The current total is **0**.'
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
                                     else:
                                         message_dict[
                                             'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
@@ -6752,8 +6744,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
-                                                             'The current total is **0**.'
+                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
                                     else:
                                         message_dict[
                                             'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
