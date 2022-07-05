@@ -6575,7 +6575,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                         view = View()
                         view.add_item(join)
-                        if not games[str(ctx.guild.id)]['settings']['7-0']:
+                        if not games[str(ctx.guild.id)]['settings']['7-0'] and not games[str(ctx.guild.id)]['settings']['ONO99']:
                             view.add_item(add)
                         view.add_item(start)
                         view.add_item(cancel)
