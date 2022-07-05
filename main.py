@@ -811,12 +811,13 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     player_ids = list(d['players'].keys())
 
     # Prepare the player list
-    p = ""
-    for key in games[str(guild.id)]['players']:
-        if str.isdigit(key):
-            p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-        else:
-            p += (':small_blue_diamond:' + key + "\n")
+    if not games[str(guild.id)]['settings']['ONO99']:
+        p = ""
+        for key in games[str(guild.id)]['players']:
+            if str.isdigit(key):
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+            else:
+                p += (':small_blue_diamond:' + key + "\n")
 
     m = None
     for channel in guild.text_channels:
@@ -829,9 +830,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     if m:
         m_dict = m.embeds[0].to_dict()
         m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-        m_dict['fields'][0]['value'] = p
-
-        print(m_dict)
+        if not games[str(guild.id)]['settings']['ONO99']:
+            m_dict['fields'][0]['value'] = p
 
         await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
@@ -5214,10 +5214,10 @@ async def on_message(message):
                                         description=':x: **You aren\'t playing ONO 99!**',
                                         color=discord.Color.red()))
 
-                except IndexError:
-                    pass
-                except TypeError:
-                    pass
+                except IndexError as e:
+                    raise e
+                except TypeError as e:
+                    raise e
 
                 overwrite.send_messages = True
                 try:
