@@ -39,6 +39,7 @@ default_dgs = {
     "SpectateGame": False,
     "StackCards": False,
     "Flip": False,
+    "ONO99": False,
     "7-0": False,
     "StartingCards": 7
 }
@@ -59,14 +60,6 @@ default_command_settings = {
         'BlacklistEnabled': False,
         'Blacklist': None
     },
-    'joingame': {
-        'Enabled': True,
-        'Cooldown': 0,
-        'WhitelistEnabled': False,
-        'Whitelist': None,
-        'BlacklistEnabled': True,
-        'Blacklist': None
-    },
     'leavegame': {
         'Enabled': True,
         'Cooldown': 0,
@@ -81,14 +74,6 @@ default_command_settings = {
         'WhitelistEnabled': True,
         'Whitelist': None,
         'BlacklistEnabled': False,
-        'Blacklist': None
-    },
-    'spectate': {
-        'Enabled': True,
-        'Cooldown': 0,
-        'WhitelistEnabled': False,
-        'Whitelist': None,
-        'BlacklistEnabled': True,
         'Blacklist': None
     },
     'stats': {
@@ -132,7 +117,7 @@ default_command_settings = {
         'Blacklist': None
     }
 }
-cmds = {'startgame', 'endgame', 'joingame', 'leavegame', 'kick', 'spectate', 'stats', 'globalstats', 'leaderboard',
+cmds = {'startgame', 'endgame', 'leavegame', 'kick', 'stats', 'globalstats', 'leaderboard',
         'globalleaderboard', 'options', 'commands', 'settings'}
 cards = ['blue0', 'blue1', 'blue2', 'blue3', 'blue4', 'blue5', 'blue6', 'blue7', 'blue8', 'blue9', 'bluereverse',
          'blueskip', 'blue+2',
@@ -187,6 +172,14 @@ flip_cards = [('blue1', 'purpleskip'), ('blue2', 'pink6'), ('blue3', 'purple8'),
               ('yellowflip', 'pink4'),
               ('wild', 'pinkflip'), ('wild', 'purple7'), ('wild', 'pink5'), ('wild', 'teal3'), ('+2', 'orange4'),
               ('+2', 'pink2'), ('+2', 'purple9'), ('+2', 'orange7')]
+ono99_cards = ['0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1', '1', '1', '2', '2', '2', '2', '2', '2',
+               '3', '3', '3', '3', '3', '3', '4', '4', '4', '4', '4', '4', '5', '5', '5', '5', '5', '5',
+               '6', '6', '6', '6', '6', '6', '7', '7', '7', '7', '7', '7', '8', '8', '8', '8', '8', '8',
+               '9', '9', '9', '9', '9', '9', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10',
+               '-10', '-10', '-10', '-10', '-10', '-10', '-10', '-10', '-10', '-10',
+               'reverse', 'reverse', 'reverse', 'reverse', 'reverse', 'reverse', 'reverse', 'reverse', 'reverse', 'reverse',
+               'play2', 'play2', 'play2', 'play2', 'play2', 'play2', 'play2', 'play2', 'play2', 'play2',
+               'ono99', 'ono99', 'ono99', 'ono99', 'ono99', 'ono99', 'ono99', 'ono99', 'ono99', 'ono99', ]
 bot_names = ['Doggo', 'Mushroom', 'Chin', 'Dragon', 'Crab', 'Matt', 'Susan', 'Carrie', 'Richard', 'Joe']  # Possible names of a bot
 resets = []  # List of guilds who wish to reset their data but have not yet confirmed
 cooldowns = {}  # Dictionary of command cooldowns
@@ -453,6 +446,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     guild = ctx.guild
     flip = d['settings']['Flip']
+    ono99 = d['settings']['ONO99']
 
     # Create a channel category for UNO
     category = discord.utils.get(guild.categories, name='UNO-GAME')
@@ -541,7 +535,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         }
         await category.create_text_channel('Spectator-UNO-Channel', overwrites=overwrites)
 
-    # Let UNOBot know which channels to send messages to if UNOBot is playing
+    # Let the bot(s) know which channels to send messages to if they are playing
     for bot in [x for x in player_ids if not str.isdigit(x)]:
         d['players'][bot].channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
 
@@ -620,7 +614,6 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         d['cards'].remove(c)
         d['current'] = c
         d['current_opposite'] = c
-
     else:
         d['current'] = choice(
             [card for card in d['cards'] if card != 'wild' and card != '+4'])
@@ -6091,6 +6084,9 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                         'Flip'):
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
 
+                                elif a[i].lower() in {'ono99', 'ono', '99', 'on', 'on99', 'on9'}:
+                                    games[str(ctx.guild.id)]['settings']['ONO99'] = True
+
                                 elif a[i] == '7-0':
                                     games[str(ctx.guild.id)]['settings'][a[i]] = True
 
@@ -6146,14 +6142,18 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     return
 
-                        if not games[str(ctx.guild.id)]['settings']['Flip']:
-                            message = discord.Embed(title='A game of UNO is going to start!',
-                                                    description='Less than 30 seconds left!',
-                                                    color=discord.Color.red())
-                        else:
+                        if games[str(ctx.guild.id)]['settings']['Flip']:
                             message = discord.Embed(title='A game of UNO is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.from_rgb(102, 51, 153))
+                        elif games[str(ctx.guild.id)]['settings']['ONO99']:
+                            message = discord.Embed(title='A game of ONO 99 is going to start!',
+                                                    description='Less than 30 seconds left!',
+                                                    color=discord.Color.yellow())
+                        else:
+                            message = discord.Embed(title='A game of UNO FLIP is going to start!',
+                                                    description='Less than 30 seconds left!',
+                                                    color=discord.Color.red())
 
                         message.add_field(name='Players:', value='None', inline=False)
 
@@ -6162,6 +6162,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             if setting == 'StartingCards':
                                 if games[str(ctx.guild.id)]['settings']['StartingCards'] != 7:
                                     s += ('• ' + setting + "\n")
+                            elif setting == 'ONO99':
+                                s += '• ONO 99\n'
                             elif games[str(ctx.guild.id)]['settings'][setting]:
                                 s += ('• ' + setting + "\n")
 
