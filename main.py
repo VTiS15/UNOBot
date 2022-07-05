@@ -2490,6 +2490,8 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     total = 0
                 if total <= 99:
                     m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{total}')
+                else:
+                    m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':cross:{player.name}')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
