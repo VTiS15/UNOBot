@@ -830,10 +830,13 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                     p += f':small_blue_diamond:{client.get_user(int(key)).name}\n'
                 else:
                     p += f':small_blue_diamond:{key}\n'
-            m_dict['fields'][0]['value'] = p
 
-        embed = discord.Embed.from_dict(m_dict)
-        await m.edit(embed=embed, view=None)
+            for f in m_dict['fields']:
+                if f['name'] == 'Players:':
+                    f['value'] = p
+                    break
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
     # If there is a winner
     if winner:
@@ -4183,7 +4186,7 @@ async def on_message(message):
                                     if games[str(message.guild.id)]['total'] < 0:
                                         games[str(message.guild.id)]['total'] = 0
 
-                                await draw(message.author, message.guild, 1)
+                                    await draw(message.author, message.guild, 1)
 
                                 if current_value == 'play2' and 'left' not in games[str(message.guild.id)]['players'][str(message.author.id)]:
                                     await display_cards(message.author, message.guild)
@@ -6504,7 +6507,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             if setting == 'StartingCards':
                                 if games[str(ctx.guild.id)]['settings']['StartingCards'] != 7:
                                     s += ('• ' + setting + "\n")
-                            elif setting == 'ONO99':
+                            elif setting == 'ONO99' and games[str(ctx.guild.id)]['settings']['ONO99']:
                                 s += '• ONO 99\n'
                             elif games[str(ctx.guild.id)]['settings'][setting]:
                                 s += ('• ' + setting + "\n")
