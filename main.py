@@ -1967,11 +1967,13 @@ async def display_cards(player: Union[Member, str], guild: Guild):
             else:
                 message.set_footer(text=n + ' is next!')
 
-            if games[str(guild.id)]['current']:
-                try:
+            try:
+                if games[str(guild.id)]['current']:
                     await channel.send(files=[thumbnail, file], embed=message)
-                except ClientOSError:
-                    pass
+                else:
+                    await channel.send(file=file, embed=message)
+            except ClientOSError:
+                pass
 
         # Send the current player's hand to every UNO channel
         await asyncio.gather(
