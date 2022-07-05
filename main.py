@@ -2477,7 +2477,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     break
         else:
             if str.isdigit(card) or card == '-10':
-                m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{games[str(guild.id)]["total"] + int(card)}')
+                total = games[str(guild.id)]["total"] + int(card)
+                if total < 0:
+                    total = 0
+                m_dict['description'] = m_dict['description'].replace(f'{games[str(guild.id)]["total"]}', f'{total}')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
