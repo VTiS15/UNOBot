@@ -3861,19 +3861,21 @@ async def on_message(message):
 
                 return
 
-            if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
-                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
-            else:
-                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
+            color = None
+            if not games[str(message.guild.id)]['settings']['ONO99']:
+                if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
+                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
+                else:
+                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
 
-            if not color:
-                if not games[str(message.guild.id)]['settings']['ONO99']:
-                    await message.channel.send(
-                        embed=discord.Embed(
-                            description=':x: **I don\'t understand your command.**',
-                            color=discord.Color.red()))
-            else:
-                color = color.group(0)
+                if not color:
+                    if not games[str(message.guild.id)]['settings']['ONO99']:
+                        await message.channel.send(
+                            embed=discord.Embed(
+                                description=':x: **I don\'t understand your command.**',
+                                color=discord.Color.red()))
+                else:
+                    color = color.group(0)
 
             if games[str(message.guild.id)]['settings']['ONO99']:
                 value = search(r'^-*\d+$|r(everse)*|p(lay)* *2|ono* *9+', card)
