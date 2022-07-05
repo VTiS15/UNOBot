@@ -5160,7 +5160,7 @@ async def on_message(message):
 
                                 m.set_image(url='attachment://image.png')
 
-                                await message.channel.send(file=file, embed=message)
+                                await message.channel.send(file=file, embed=m)
 
                                 if current_value == 'play2':
                                     await display_cards(message.author, message.guild)
