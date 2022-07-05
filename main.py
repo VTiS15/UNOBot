@@ -35,7 +35,6 @@ client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())  # I
 client.remove_command('help')  # Removes the default help command in Pycord
 default_dgs = {
     "DrawUntilMatch": False,
-    "QuickStart": False,
     "SpectateGame": False,
     "StackCards": False,
     "Flip": False,
