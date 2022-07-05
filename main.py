@@ -2564,6 +2564,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     if m:
                         # Prepare the player list if it is not ONO 99
                         m_dict = m.embeds[0].to_dict()
+                        m['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
                         p = ""
                         for key in games[str(guild.id)]['players']:
                             if str.isdigit(key):
