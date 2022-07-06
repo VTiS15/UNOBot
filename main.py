@@ -7008,8 +7008,6 @@ async def leavegame(ctx):
                                     description=':x: **Since not enough players are left, ending game...**',
                                     color=discord.Color.red()))) for x in ctx.channel.category.text_channels])
 
-
-
                             p = [x for x in games[str(ctx.guild.id)]['players'] if
                                  not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                  games[str(ctx.guild.id)]['players'][x]]
