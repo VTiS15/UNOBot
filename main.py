@@ -980,7 +980,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 field['value'] = p
 
-                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
+                tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict), view=None))
 
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
