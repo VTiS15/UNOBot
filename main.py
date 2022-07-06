@@ -513,13 +513,30 @@ async def game_setup(ctx: ApplicationContext, d: dict):
             sub(r'[^\w -]', '', player.name.replace(' ', '-')) + '-UNO-Channel',
             overwrites=overwrites)
 
-        welcome = await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
-                                                                              'Strategize, play your cards, unleash your wrath by drawing the feces out of people, and have fun with the game of UNO right here!\n\n'
-                                                                              '• Use `p/play <card_color> <card_value>` to play a card.\n'
-                                                                              '• Use `c/card(s)` to see your cards at anytime.\n'
-                                                                              '• Use `d/draw` to draw a card.\n'
-                                                                              '• Use `s/say <message>` to send a message to all players in their UNO channels.\n'
-                                                                              '• Use `a/alert` to alert the player who is playing a card.')
+        if flip:
+            welcome = await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
+                                                                                  'Strategize, play your cards, and have fun with the game of UNO FLIP right here!\n\n'
+                                                                                  '• Use `<card color><card value>` to play a card.\n'
+                                                                                  '• Use `c/card(s)` to see your cards at anytime.\n'
+                                                                                  '• Use `d/draw` to draw a card.\n'
+                                                                                  '• Use `s/say <message>` to send a message to all players in their UNO channels.\n'
+                                                                                  '• Use `a/alert` to alert the player who is playing a card.')
+        elif ono99:
+            welcome = await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
+                                                                                  'Strategize, play your cards, and be the least on9 player in the game of ONO 99 right here!\n\n'
+                                                                                  '• Use `<card color><card value>` to play a card.\n'
+                                                                                  '• Use `c/card(s)` to see your cards at anytime.\n'
+                                                                                  '• Use `d/draw` to draw a card.\n'
+                                                                                  '• Use `s/say <message>` to send a message to all players in their UNO channels.\n'
+                                                                                  '• Use `a/alert` to alert the player who is playing a card.')
+        else:
+            welcome = await channel.send(content='**Welcome, ' + player.mention + '! This is your UNO channel!**\n'
+                                                                                  'Strategize, play your cards, and have fun in the game of UNO right here!\n\n'
+                                                                                  '• Use `<card color><card value>` to play a card.\n'
+                                                                                  '• Use `c/card(s)` to see your cards at anytime.\n'
+                                                                                  '• Use `d/draw` to draw a card.\n'
+                                                                                  '• Use `s/say <message>` to send a message to all players in their UNO channels.\n'
+                                                                                  '• Use `a/alert` to alert the player who is playing a card.')
         await welcome.pin()
 
         gcontents = '**Game settings:**\n'
