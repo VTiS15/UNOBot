@@ -965,23 +965,20 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                             p += f':small_blue_diamond:{name} -1 pt'
                         else:
                             p += f':small_blue_diamond:{name} -{temp} pts'
-                field['value'] = p
 
                 # Show who the winner is and their score in the game invitation message
                 if isinstance(winner, str):
                     if score == 1:
-                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
-                                                                f':crown: **{winner}** +1 pt')
+                        p = f':crown: **{winner}** +1 pt\n' + p
                     else:
-                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner}',
-                                                                f':crown: **{winner} +{score} pts**')
+                        p = f':crown: **{winner} +{score} pts**\n' + p
                 else:
                     if score == 1:
-                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                                f':crown: **{winner.name}** +1 pt')
+                        p = f':crown: **{winner.name}** +1 pt\n' + p
                     else:
-                        field['value'] = field['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                                f':crown: **{winner.name} +{score} pts**')
+                        p = f':crown: **{winner.name} +{score} pts**\n' + p
+
+                field['value'] = p
 
                 tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict)))
 
