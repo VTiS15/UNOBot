@@ -825,8 +825,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         guild: The Discord guild where the game is happening
     """
 
-    ending.remove(str(guild.id))
-
     player_ids = list(d['players'].keys())
 
     m = None
@@ -837,24 +835,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             continue
         else:
             break
-
-    if m:
-        # Prepare the player list
-        m_dict = m.embeds[0].to_dict()
-        m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-        p = ""
-        for key in games[str(guild.id)]['players']:
-            if str.isdigit(key):
-                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-            else:
-                p += (':small_blue_diamond:' + key + "\n")
-
-        for f in m_dict['fields']:
-            if f['name'] == 'Players:':
-                f['value'] = p
-                break
-
-        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
     # If there is a winner
     if winner:
@@ -939,6 +919,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             if m:
                 field = None
                 m_dict = m.embeds[0].to_dict()
+                m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
                 for f in m_dict['fields']:
                     if f['name'] == 'Players:':
                         field = f
@@ -946,6 +927,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 # Craft a message that displays who won, the winner's score, and how many pts every loser lost
                 # Also show losers' scores in the game invitation message
+                p = ''
                 for key in [x for x in player_ids if x != str(winner.id)]:
                     temp = get_score(key)
 
@@ -980,11 +962,10 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                     if field:
                         name = guild.get_member(int(key)).name
                         if temp == 1:
-                            field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
-                                                                    f':small_blue_diamond:{name} -1 pt')
+                            p += f':small_blue_diamond:{name} -1 pt'
                         else:
-                            field['value'] = field['value'].replace(f':small_blue_diamond:{name}',
-                                                                    f':small_blue_diamond:{name} -{temp} pts')
+                            p += f':small_blue_diamond:{name} -{temp} pts'
+                field['value'] = p
 
                 # Show who the winner is and their score in the game invitation message
                 if isinstance(winner, str):
@@ -1067,6 +1048,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         await channel.delete()
 
     # Clear the game's data
+    ending.remove(str(guild.id))
     try:
         del stack[str(guild.id)]
     except KeyError:
