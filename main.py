@@ -836,6 +836,24 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         else:
             break
 
+    if m:
+        # Prepare the player list if it is not ONO 99
+        m_dict = m.embeds[0].to_dict()
+        m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+        p = ""
+        for key in games[str(guild.id)]['players']:
+            if str.isdigit(key):
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+            else:
+                p += (':small_blue_diamond:' + key + "\n")
+
+        for f in m_dict['fields']:
+            if f['name'] == 'Players:':
+                f['value'] = p
+                break
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+
     # If there is a winner
     if winner:
         # Load users' data
@@ -2578,24 +2596,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
             for id in games[str(guild.id)]['players']:
                 if 'left' not in games[str(guild.id)]['players'][id]:
-                    if m:
-                        # Prepare the player list if it is not ONO 99
-                        m_dict = m.embeds[0].to_dict()
-                        m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-                        p = ""
-                        for key in games[str(guild.id)]['players']:
-                            if str.isdigit(key):
-                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                            else:
-                                p += (':small_blue_diamond:' + key + "\n")
-
-                        for f in m_dict['fields']:
-                            if f['name'] == 'Players:':
-                                f['value'] = p
-                                break
-
-                        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
-
                     ending.append(str(guild.id))
                     await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
                     break
@@ -3902,10 +3902,13 @@ async def on_message(message):
 
                 return
 
-            if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
-                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
+            if not games[str(message.guild.id)]['settings']['ONO99']:
+                if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
+                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
+                else:
+                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
             else:
-                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
+                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|)', card)
 
             if not color:
                 if not games[str(message.guild.id)]['settings']['ONO99']:
@@ -6916,8 +6919,9 @@ async def endgame(ctx):
                             color=discord.Color.red()))) for x in ctx.guild.text_channels if
                             x.category.name == 'UNO-GAME'])
 
-                        ending.append(str(ctx.guild.id))
+
                         try:
+                            ending.append(str(ctx.guild.id))
                             await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
                         except:
                             pass
