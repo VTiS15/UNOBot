@@ -825,6 +825,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         guild: The Discord guild where the game is happening
     """
 
+    ending.remove(str(guild.id))
+
     player_ids = list(d['players'].keys())
 
     m = None
@@ -835,6 +837,24 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             continue
         else:
             break
+
+    if m:
+        # Prepare the player list if it is not ONO 99
+        m_dict = m.embeds[0].to_dict()
+        m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+        p = ""
+        for key in games[str(guild.id)]['players']:
+            if str.isdigit(key):
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+            else:
+                p += (':small_blue_diamond:' + key + "\n")
+
+        for f in m_dict['fields']:
+            if f['name'] == 'Players:':
+                f['value'] = p
+                break
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
     # If there is a winner
     if winner:
@@ -1047,30 +1067,10 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         await channel.delete()
 
     # Clear the game's data
-    ending.remove(str(guild.id))
     try:
         del stack[str(guild.id)]
     except KeyError:
         pass
-
-    if m:
-        # Prepare the player list if it is not ONO 99
-        m_dict = m.embeds[0].to_dict()
-        m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-        p = ""
-        for key in games[str(guild.id)]['players']:
-            if str.isdigit(key):
-                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-            else:
-                p += (':small_blue_diamond:' + key + "\n")
-
-        for f in m_dict['fields']:
-            if f['name'] == 'Players:':
-                f['value'] = p
-                break
-
-        await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
-
     del games[str(guild.id)]
 
     # Print a message to the console stating the game has been successfully shut down
