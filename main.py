@@ -839,7 +839,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             break
 
     if m:
-        # Prepare the player list if it is not ONO 99
+        # Prepare the player list
         m_dict = m.embeds[0].to_dict()
         m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
         p = ""
