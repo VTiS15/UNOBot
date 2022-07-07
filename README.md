@@ -11,10 +11,10 @@ It allows Discord servers to play the game completely within text channels. Chal
 # Features💡
 * Play UNO! with your friends completely within text channels on Discord!
 * Various optional game rules, including **StackCards** and **7-0**
-* Two fun game modes - Original **UNO!** and **UNO FLIP!**
+* Three fun game modes - Original **UNO!**, **UNO FLIP!**, and **ONO 99**
 * **Play with bots** (disables point calculation)
 * Local and global **leaderboards**
-* Check and show off your **stats**.!
+* Check and show off your **stats**!
 
 * Highly customizable player options, game and command settings
 
@@ -99,7 +99,7 @@ The scoring for the cards is as follows:
 | Wild Draw 2 | 50 pts |
 | Wild Draw Color | 60 pts |
 
-## <img align="right" src="https://user-images.githubusercontent.com/73805050/177531509-a00716c5-7ebf-455e-ad07-9f7f3a0baa82.png" width="59.1531" height="69.2"> ONO 99
+## <img align="right" src="https://user-images.githubusercontent.com/73805050/177706776-05663748-1c7e-4570-9e78-e160a8032752.png" width="113.2487" height="69.2"> ONO 99
 ### Setup
 Each player is dealt 4 cards. The number of cards each player has never changes during a game.
 ### Gameplay
@@ -134,4 +134,4 @@ before starting a new game.\
 If that does not work, try resetting UNOBot by entering `/u-settings reset` and `CONFIRM` afterwards.
 
 # Inspiration✨
-* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, which motivated me to develop this bot.
+* [UNOBot by Exium](https://top.gg/bot/565305035592957954): The inspiration of this bot. It works in almost the exact same way as this bot does. However, it only features the original game of UNO!. It suffers from frequent lags, bugs, and downtime, and thus motivated me to develop this bot.
