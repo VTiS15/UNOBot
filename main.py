@@ -415,7 +415,7 @@ async def cmd_info(ctx: ApplicationContext, cmd: str):
 
     Args:
         ctx: The context in which the command that called this function is being invoked under
-        cmd: The command whose information is to be sent
+        cmd: The command of which information is to be sent
     """
 
     message = discord.Embed(title=prefix + 'settings commands ' + cmd, color=discord.Color.red())
