@@ -99,7 +99,7 @@ The scoring for the cards is as follows:
 | Wild Draw 2 | 50 pts |
 | Wild Draw Color | 60 pts |
 
-## <img align="right" src="https://user-images.githubusercontent.com/73805050/177531509-a00716c5-7ebf-455e-ad07-9f7f3a0baa82.png" width="59.1531" height="69.2"> ONO 99
+## <img align="right" src="https://user-images.githubusercontent.com/73805050/177706776-05663748-1c7e-4570-9e78-e160a8032752.png" width="113.2487" height="69.2"> ONO 99
 ### Setup
 Each player is dealt 4 cards. The number of cards each player has never changes during a game.
 ### Gameplay
