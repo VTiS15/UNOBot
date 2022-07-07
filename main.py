@@ -961,12 +961,12 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                         if channel:
                             tasks.append(asyncio.create_task(channel.send(embed=message)))
 
-                    if field:
-                        name = guild.get_member(int(key)).name
-                        if temp == 1:
-                            p += f':small_blue_diamond:{name} -1 pt\n'
-                        else:
-                            p += f':small_blue_diamond:{name} -{temp} pts\n'
+                        if field:
+                            name = guild.get_member(int(key)).name
+                            if temp == 1:
+                                p += f':small_blue_diamond:{name} -1 pt\n'
+                            else:
+                                p += f':small_blue_diamond:{name} -{temp} pts\n'
 
                 # Show who the winner is and their score in the game invitation message
                 if isinstance(winner, str):
