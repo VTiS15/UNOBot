@@ -5195,10 +5195,7 @@ async def on_message(message):
 
                                 await asyncio.gather(*tasks)
 
-                                if current_value == 'play2':
-                                    await display_cards(message.author, message.guild)
-                                else:
-                                    await display_cards(n, message.guild)
+                                await display_cards(message.author, message.guild)
 
                             else:
                                 await message.channel.send(
