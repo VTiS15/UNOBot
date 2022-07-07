@@ -1813,10 +1813,15 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                                                         color=discord.Color.from_rgb(102, 51, 153))
 
                     elif games[str(guild.id)]['settings']['ONO99']:
-                        message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
-                                                description='The current total is **' + str(games[str(guild.id)][
-                                                    'total']) + '**.\n\nTheir cards:',
-                                                color=discord.Color.yellow())
+                        if games[str(guild.id)]['total'] == 69:
+                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                    description='The current total is **69**, **nice**.\n\nTheir cards:',
+                                                    color=discord.Color.yellow())
+                        else:
+                            message = discord.Embed(title='It\'s ' + player.name + '\'s turn!',
+                                                    description='The current total is **' + str(games[str(guild.id)][
+                                                        'total']) + '**.\n\nTheir cards:',
+                                                    color=discord.Color.yellow())
 
                     else:
                         color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
@@ -1895,10 +1900,15 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                                                         color=discord.Color.from_rgb(102, 51, 153))
 
                     elif games[str(guild.id)]['settings']['ONO99']:
-                        message = discord.Embed(title='It\'s ' + player + '\'s turn!',
-                                                description='The current card is **' + str(games[str(guild.id)][
-                                                    'total']) + '**.\n\nTheir cards:',
-                                                color=discord.Color.yellow())
+                        if games[str(guild.id)]['total'] == 69:
+                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                    description='The current card is **69**, **nice**.\n\nTheir cards:',
+                                                    color=discord.Color.yellow())
+                        else:
+                            message = discord.Embed(title='It\'s ' + player + '\'s turn!',
+                                                    description='The current card is **' + str(games[str(guild.id)][
+                                                                                                   'total']) + '**.\n\nTheir cards:',
+                                                    color=discord.Color.yellow())
 
                     else:
                         color = search(r'red|blue|green|yellow', games[str(guild.id)]['current']).group(0)
