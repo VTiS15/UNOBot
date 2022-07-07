@@ -909,10 +909,11 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             for key in [x for x in player_ids if x != str(winner.id)]:
                 temp = get_score(key)
 
-                if users[key][str(guild.id)]['Score'] < temp:
-                    users[key][str(guild.id)]['Score'] = 0
-                else:
-                    users[key][str(guild.id)]['Score'] -= temp
+                if key in users:
+                    if users[key][str(guild.id)]['Score'] < temp:
+                        users[key][str(guild.id)]['Score'] = 0
+                    else:
+                        users[key][str(guild.id)]['Score'] -= temp
 
                 score += temp
 
@@ -3770,6 +3771,58 @@ async def on_member_join(member):
 @client.event
 async def on_member_remove(member):
     # Remove user data from user configuration file if the user is not a bot
+    if str(member.guild.id) in games and str(member.id) in games[str(member.guild.id)]['players']:
+        games[str(member.guild.id)]['players'][str(member.id)]['left'] = True
+
+        await asyncio.gather(*[asyncio.create_task(x.send(
+            embed=discord.Embed(description=':warning: **' + member.name + '** left.',
+                                color=discord.Color.red()))) for x
+            in member.guild.text_channels if x.category.name == 'UNO-GAME'])
+
+        p = [x for x in games[str(member.guild.id)]['players']]
+
+        if len([x for x in p if not str.isdigit(x) or str.isdigit(x) and 'left' not in
+                                games[str(member.guild.id)]['players'][x]]) >= 2:
+            n = None
+
+            temp = iter(p)
+            for key in temp:
+                if key == str(member.id):
+                    n = next(temp, next(iter(p)))
+                    if str.isdigit(n):
+                        n = member.guild.get_member(int(n))
+                    break
+
+            channel = discord.utils.get(member.guild.text_channels, name=sub(r'[^\w -]', '',
+                                                         member.name.lower().replace(' ',
+                                                                                             '-')) + '-uno-channel')
+            for bot in [x for x in games[str(member.guild.id)]['players'] if not str.isdigit(x)]:
+                games[str(member.guild.id)]['players'][bot].channels.remove(channel)
+            await channel.delete()
+
+            if member.id == games[str(member.guild.id)]['player']:
+                await display_cards(n, member.guild)
+
+        else:
+            await asyncio.gather(*[asyncio.create_task(x.send(
+                embed=discord.Embed(
+                    description=':x: **Since not enough players are left, ending game...**',
+                    color=discord.Color.red()))) for x in member.guild.text_channels if x.category.name == 'UNO-GAME'])
+
+            p = [x for x in games[str(member.guild.id)]['players'] if
+                 not str.isdigit(x) or str.isdigit(x) and 'left' not in
+                 games[str(member.guild.id)]['players'][x]]
+
+            ending.append(str(member.guild.id))
+            if p:
+                if str.isdigit(p[0]):
+                    await game_shutdown(games[str(member.guild.id)], member.guild,
+                                        member.guild.get_member(int(p[0])))
+                else:
+                    await game_shutdown(games[str(member.guild.id)], member.guild, p[0])
+            else:
+                await game_shutdown(games[str(member.guild.id)], member.guild)
+
     if not member.bot:
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         user_stuff = json.loads(users_file.get()['Body'].read().decode('utf-8'))
