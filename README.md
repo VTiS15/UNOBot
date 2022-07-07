@@ -14,7 +14,7 @@ It allows Discord servers to play the game completely within text channels. Chal
 * Three fun game modes - Original **UNO!**, **UNO FLIP!**, and **ONO 99**
 * **Play with bots** (disables point calculation)
 * Local and global **leaderboards**
-* Check and show off your **stats**.!
+* Check and show off your **stats**!
 
 * Highly customizable player options, game and command settings
 
