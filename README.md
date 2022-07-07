@@ -1,6 +1,6 @@
 # UNOBot <img align="right" src="https://user-images.githubusercontent.com/73805050/130341782-78d30da7-0313-44f5-889c-06ab7eb8de9a.png">
 Inspired by [Exium's work](https://top.gg/bot/565305035592957954), this is a Discord bot that incorporates the popular card game, **UNO**, into your Discord server.
-It allows Discord servers to play the game completely within text channels. Challenge your friends and climb the leaderboard!
+It allows Discord users to play the game completely within text channels. Challenge your friends and climb the leaderboard!
 
 <p align="center">
     <a href="https://discord.com/api/oauth2/authorize?client_id=846948720159490078&permissions=268561488&scope=bot%20applications.commands" alt="Invite me!">
