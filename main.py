@@ -1683,10 +1683,15 @@ async def display_cards(player: Union[Member, str], guild: Guild):
                     message.set_image(url='attachment://image.png')
 
                 elif games[str(guild.id)]['settings']['ONO99']:
-                    message = discord.Embed(title='It\'s your turn!',
-                                            description='The current total is **' + str(games[str(guild.id)][
-                                                'total']) + '**.\n\nYour cards:',
-                                            color=discord.Color.yellow())
+                    if games[str(guild.id)]['total'] == 69:
+                        message = discord.Embed(title='It\'s your turn!',
+                                                description='The current total is **69**, **nice**.\n\nYour cards:',
+                                                color=discord.Color.yellow())
+                    else:
+                        message = discord.Embed(title='It\'s your turn!',
+                                                description='The current total is **' + str(games[str(guild.id)][
+                                                    'total']) + '**.\n\nYour cards:',
+                                                color=discord.Color.yellow())
 
                     image = Image.new('RGBA', (
                         len(games[str(guild.id)]['players'][str(player.id)]['cards']) * (
