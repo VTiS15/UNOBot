@@ -1267,6 +1267,13 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
         await channel.delete()
 
+    # Remove the game's data from memory
+    ending.remove(str(guild.id))
+    try:
+        del stack[str(guild.id)]
+    except KeyError:
+        pass
+
     if guild.id in rematching:
         if c:
             games[str(guild.id)]['seconds'] = 40
@@ -1424,13 +1431,10 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 await response.edit(embed=discord.Embed.from_dict(message_dict))
                 await asyncio.sleep(10)
 
-    # Clear the game's data
-    ending.remove(str(guild.id))
-    try:
-        del stack[str(guild.id)]
-    except KeyError:
-        pass
-    del games[str(guild.id)]
+        else:
+            del games[str(guild.id)]
+    else:
+        del games[str(guild.id)]
 
     # Print a message to the console stating the game has been successfully shut down
     print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has ended in ' + str(guild))
