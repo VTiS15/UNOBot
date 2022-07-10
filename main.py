@@ -4658,19 +4658,26 @@ async def on_message(message):
                         elif games[str(message.guild.id)]['settings']['ONO99']:
                             if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 total = games[str(message.guild.id)]['total']
-
-                                await play_card(value, message.author, message.guild)
-
                                 l = sum(
                                     1 for x in games[str(message.guild.id)]['players'] if
                                     'left' not in games[str(message.guild.id)]['players'][x])
+
+                                await play_card(value, message.author, message.guild)
 
                                 if total + int(value) < 99:
                                     games[str(message.guild.id)]['total'] += int(value)
                                     if games[str(message.guild.id)]['total'] < 0:
                                         games[str(message.guild.id)]['total'] = 0
 
-                                if l > 1:
+                                    await draw(message.author, message.guild, 1)
+
+                                    if current_value == 'play2' and 'left' not in \
+                                            games[str(message.guild.id)]['players'][str(message.author.id)]:
+                                        await display_cards(message.author, message.guild)
+                                    else:
+                                        await display_cards(n, message.guild)
+
+                                elif l > 2:
                                     await draw(message.author, message.guild, 1)
 
                                     if current_value == 'play2' and 'left' not in \
