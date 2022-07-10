@@ -2926,11 +2926,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 if total >= 99:
                     m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':skull: {player.name}')
                 else:
-                    if total == 69:
-                        m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']),
-                                                                              '69**, **nice')
-                    elif games[str(guild.id)]['total'] == 69:
+                    if games[str(guild.id)]['total'] == 69:
                         m_dict['description'] = m_dict['description'].replace('69**, **nice', str(total))
+                    elif total == 69:
+                        m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']), '69**, **nice')
                     else:
                         m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']),
                                                                               str(total))
@@ -4659,16 +4658,19 @@ async def on_message(message):
                         elif games[str(message.guild.id)]['settings']['ONO99']:
                             if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 total = games[str(message.guild.id)]['total']
+
                                 await play_card(value, message.author, message.guild)
+
+                                l = sum(
+                                    1 for x in games[str(message.guild.id)]['players'] if
+                                    'left' not in games[str(message.guild.id)]['players'][x])
 
                                 if total + int(value) < 99:
                                     games[str(message.guild.id)]['total'] += int(value)
                                     if games[str(message.guild.id)]['total'] < 0:
                                         games[str(message.guild.id)]['total'] = 0
 
-                                if sum(
-                                    1 for x in games[str(message.guild.id)]['players'] if
-                                    'left' not in games[str(message.guild.id)]['players'][x]) > 1:
+                                if l > 1:
                                     await draw(message.author, message.guild, 1)
 
                                     if current_value == 'play2' and 'left' not in \
