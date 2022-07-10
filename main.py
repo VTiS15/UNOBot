@@ -2820,7 +2820,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     except discord.NotFound:
         pass
 
-    # Edit the game invitation message to show game details in real time if it is not ONO 99
+    # Edit the game invitation message to show game details in real time
     m = None
     for channel in guild.text_channels:
         try:
@@ -2884,10 +2884,18 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                 total = games[str(guild.id)]["total"] + int(card)
                 if total < 0:
                     total = 0
+
                 if total >= 99:
                     m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{player.name}', f':skull: {player.name}')
                 else:
-                    m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']), str(total))
+                    if total == 69:
+                        m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']),
+                                                                              '69**, **nice')
+                    elif games[str(guild.id)]['total'] == 69:
+                        m_dict['description'] = m_dict['description'].replace('69**, **nice', str(total))
+                    else:
+                        m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']),
+                                                                              str(total))
 
         await m.edit(embed=discord.Embed.from_dict(m_dict))
 
