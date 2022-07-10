@@ -7155,9 +7155,10 @@ async def endgame(ctx):
                             color=discord.Color.red()))) for x in ctx.guild.text_channels if
                             x.category.name == 'UNO-GAME'])
 
-
                         try:
                             ending.append(str(ctx.guild.id))
+                            if ctx.guild.id in rematching:
+                                rematching.remove(ctx.guild.id)
                             await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
                         except:
                             pass
@@ -7270,6 +7271,8 @@ async def leavegame(ctx):
                                  games[str(ctx.guild.id)]['players'][x]]
 
                             ending.append(str(ctx.guild.id))
+                            if ctx.guild.id in rematching:
+                                rematching.remove(ctx.guild.id)
                             if p:
                                 if str.isdigit(p[0]):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
@@ -7387,6 +7390,8 @@ async def kick(ctx, user):
                                 embed=discord.Embed(description=':x: Since not enough players are left, ending game...',
                                                     color=discord.Color.red()))
 
+                        if ctx.guild.id in rematching:
+                            rematching.remove(ctx.guild.id)
                         ending.append(str(ctx.guild.id))
 
                         p = [x for x in games[str(ctx.guild.id)]['players'] if
