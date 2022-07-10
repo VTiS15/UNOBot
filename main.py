@@ -4584,6 +4584,9 @@ async def on_message(message):
                                            games[str(message.guild.id)]['current']).group(0)
 
                 try:
+                    n = len(games[str(message.guild.id)]['players'][
+                                str(message.author.id)]['cards']) - 1
+
                     if value in [str(x) for x in range(11)] or value == '-10':
                         if games[str(message.guild.id)]['settings']['Flip']:
                             if not games[str(message.guild.id)]['dark']:
@@ -4597,23 +4600,8 @@ async def on_message(message):
                                                 str(message.author.id)]['cards'] if x[0] == color + value]),
                                             message.author, message.guild)
 
-                                        if games[str(message.guild.id)]['settings']['7-0']:
-                                            if value == '7':
-                                                view = View()
-                                                view.add_item(get_hands(message.guild, message.author, n))
-
-                                                await message.channel.send(embed=discord.Embed(
-                                                    description='**Who do you want to switch hands with?**',
-                                                    color=discord.Color.red()
-                                                ), view=view)
-
-                                            else:
-                                                if str(message.guild.id) in games:
-                                                    await display_cards(n, message.guild)
-
-                                        else:
-                                            if str(message.guild.id) in games:
-                                                await display_cards(n, message.guild)
+                                        if n > 0 and str(message.guild.id) in games:
+                                            await display_cards(n, message.guild)
 
                                     else:
                                         await message.channel.send(
@@ -4637,23 +4625,24 @@ async def on_message(message):
                                             str(message.author.id)]['cards'] if x[1] == color + value]),
                                                         message.author, message.guild)
 
-                                        if games[str(message.guild.id)]['settings']['7-0']:
-                                            if value == '7':
-                                                view = View()
-                                                view.add_item(get_hands(message.guild, message.author, n))
+                                        if n > 0:
+                                            if games[str(message.guild.id)]['settings']['7-0']:
+                                                if value == '7':
+                                                    view = View()
+                                                    view.add_item(get_hands(message.guild, message.author, n))
 
-                                                await message.channel.send(embed=discord.Embed(
-                                                    description='**Who do you want to switch hands with?**',
-                                                    color=discord.Color.red()
-                                                ), view=view)
+                                                    await message.channel.send(embed=discord.Embed(
+                                                        description='**Who do you want to switch hands with?**',
+                                                        color=discord.Color.red()
+                                                    ), view=view)
+
+                                                else:
+                                                    if str(message.guild.id) in games:
+                                                        await display_cards(n, message.guild)
 
                                             else:
                                                 if str(message.guild.id) in games:
                                                     await display_cards(n, message.guild)
-
-                                        else:
-                                            if str(message.guild.id) in games:
-                                                await display_cards(n, message.guild)
 
                                     else:
                                         await message.channel.send(
@@ -4677,16 +4666,16 @@ async def on_message(message):
                                     if games[str(message.guild.id)]['total'] < 0:
                                         games[str(message.guild.id)]['total'] = 0
 
-                                    if sum(
-                                        1 for x in games[str(message.guild.id)]['players'] if
-                                        'left' not in games[str(message.guild.id)]['players'][x]) > 1:
-                                        await draw(message.author, message.guild, 1)
+                                if sum(
+                                    1 for x in games[str(message.guild.id)]['players'] if
+                                    'left' not in games[str(message.guild.id)]['players'][x]) > 1:
+                                    await draw(message.author, message.guild, 1)
 
-                                        if current_value == 'play2' and 'left' not in \
-                                                games[str(message.guild.id)]['players'][str(message.author.id)]:
-                                            await display_cards(message.author, message.guild)
-                                        else:
-                                            await display_cards(n, message.guild)
+                                    if current_value == 'play2' and 'left' not in \
+                                            games[str(message.guild.id)]['players'][str(message.author.id)]:
+                                        await display_cards(message.author, message.guild)
+                                    else:
+                                        await display_cards(n, message.guild)
 
                             else:
                                 await message.channel.send(
@@ -4701,51 +4690,52 @@ async def on_message(message):
                                         '+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + value, message.author, message.guild)
 
-                                    if games[str(message.guild.id)]['settings']['7-0']:
-                                        if value == '7':
-                                            view = View()
-                                            view.add_item(get_hands(message.guild, message.author, n))
+                                    if n > 0:
+                                        if games[str(message.guild.id)]['settings']['7-0']:
+                                            if value == '7':
+                                                view = View()
+                                                view.add_item(get_hands(message.guild, message.author, n))
 
-                                            await message.channel.send(
-                                                embed=discord.Embed(
-                                                    description='**Who do you want to switch hands with?**',
-                                                    color=discord.Color.red()), view=view)
+                                                await message.channel.send(
+                                                    embed=discord.Embed(
+                                                        description='**Who do you want to switch hands with?**',
+                                                        color=discord.Color.red()), view=view)
 
-                                        elif value == '0':
-                                            d = deepcopy(games[str(message.guild.id)]['players'])
+                                            elif value == '0':
+                                                d = deepcopy(games[str(message.guild.id)]['players'])
 
-                                            player_ids = list(games[str(message.guild.id)]['players'].keys())
-                                            for i in range(len(player_ids)):
-                                                if player_ids[i] != str(client.user.id) and player_ids[
-                                                    (i + 1) % len(player_ids)] != str(client.user.id):
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]][
-                                                        'cards'] = d[player_ids[i]]['cards']
-                                                elif player_ids[i] == str(client.user.id):
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]][
-                                                        'cards'] = d[player_ids[i]].cards
-                                                else:
-                                                    games[str(message.guild.id)]['players'][
-                                                        player_ids[(i + 1) % len(player_ids)]].cards = \
-                                                        d[player_ids[i]]['cards']
+                                                player_ids = list(games[str(message.guild.id)]['players'].keys())
+                                                for i in range(len(player_ids)):
+                                                    if player_ids[i] != str(client.user.id) and player_ids[
+                                                        (i + 1) % len(player_ids)] != str(client.user.id):
+                                                        games[str(message.guild.id)]['players'][
+                                                            player_ids[(i + 1) % len(player_ids)]][
+                                                            'cards'] = d[player_ids[i]]['cards']
+                                                    elif player_ids[i] == str(client.user.id):
+                                                        games[str(message.guild.id)]['players'][
+                                                            player_ids[(i + 1) % len(player_ids)]][
+                                                            'cards'] = d[player_ids[i]].cards
+                                                    else:
+                                                        games[str(message.guild.id)]['players'][
+                                                            player_ids[(i + 1) % len(player_ids)]].cards = \
+                                                            d[player_ids[i]]['cards']
 
-                                            if str(message.guild.id) in games:
-                                                await asyncio.gather(
-                                                    *[asyncio.create_task(x.send(embed=discord.Embed(
-                                                        description='**Everyone switched hands!**',
-                                                        color=discord.Color.red()))) for x in
-                                                        message.channel.category.text_channels])
+                                                if str(message.guild.id) in games:
+                                                    await asyncio.gather(
+                                                        *[asyncio.create_task(x.send(embed=discord.Embed(
+                                                            description='**Everyone switched hands!**',
+                                                            color=discord.Color.red()))) for x in
+                                                            message.channel.category.text_channels])
 
-                                                await display_cards(n, message.guild)
+                                                    await display_cards(n, message.guild)
+
+                                            else:
+                                                if str(message.guild.id) in games:
+                                                    await display_cards(n, message.guild)
 
                                         else:
                                             if str(message.guild.id) in games:
                                                 await display_cards(n, message.guild)
-
-                                    else:
-                                        if str(message.guild.id) in games:
-                                            await display_cards(n, message.guild)
 
                                 else:
                                     await message.channel.send(
@@ -4875,69 +4865,70 @@ async def on_message(message):
 
                                 return
 
-                        if str(message.guild.id) in games:
-                            d = games[str(message.guild.id)]
-                            player_ids = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
+                        if n > 0:
+                            if str(message.guild.id) in games:
+                                d = games[str(message.guild.id)]
+                                player_ids = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
 
-                            if len(player_ids) > 2:
-                                player_ids.reverse()
+                                if len(player_ids) > 2:
+                                    player_ids.reverse()
 
-                                ordered_dict = OrderedDict()
-                                for x in player_ids:
-                                    ordered_dict[x] = d['players'][x]
+                                    ordered_dict = OrderedDict()
+                                    for x in player_ids:
+                                        ordered_dict[x] = d['players'][x]
 
-                                d['players'] = dict(ordered_dict)
+                                    d['players'] = dict(ordered_dict)
 
-                                await asyncio.gather(*[asyncio.create_task(x.send(
-                                    embed=discord.Embed(description='**The player order is reversed.**',
-                                                        color=discord.Color.red()))) for x in
-                                    message.channel.category.text_channels])
+                                    await asyncio.gather(*[asyncio.create_task(x.send(
+                                        embed=discord.Embed(description='**The player order is reversed.**',
+                                                            color=discord.Color.red()))) for x in
+                                        message.channel.category.text_channels])
 
-                                p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
-                                m = None
-                                temp = iter(p)
-                                for key in temp:
-                                    if key == str(message.author.id):
+                                    p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
+                                    m = None
+                                    temp = iter(p)
+                                    for key in temp:
+                                        if key == str(message.author.id):
+                                            m = next(temp, next(iter(p)))
+                                            if str.isdigit(m):
+                                                m = message.guild.get_member(int(m))
+                                            break
+
+                                    if games[str(message.guild.id)]['settings']['ONO99']:
+                                        if current_value == 'play2':
+                                            games[str(message.guild.id)]['current'] = 'play2'
+
+                                    await display_cards(m, message.guild)
+
+                                else:
+                                    if not d['settings']['ONO99']:
                                         m = next(temp, next(iter(p)))
                                         if str.isdigit(m):
                                             m = message.guild.get_member(int(m))
-                                        break
+                                        if m == n:
+                                            iterable = iter(p)
+                                            next(iterable)
+                                            m = next(temp, next(iterable))
+                                            if str.isdigit(m):
+                                                m = message.guild.get_member(int(m))
 
-                                if games[str(message.guild.id)]['settings']['ONO99']:
-                                    if current_value == 'play2':
-                                        games[str(message.guild.id)]['current'] = 'play2'
+                                        if isinstance(n, Member):
+                                            await asyncio.gather(*[asyncio.create_task(x.send(
+                                                embed=discord.Embed(description='**' + n.name + ' is skipped.**',
+                                                                    color=discord.Color.red()))) for x in
+                                                message.channel.category.text_channels])
+                                        else:
+                                            await asyncio.gather(*[asyncio.create_task(x.send(
+                                                embed=discord.Embed(description='**' + n + ' is skipped.**',
+                                                                    color=discord.Color.red()))) for x in
+                                                message.channel.category.text_channels])
 
-                                await display_cards(m, message.guild)
-
-                            else:
-                                if not d['settings']['ONO99']:
-                                    m = next(temp, next(iter(p)))
-                                    if str.isdigit(m):
-                                        m = message.guild.get_member(int(m))
-                                    if m == n:
-                                        iterable = iter(p)
-                                        next(iterable)
-                                        m = next(temp, next(iterable))
-                                        if str.isdigit(m):
-                                            m = message.guild.get_member(int(m))
-
-                                    if isinstance(n, Member):
-                                        await asyncio.gather(*[asyncio.create_task(x.send(
-                                            embed=discord.Embed(description='**' + n.name + ' is skipped.**',
-                                                                color=discord.Color.red()))) for x in
-                                            message.channel.category.text_channels])
+                                        await display_cards(m, message.guild)
                                     else:
-                                        await asyncio.gather(*[asyncio.create_task(x.send(
-                                            embed=discord.Embed(description='**' + n + ' is skipped.**',
-                                                                color=discord.Color.red()))) for x in
-                                            message.channel.category.text_channels])
-
-                                    await display_cards(m, message.guild)
-                                else:
-                                    if current_value == 'play2':
-                                        await display_cards(message.author, message.guild)
-                                    else:
-                                        await display_cards(n, message.guild)
+                                        if current_value == 'play2':
+                                            await display_cards(message.author, message.guild)
+                                        else:
+                                            await display_cards(n, message.guild)
 
                     elif value in ('skip', 's'):
                         if not games[str(message.guild.id)]['settings']['Flip']:
@@ -4947,7 +4938,7 @@ async def on_message(message):
                                         '+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + 'skip', message.author, message.guild)
 
-                                    if str(message.guild.id) in games:
+                                    if str(message.guild.id) in games and n > 0:
                                         m = next(temp, next(iter(p)))
                                         if str.isdigit(m):
                                             m = message.guild.get_member(int(m))
@@ -4994,7 +4985,7 @@ async def on_message(message):
                                             str(message.author.id)]['cards'] if x[0] == color + 'skip']),
                                                         message.author, message.guild)
 
-                                        if str(message.guild.id) in games:
+                                        if str(message.guild.id) in games and n > 0:
                                             m = next(temp, next(iter(p)))
                                             if str.isdigit(m):
                                                 m = message.guild.get_member(int(m))
@@ -5041,7 +5032,7 @@ async def on_message(message):
                                             str(message.author.id)]['cards'] if x[1] == color + 'skip']),
                                                         message.author, message.guild)
 
-                                        if str(message.guild.id) in games:
+                                        if str(message.guild.id) in games and n > 0:
                                             await asyncio.gather(*[asyncio.create_task(x.send(
                                                 embed=discord.Embed(description='**Everyone is skipped!**',
                                                                     color=discord.Color.red()))) for x in
@@ -5067,7 +5058,7 @@ async def on_message(message):
                                 if not ('+' in current_value and str(message.guild.id) in stack):
                                     await play_card(color + 'wild', message.author, message.guild)
 
-                                    if str(message.guild.id) in games:
+                                    if str(message.guild.id) in games and n > 0:
                                         await display_cards(n, message.guild)
 
                                 else:
@@ -5093,7 +5084,7 @@ async def on_message(message):
                                                      str(message.author.id)]['cards'] if x[0] == 'wild'])[1]),
                                                 message.author, message.guild)
 
-                                            if str(message.guild.id) in games:
+                                            if str(message.guild.id) in games and n > 0:
                                                 await display_cards(n, message.guild)
 
                                         else:
@@ -5124,7 +5115,7 @@ async def on_message(message):
                                                     0], color + 'wild'),
                                                 message.author, message.guild)
 
-                                            if str(message.guild.id) in games:
+                                            if str(message.guild.id) in games and n > 0:
                                                 await display_cards(n, message.guild)
 
                                         else:
@@ -5147,7 +5138,7 @@ async def on_message(message):
                         if '+4' in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                             await play_card(color + '+4', message.author, message.guild)
 
-                            if str(message.guild.id) in games:
+                            if str(message.guild.id) in games and n > 0:
                                 if str(message.guild.id) not in stack:
                                     stack[str(message.guild.id)] = 4
                                 else:
@@ -5204,7 +5195,7 @@ async def on_message(message):
                                         current_value == '+4' and str(message.guild.id) in stack):
                                     await play_card(color + '+2', message.author, message.guild)
 
-                                    if str(message.guild.id) in games:
+                                    if str(message.guild.id) in games and n > 0:
                                         if str(message.guild.id) not in stack:
                                             stack[str(message.guild.id)] = 2
                                         else:
@@ -5278,7 +5269,7 @@ async def on_message(message):
                                                 str(message.author.id)]['cards'] if x[0] == '+2'])[
                                                 1]), message.author, message.guild)
 
-                                        if str(message.guild.id) in games:
+                                        if str(message.guild.id) in games and n > 0:
                                             if str(message.guild.id) not in stack:
                                                 stack[str(message.guild.id)] = 2
                                             else:
@@ -5355,7 +5346,7 @@ async def on_message(message):
                                         str(message.author.id)]['cards'] if x[0] == color + '+1']), message.author,
                                                     message.guild)
 
-                                    if str(message.guild.id) in games:
+                                    if str(message.guild.id) in games and n > 0:
                                         if str(message.guild.id) not in stack:
                                             stack[str(message.guild.id)] = 1
                                         else:
@@ -5435,7 +5426,7 @@ async def on_message(message):
                                         str(message.author.id)]['cards'] if x[1] == color + '+5']), message.author,
                                                     message.guild)
 
-                                    if str(message.guild.id) in games:
+                                    if str(message.guild.id) in games and n > 0:
                                         if str(message.guild.id) not in stack:
                                             stack[str(message.guild.id)] = 5
                                         else:
@@ -5509,7 +5500,7 @@ async def on_message(message):
                                     str(message.author.id)]['cards'] if x[1] == '+color'])[
                                                      0], color + '+color'), message.author, message.guild)
 
-                                if str(message.guild.id) in games:
+                                if str(message.guild.id) in games and n > 0:
                                     await draw(n, message.guild, 1, False, True)
 
                                     m = next(temp, next(iter(p)))
@@ -5548,7 +5539,7 @@ async def on_message(message):
 
                                         await play_card(c, message.author, message.guild)
 
-                                        if str(message.guild.id) in games:
+                                        if str(message.guild.id) in games and n > 0:
                                             games[str(message.guild.id)]['dark'] = not games[str(message.guild.id)][
                                                 'dark']
                                             games[str(message.guild.id)]['current'] = games[str(message.guild.id)][
@@ -5584,7 +5575,7 @@ async def on_message(message):
 
                                         await play_card(c, message.author, message.guild)
 
-                                        if str(message.guild.id) in games:
+                                        if str(message.guild.id) in games and n > 0:
                                             games[str(message.guild.id)]['dark'] = not games[str(message.guild.id)][
                                                 'dark']
                                             games[str(message.guild.id)]['current'] = games[str(message.guild.id)][
