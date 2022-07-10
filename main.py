@@ -4643,9 +4643,10 @@ async def on_message(message):
 
                         elif games[str(message.guild.id)]['settings']['ONO99']:
                             if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
+                                total = games[str(message.guild.id)]['total']
                                 await play_card(value, message.author, message.guild)
 
-                                if games[str(message.guild.id)]['total'] + int(value) < 99:
+                                if total + int(value) < 99:
                                     games[str(message.guild.id)]['total'] += int(value)
                                     if games[str(message.guild.id)]['total'] < 0:
                                         games[str(message.guild.id)]['total'] = 0
