@@ -185,7 +185,7 @@ cooldowns = {}  # Dictionary of command cooldowns
 games = {}  # Dictionary of ongoing games' data
 stack = {}  # Remembers guilds' card stacking
 ending = []  # List of guilds whose games are ending
-rematching = []  # List of guilds who are awaiting rematch
+rematching = {}  # Dictionary of guilds who are awaiting rematch
 # Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
 s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                          aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
@@ -403,8 +403,10 @@ async def rematch_callback(interaction):
             embed=discord.Embed(title=':fire: The next game will be starting immediately!', color=discord.Color.red())
         ))
 
-        if interaction.guild.id not in rematching:
-            rematching.append(interaction.guild.id)
+        if str(interaction.guild.id) not in rematching:
+            rematching[str(interaction.guild.id)] = [interaction.user.id]
+        else:
+            rematching[str(interaction.guild.id)].append(interaction.user.id)
 rematch.callback = rematch_callback
 
 
@@ -1299,14 +1301,16 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         pass
 
     # Automatically start the next match if at least one of the players wants to rematch
-    if guild.id in rematching:
+    if str(guild.id) in rematching:
         if c:
             games[str(guild.id)]['seconds'] = 40
             games[str(guild.id)]['cards'] = []
 
             for id in games[str(guild.id)]['players']:
-                if 'left' in games[str(guild.id)]['players'][id]:
+                if str(id) in rematching[str(guild.id)] and 'left' in games[str(guild.id)]['players'][id]:
                     del games[str(guild.id)]['players'][id]['left']
+                elif str(id) not in rematching[str(guild.id)]:
+                    del games[str(guild.id)]['players'][id]
 
             if games[str(guild.id)]['settings']['Flip']:
                 message = discord.Embed(title='A game of UNO FLIP is going to start!',
@@ -7189,8 +7193,8 @@ async def endgame(ctx):
                             x.category.name == 'UNO-GAME'])
 
                         try:
-                            if ctx.guild.id in rematching:
-                                rematching.remove(ctx.guild.id)
+                            if str(ctx.guild.id) in rematching:
+                                del rematching[str(ctx.guild.id)]
                             ending.append(str(ctx.guild.id))
                             await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
                         except:
@@ -7303,8 +7307,8 @@ async def leavegame(ctx):
                                  not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                  games[str(ctx.guild.id)]['players'][x]]
 
-                            if ctx.guild.id in rematching:
-                                rematching.remove(ctx.guild.id)
+                            if str(ctx.guild.id) in rematching:
+                                del rematching[str(ctx.guild.id)]
                             ending.append(str(ctx.guild.id))
                             if p:
                                 if str.isdigit(p[0]):
@@ -7423,8 +7427,8 @@ async def kick(ctx, user):
                                 embed=discord.Embed(description=':x: Since not enough players are left, ending game...',
                                                     color=discord.Color.red()))
 
-                        if ctx.guild.id in rematching:
-                            rematching.remove(ctx.guild.id)
+                        if str(ctx.guild.id) in rematching:
+                            del rematching[str(ctx.guild.id)]
                         ending.append(str(ctx.guild.id))
 
                         p = [x for x in games[str(ctx.guild.id)]['players'] if
