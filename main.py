@@ -1266,6 +1266,27 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         # Wait 10 seconds before deleting UNO channels
         await asyncio.sleep(10)
 
+    # If there is no winner
+    else:
+        if m:
+            field = None
+            m_dict = m.embeds[0].to_dict()
+            m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+            for f in m_dict['fields']:
+                if f['name'] == 'Players:':
+                    field = f
+                    break
+
+            p = ''
+            for key in player_ids:
+                if str.isdigit(key):
+                    p += f':small_blue_diamond:{guild.get_member(int(key)).name}\n'
+                else:
+                    p += f':small_blue_diamond:{key}\n'
+            field['value'] = p
+
+            await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+
     # Delete the UNO channels and category
     for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
         await channel.delete()
@@ -1322,7 +1343,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             else:
                 message.add_field(name='Game Settings:', value='None', inline=False)
 
-            message.add_field(name='Game Creator:', value=guild.get_member(games[str(guild.id)]['creator']).name, inline=False)
+            message.add_field(name='Game Creator:', value=str(guild.get_member(games[str(guild.id)]['creator'])), inline=False)
 
             view = View()
             view.add_item(join)
