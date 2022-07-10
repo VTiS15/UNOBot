@@ -400,7 +400,7 @@ async def rematch_callback(interaction):
                                                                                                  interaction.user.name.lower().replace(
                                                                                                      ' ',
                                                                                                      '-')) + '-uno-channel').send(
-            embed=discord.Embed(title=':fire: Join the next automatically started game!', color=discord.Color.red())
+            embed=discord.Embed(title=':fire: The next game will be starting immediately!', color=discord.Color.red())
         ))
 
         if interaction.guild.id not in rematching:
@@ -4645,17 +4645,20 @@ async def on_message(message):
                             if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 await play_card(value, message.author, message.guild)
 
-                                if games[str(message.guild.id)]['total'] + int(value) < 99:
+                                if games[str(message.guild.id)]['total'] + int(value) < 99 and sum(
+                                        1 for x in games[str(message.guild.id)]['players'] if
+                                        'left' not in games[str(message.guild.id)]['players'][x]) > 1:
                                     games[str(message.guild.id)]['total'] += int(value)
                                     if games[str(message.guild.id)]['total'] < 0:
                                         games[str(message.guild.id)]['total'] = 0
 
-                                await draw(message.author, message.guild, 1)
+                                    await draw(message.author, message.guild, 1)
 
-                                if current_value == 'play2' and 'left' not in games[str(message.guild.id)]['players'][str(message.author.id)]:
-                                    await display_cards(message.author, message.guild)
-                                else:
-                                    await display_cards(n, message.guild)
+                                    if current_value == 'play2' and 'left' not in \
+                                            games[str(message.guild.id)]['players'][str(message.author.id)]:
+                                        await display_cards(message.author, message.guild)
+                                    else:
+                                        await display_cards(n, message.guild)
 
                             else:
                                 await message.channel.send(
@@ -7163,9 +7166,9 @@ async def endgame(ctx):
                             x.category.name == 'UNO-GAME'])
 
                         try:
-                            ending.append(str(ctx.guild.id))
                             if ctx.guild.id in rematching:
                                 rematching.remove(ctx.guild.id)
+                            ending.append(str(ctx.guild.id))
                             await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
                         except:
                             pass
@@ -7277,9 +7280,9 @@ async def leavegame(ctx):
                                  not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                  games[str(ctx.guild.id)]['players'][x]]
 
-                            ending.append(str(ctx.guild.id))
                             if ctx.guild.id in rematching:
                                 rematching.remove(ctx.guild.id)
+                            ending.append(str(ctx.guild.id))
                             if p:
                                 if str.isdigit(p[0]):
                                     await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
