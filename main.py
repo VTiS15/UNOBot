@@ -1305,12 +1305,13 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         if c:
             games[str(guild.id)]['seconds'] = 40
             games[str(guild.id)]['cards'] = []
+            games[str(guild.id)]['players'] = {}
 
-            for id in games[str(guild.id)]['players']:
-                if str(id) in rematching[str(guild.id)] and 'left' in games[str(guild.id)]['players'][id]:
-                    del games[str(guild.id)]['players'][id]['left']
-                elif str(id) not in rematching[str(guild.id)]:
-                    del games[str(guild.id)]['players'][id]
+            user_options = json.loads(
+                s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
+            for id in rematching[str(guild.id)]:
+                games[str(guild.id)]['players'][str(id)] = user_options[str(id)]
+                games[str(guild.id)]['players'][str(id)]['cards'] = []
 
             if games[str(guild.id)]['settings']['Flip']:
                 message = discord.Embed(title='A game of UNO FLIP is going to start!',
