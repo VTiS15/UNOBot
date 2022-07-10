@@ -1371,7 +1371,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                     break
 
-                games[str(guild.id)]['seconds'] -= 10
                 m = response.embeds[0]
 
                 if games[str(guild.id)]['seconds'] == 0:
@@ -1417,8 +1416,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                         else:
                             for key in games[str(guild.id)]['players']:
                                 if str.isdigit(key):
-                                    p += (':small_blue_diamond:' + client.get_user(
-                                        int(key)).name + "\n")
+                                    p += (':small_blue_diamond:' + guild.get_member(int(key)).name + "\n")
                                 else:
                                     p += (':small_blue_diamond:' + f'{key}\n')
 
@@ -1456,6 +1454,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                             '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(guild) + '.')
 
                     break
+
+                games[str(guild.id)]['seconds'] -= 10
 
                 m_dict = m.to_dict()
                 m_dict['description'] = 'Less than ' + str(
