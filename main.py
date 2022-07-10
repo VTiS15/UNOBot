@@ -1314,7 +1314,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             else:
                 message.add_field(name='Game Settings:', value='None', inline=False)
 
-            message.add_field(name='Game Creator:', value=games[str(guild.id)]['creator'], inline=False)
+            message.add_field(name='Game Creator:', value=guild.get_member(games[str(guild.id)]['creator']).name, inline=False)
 
             view = View()
             view.add_item(join)
