@@ -1179,7 +1179,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                                                              ' ',
                                                                                                              '-')) + '-uno-channel')
                         if channel:
-                            tasks.append(asyncio.create_task(channel.send(embed=message)))
+                            tasks.append(asyncio.create_task(channel.send(embed=message, view=v)))
 
                         if field:
                             name = guild.get_member(int(key)).name
