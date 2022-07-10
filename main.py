@@ -403,7 +403,8 @@ async def rematch_callback(interaction):
             embed=discord.Embed(title=':fire: Join the next automatically started game!', color=discord.Color.red())
         ))
 
-        rematching.append(interaction.guild.id)
+        if interaction.guild.id not in rematching:
+            rematching.append(interaction.guild.id)
 rematch.callback = rematch_callback
 
 
@@ -1462,7 +1463,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
             top = '+4'
         elif 'wild' in top:
             top = 'wild'
-    else:
+    elif isinstance(top, tuple):
         bottom = games[str(guild.id)]['current_opposite']
 
         if 'wild' in top[0]:
