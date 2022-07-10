@@ -185,11 +185,226 @@ cooldowns = {}  # Dictionary of command cooldowns
 games = {}  # Dictionary of ongoing games' data
 stack = {}  # Remembers guilds' card stacking
 ending = []  # List of guilds whose games are ending
+rematching = []  # List of guilds who are awaiting rematch
 # Amazon Web Services stuff because the configuration files are stored in an AWS S3 bucket
 s3_client = boto3.client('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                          aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
 s3_resource = boto3.resource('s3', aws_access_key_id=getenv('AWS_ACCESS_KEY_ID'),
                              aws_secret_access_key=getenv('AWS_SECRET_ACCESS_KEY'))
+
+
+# Buttons
+join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
+async def join_callback(interaction):
+    await interaction.response.defer()
+
+    user_options = json.loads(
+        s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
+    message = interaction.message
+    guild = interaction.guild
+    user = interaction.user
+
+    if not all(x in UNICODE_EMOJI_ENGLISH for x in user.name):
+        if str(user.id) not in games[str(guild.id)]['players']:
+            for g in client.guilds:
+                user_options[str(user.id)].pop(str(g.id), None)
+
+            games[str(guild.id)]['players'][str(user.id)] = user_options[str(user.id)]
+            games[str(guild.id)]['players'][str(user.id)]['cards'] = []
+
+        else:
+            del games[str(guild.id)]['players'][str(user.id)]
+
+        p = ""
+        for key in games[str(guild.id)]['players']:
+            if str.isdigit(key):
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+            else:
+                p += (':small_blue_diamond:' + key + "\n")
+        if not p:
+            p = 'None'
+
+        message.embeds[0].set_field_at(0, name='Players:', value=p, inline=False)
+
+        await message.edit(embed=message.embeds[0])
+join.callback = join_callback
+
+spectate = Button(label='Spectate', style=discord.ButtonStyle.blurple, emoji='👀')
+async def spectate_callback(interaction):
+    await interaction.response.defer()
+
+    role = discord.utils.get(interaction.guild.roles, name='UNO Spectator')
+    if role in interaction.user.roles:
+        await interaction.user.remove_roles(role)
+    else:
+        await interaction.user.add_roles(role)
+spectate.callback = spectate_callback
+
+start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
+async def start_callback(interaction):
+    await interaction.response.defer()
+
+    if interaction.user == interaction.guild.owner or interaction.user.id == \
+            games[str(interaction.guild.id)]['creator']:
+
+        n = len(games[str(interaction.guild.id)]['players'].keys())
+
+        if n > 1:
+            await interaction.message.edit(view=None)
+
+            games[str(interaction.guild.id)]['seconds'] = -2
+
+            p = ""
+            if not games[str(interaction.guild.id)]['settings']['ONO99']:
+                l = max(len(max(
+                    [x for x in games[str(interaction.guild.id)]['players'] if not str.isdigit(x)],
+                    key=len, default=[])), len(max(
+                    [client.get_user(int(x)).name for x in games[str(interaction.guild.id)]['players'] if
+                     str.isdigit(x)], key=len, default=[])))
+                for key in games[str(interaction.guild.id)]['players']:
+                    if str.isdigit(key):
+                        if len(client.get_user(int(key)).name) == l:
+                            p += (':small_blue_diamond:' + client.get_user(
+                                int(key)).name + f" - {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+                        else:
+                            p += (
+                                        ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
+                                    l + 3,
+                                    '-') + f" {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+                    else:
+                        if len(key) == l:
+                            p += (
+                                        ':small_blue_diamond:' + key + f" - {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+                        else:
+                            p += (
+                            ':small_blue_diamond:' + f'{key} '.ljust(l + 3, '-') + f" {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+            else:
+                for key in games[str(interaction.guild.id)]['players']:
+                    if str.isdigit(key):
+                        p += (':small_blue_diamond:' + client.get_user(int(key)).name + "\n")
+                    else:
+                        p += (':small_blue_diamond:' + f'{key}\n')
+
+            interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
+                                                       inline=False)
+
+            await interaction.message.edit(embed=interaction.message.embeds[0])
+
+            message_dict = interaction.message.embeds[0].to_dict()
+
+            message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
+            if games[str(interaction.guild.id)]['settings']['ONO99']:
+                message_dict[
+                    'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
+                                     'The current total is **0**.'
+            else:
+                message_dict[
+                    'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+
+            try:
+                v = View()
+                v.add_item(spectate)
+                await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
+                                               view=v)
+
+                await game_setup(await client.get_context(interaction.message),
+                                 games[str(interaction.guild.id)])
+            except discord.NotFound:
+                pass
+start.callback = start_callback
+
+cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
+async def cancel_callback(interaction):
+    if interaction.user == interaction.guild.owner or str(interaction.user) == \
+            interaction.message.embeds[0].to_dict()['fields'][2][
+                'value']:
+        await interaction.message.edit(view=None)
+
+        games[str(interaction.guild.id)]['seconds'] = -1
+
+        message_dict = interaction.message.embeds[0].to_dict()
+        message_dict['title'] = message_dict['title'].replace('is going to start', 'was cancelled')
+
+        if interaction.user == interaction.guild.owner:
+            message_dict['description'] = ':x: The server owner cancelled the game.'
+        elif str(interaction.user) == interaction.message.embeds[0].to_dict()['fields'][2][
+            'value']:
+            message_dict['description'] = ':x: The game creator cancelled the game.'
+
+        p = ""
+        for key in games[str(interaction.guild.id)]['players']:
+            if str.isdigit(key):
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+            else:
+                p += (':small_blue_diamond:' + key + "\n")
+        if not p:
+            p = 'None'
+
+        try:
+            del games[str(interaction.guild.id)]
+        except ValueError:
+            pass
+
+        message_dict['fields'][0]['value'] = p
+
+        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
+
+        print('[' + datetime.now().strftime(
+            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
+            interaction.guild) + '.')
+cancel.callback = cancel_callback
+
+add = Button(label='Add bot', emoji='➕')
+async def add_callback(interaction):
+    if interaction.user == interaction.guild.owner or str(interaction.user) == \
+            interaction.message.embeds[0].to_dict()['fields'][2][
+                'value']:
+        await interaction.response.defer()
+
+        message = interaction.message
+        field = message.embeds[0].to_dict()['fields'][0]
+        bot_lst = [x for x in bot_names if x not in field['value']]
+
+        if len(bot_lst) <= 1:
+            v = View()
+            v.add_item(join)
+            v.add_item(start)
+            v.add_item(cancel)
+            await message.edit(view=v)
+
+        bot = choice(bot_lst)
+
+        games[str(interaction.guild.id)]['players'][bot] = None
+
+        p = ""
+        for key in games[str(interaction.guild.id)]['players']:
+            if str.isdigit(key):
+                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+            else:
+                p += (':small_blue_diamond:' + key + "\n")
+
+        message.embeds[0].set_field_at(0, name='Players:',
+                                       value=p,
+                                       inline=False)
+
+        await message.edit(embed=message.embeds[0])
+add.callback = add_callback
+
+rematch = Button(label='Rematch!', style=discord.ButtonStyle.primary, emoji='🔥')
+async def rematch_callback(interaction):
+    if str(interaction.user.id) in games[str(interaction.guild.id)]['players']:
+        await interaction.response.defer()
+
+        await interaction.message.edit(view=None)
+        await asyncio.create_task(discord.utils.get(interaction.guild.text_channels, name=sub(r'[^\w -]', '',
+                                                                                                 interaction.user.name.lower().replace(
+                                                                                                     ' ',
+                                                                                                     '-')) + '-uno-channel').send(
+            embed=discord.Embed(title=':fire: Join the next automatically started game!', color=discord.Color.red())
+        ))
+
+        rematching.append(interaction.guild.id)
+rematch.callback = rematch_callback
 
 
 def main():
@@ -842,6 +1057,9 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
+        v = View()
+        v.add_item(rematch)
+
         # Scores are only calculated when no bot is playing
         if not [x for x in player_ids if not str.isdigit(x)]:
             # Initialize the score the winner gets to 0
@@ -984,6 +1202,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                 tasks.append(m.edit(embed=discord.Embed.from_dict(m_dict), view=None))
 
+            # Craft a message that displays who won
             if score == 1:
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +1 pt', color=discord.Color.red())
             else:
@@ -994,7 +1213,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                                              winner.name.lower().replace(
                                                                                                  ' ',
                                                                                                  '-')) + '-uno-channel').send(
-                embed=message)))
+                embed=message, view=v)))
 
             if d['settings']['SpectateGame']:
                 tasks.append(asyncio.create_task(
@@ -1014,7 +1233,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
             try:
                 await asyncio.gather(
-                    *[asyncio.create_task(x.send(embed=message)) for x in guild.text_channels if
+                    *[asyncio.create_task(x.send(embed=message, view=v)) for x in guild.text_channels if
                       x.category.name == 'UNO-GAME'])
             except ClientOSError:
                 pass
@@ -1045,6 +1264,172 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     # Delete the UNO channels and category
     for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
         await channel.delete()
+
+    if guild.id in rematching:
+        channel = None
+        for c in guild.text_channels:
+            try:
+                channel = await c.fetch_message(games[str(guild.id)]['message'])
+            except (discord.NotFound, discord.Forbidden):
+                continue
+            else:
+                break
+
+        if channel:
+            games[str(guild.id)]['seconds'] = 40
+            games[str(guild.id)]['cards'] = []
+
+            if games[str(guild.id)]['settings']['Flip']:
+                message = discord.Embed(title='A game of UNO FLIP is going to start!',
+                                        description='Less than 30 seconds left!',
+                                        color=discord.Color.from_rgb(102, 51, 153))
+            elif games[str(guild.id)]['settings']['ONO99']:
+                message = discord.Embed(title='A game of ONO 99 is going to start!',
+                                        description='Less than 30 seconds left!',
+                                        color=discord.Color.yellow())
+            else:
+                message = discord.Embed(title='A game of UNO is going to start!',
+                                        description='Less than 30 seconds left!',
+                                        color=discord.Color.red())
+
+            p = ''
+            for id in games[str(guild.id)]['players']:
+                if str.isdigit(id):
+                    p += f':small_blue_diamond:{guild.get_member(int(id)).name}\n'
+                else:
+                    p += f':small_blue_diamond:{id}\n'
+            message.add_field(name='Players:', value=p, inline=False)
+
+            s = ""
+            for setting in games[str(guild.id)]['settings']:
+                if setting == 'StartingCards':
+                    if games[str(guild.id)]['settings']['StartingCards'] != 7:
+                        s += ('• ' + setting + "\n")
+                elif setting == 'ONO99' and games[str(guild.id)]['settings']['ONO99']:
+                    s += '• ONO 99\n'
+                elif games[str(guild.id)]['settings'][setting]:
+                    s += ('• ' + setting + "\n")
+            if s:
+                message.add_field(name='Game Settings:', value=s, inline=False)
+            else:
+                message.add_field(name='Game Settings:', value='None', inline=False)
+
+            message.add_field(name='Game Creator:', value=games[str(guild.id)]['creator'], inline=False)
+
+            view = View()
+            view.add_item(join)
+            if not games[str(guild.id)]['settings']['7-0'] and not games[str(guild.id)]['settings']['ONO99']:
+                view.add_item(add)
+            view.add_item(start)
+            view.add_item(cancel)
+
+            response = await channel.send(embed=message, view=view)
+            games[str(guild.id)]['message'] = response.id
+
+            while True:
+                if str(guild.id) not in games or games[str(guild.id)]['seconds'] == -2:
+                    break
+
+                if games[str(guild.id)]['seconds'] == -1:
+                    del games[str(guild.id)]
+
+                    break
+
+                games[str(guild.id)]['seconds'] -= 10
+                m = response.embeds[0]
+
+                if games[str(guild.id)]['seconds'] == 0:
+                    v = View()
+                    v.add_item(spectate)
+                    await response.edit(view=v)
+
+                    n = len(games[str(guild.id)]['players'].keys())
+                    if n > 1:
+                        message_dict = m.to_dict()
+                        message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
+                        if games[str(guild.id)]['settings']['ONO99']:
+                            message_dict[
+                                'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
+                                                 'The current total is **0**.'
+                        else:
+                            message_dict[
+                                'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+
+                        p = ""
+                        if not games[str(guild.id)]['settings']['ONO99']:
+                            l = max(len(max(
+                                [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
+                                key=len, default=[])), len(max(
+                                [client.get_user(int(x)).name for x in games[str(guild.id)]['players']
+                                 if
+                                 str.isdigit(x)], key=len, default=[])))
+                            for key in games[str(guild.id)]['players']:
+                                if str.isdigit(key):
+                                    if len(client.get_user(int(key)).name) == l:
+                                        p += (':small_blue_diamond:' + client.get_user(
+                                            int(key)).name + f" - {games[str(guild.id)]['settings']['StartingCards']} cards\n")
+                                    else:
+                                        p += (
+                                                ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
+                                            l + 3,
+                                            '-') + f" {games[str(guild.id)]['settings']['StartingCards']} cards\n")
+                                else:
+                                    if len(key) == l:
+                                        p += (
+                                                ':small_blue_diamond:' + key + f" - {games[str(guild.id)]['settings']['StartingCards']} cards\n")
+                                    else:
+                                        p += (
+                                                ':small_blue_diamond:' + f'{key} '.ljust(l + 3,
+                                                                                         '-') + f" {games[str(guild.id)]['settings']['StartingCards']} cards\n")
+                        else:
+                            for key in games[str(guild.id)]['players']:
+                                if str.isdigit(key):
+                                    p += (':small_blue_diamond:' + client.get_user(
+                                        int(key)).name + "\n")
+                                else:
+                                    p += (':small_blue_diamond:' + f'{key}\n')
+
+                        for field in message_dict['fields']:
+                            if field['name'] == 'Players:':
+                                field['value'] = p
+                                break
+
+                        await response.edit(embed=discord.Embed.from_dict(message_dict))
+
+                        await game_setup(await client.get_context(response), games[str(guild.id)])
+
+                    else:
+                        message_dict = m.to_dict()
+                        message_dict['title'] = message_dict['title'].replace('is going to start', 'failed to start')
+                        message_dict[
+                            'description'] = ':x: Not enough players! At least 2 players are needed.'
+
+                        p = ""
+                        for key in games[str(guild.id)]['players']:
+                            if str.isdigit(key):
+                                p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
+                            else:
+                                p += (':small_blue_diamond:' + key + "\n")
+                        if not p:
+                            p = 'None'
+
+                        message_dict['fields'][0]['value'] = p
+
+                        await response.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+
+                        del games[str(guild.id)]
+
+                        print('[' + datetime.now().strftime(
+                            '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(guild) + '.')
+
+                    break
+
+                message_dict = m.to_dict()
+                message_dict['description'] = 'Less than ' + str(
+                    games[str(guild.id)]['seconds']) + ' seconds left!'
+
+                await response.edit(embed=discord.Embed.from_dict(message_dict))
+                await asyncio.sleep(10)
 
     # Clear the game's data
     ending.remove(str(guild.id))
@@ -6472,9 +6857,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         games[str(ctx.guild.id)]['players'] = {}
                         games[str(ctx.guild.id)]['creator'] = ctx.author.id
 
-                        user_options = json.loads(
-                            s3_resource.Object('unobot-bucket', 'users.json').get()['Body'].read().decode('utf-8'))
-
                         if args:
                             a = args.split()
                             for i in range(len(a)):
@@ -6581,204 +6963,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message.add_field(name='Game Settings:', value='None', inline=False)
 
                         message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
-
-                        join = Button(label='Join!/Leave', style=discord.ButtonStyle.green, emoji='✋')
-                        async def join_callback(interaction):
-                            await interaction.response.defer()
-
-                            message = interaction.message
-                            guild = interaction.guild
-                            user = interaction.user
-
-                            if not all(x in UNICODE_EMOJI_ENGLISH for x in user.name):
-                                if str(user.id) not in games[str(guild.id)]['players']:
-                                    for g in client.guilds:
-                                        user_options[str(user.id)].pop(str(g.id), None)
-
-                                    games[str(guild.id)]['players'][str(user.id)] = user_options[
-                                        str(user.id)]
-                                    games[str(guild.id)]['players'][str(user.id)]['cards'] = []
-
-                                else:
-                                    del games[str(guild.id)]['players'][str(user.id)]
-
-                                p = ""
-                                for key in games[str(guild.id)]['players']:
-                                    if str.isdigit(key):
-                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                    else:
-                                        p += (':small_blue_diamond:' + key + "\n")
-                                if not p:
-                                    p = 'None'
-
-                                message.embeds[0].set_field_at(0, name='Players:',
-                                                               value=p,
-                                                               inline=False)
-
-                                await message.edit(embed=message.embeds[0])
-                        join.callback = join_callback
-
-                        spectate = Button(label='Spectate', style=discord.ButtonStyle.blurple, emoji='👀')
-                        async def spectate_callback(interaction):
-                            await interaction.response.defer()
-
-                            role = discord.utils.get(interaction.guild.roles, name='UNO Spectator')
-                            if role in interaction.user.roles:
-                                await interaction.user.remove_roles(role)
-                            else:
-                                await interaction.user.add_roles(role)
-                        spectate.callback = spectate_callback
-
-                        start = Button(label='Start now!', style=discord.ButtonStyle.blurple, emoji='▶️')
-                        async def start_callback(interaction):
-                            await interaction.response.defer()
-
-                            if interaction.user == interaction.guild.owner or interaction.user.id == \
-                                    games[str(interaction.guild.id)]['creator']:
-
-                                n = len(games[str(interaction.guild.id)]['players'].keys())
-
-                                if n > 1:
-                                    await interaction.message.edit(view=None)
-
-                                    games[str(interaction.guild.id)]['seconds'] = -2
-
-                                    p = ""
-                                    if not games[str(interaction.guild.id)]['settings']['ONO99']:
-                                        l = max(len(max(
-                                            [x for x in games[str(ctx.guild.id)]['players'] if not str.isdigit(x)],
-                                            key=len, default=[])), len(max(
-                                            [client.get_user(int(x)).name for x in games[str(ctx.guild.id)]['players'] if
-                                             str.isdigit(x)], key=len, default=[])))
-                                        for key in games[str(ctx.guild.id)]['players']:
-                                            if str.isdigit(key):
-                                                if len(client.get_user(int(key)).name) == l:
-                                                    p += (':small_blue_diamond:' + client.get_user(
-                                                        int(key)).name + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                                else:
-                                                    p += (
-                                                                ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
-                                                            l + 3,
-                                                            '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                            else:
-                                                if len(key) == l:
-                                                    p += (
-                                                                ':small_blue_diamond:' + key + f" - {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                                else:
-                                                    p += (
-                                                    ':small_blue_diamond:' + f'{key} '.ljust(l + 3, '-') + f" {games[str(ctx.guild.id)]['settings']['StartingCards']} cards\n")
-                                    else:
-                                        for key in games[str(ctx.guild.id)]['players']:
-                                            if str.isdigit(key):
-                                                p += (':small_blue_diamond:' + client.get_user(int(key)).name + "\n")
-                                            else:
-                                                p += (':small_blue_diamond:' + f'{key}\n')
-
-                                    interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
-                                                                               inline=False)
-
-                                    await interaction.message.edit(embed=interaction.message.embeds[0])
-
-                                    message_dict = interaction.message.embeds[0].to_dict()
-
-                                    message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
-                                    if games[str(ctx.guild.id)]['settings']['ONO99']:
-                                        message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
-                                                             'The current total is **0**.'
-                                    else:
-                                        message_dict[
-                                            'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-
-                                    try:
-                                        v = View()
-                                        v.add_item(spectate)
-                                        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
-                                                                       view=v)
-
-                                        await game_setup(await client.get_context(interaction.message),
-                                                         games[str(interaction.guild.id)])
-                                    except discord.NotFound:
-                                        pass
-                        start.callback = start_callback
-
-                        cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
-                        async def cancel_callback(interaction):
-                            if interaction.user == interaction.guild.owner or str(interaction.user) == \
-                                    interaction.message.embeds[0].to_dict()['fields'][2][
-                                        'value']:
-
-                                await interaction.message.edit(view=None)
-
-                                games[str(interaction.guild.id)]['seconds'] = -1
-
-                                message_dict = interaction.message.embeds[0].to_dict()
-                                message_dict['title'] = message_dict['title'].replace('is going to start', 'was cancelled')
-
-                                if interaction.user == interaction.guild.owner:
-                                    message_dict['description'] = ':x: The server owner cancelled the game.'
-                                elif str(interaction.user) == interaction.message.embeds[0].to_dict()['fields'][2][
-                                    'value']:
-                                    message_dict['description'] = ':x: The game creator cancelled the game.'
-
-                                p = ""
-                                for key in games[str(ctx.guild.id)]['players']:
-                                    if str.isdigit(key):
-                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                    else:
-                                        p += (':small_blue_diamond:' + key + "\n")
-                                if not p:
-                                    p = 'None'
-
-                                try:
-                                    del games[str(interaction.guild.id)]
-                                except ValueError:
-                                    pass
-
-                                message_dict['fields'][0]['value'] = p
-
-                                await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
-
-                                print('[' + datetime.now().strftime(
-                                    '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
-                                    interaction.guild) + '.')
-                        cancel.callback = cancel_callback
-
-                        add = Button(label='Add bot', emoji='➕')
-                        async def add_callback(interaction):
-                            if interaction.user == interaction.guild.owner or str(interaction.user) == \
-                                    interaction.message.embeds[0].to_dict()['fields'][2][
-                                        'value']:
-                                await interaction.response.defer()
-
-                                message = interaction.message
-                                field = message.embeds[0].to_dict()['fields'][0]
-                                bot_lst = [x for x in bot_names if x not in field['value']]
-
-                                if len(bot_lst) <= 1:
-                                    v = View()
-                                    v.add_item(join)
-                                    v.add_item(start)
-                                    v.add_item(cancel)
-                                    await message.edit(view=v)
-
-                                bot = choice(bot_lst)
-
-                                games[str(interaction.guild.id)]['players'][bot] = None
-
-                                p = ""
-                                for key in games[str(ctx.guild.id)]['players']:
-                                    if str.isdigit(key):
-                                        p += (':small_blue_diamond:' + (client.get_user(int(key))).name + "\n")
-                                    else:
-                                        p += (':small_blue_diamond:' + key + "\n")
-
-                                message.embeds[0].set_field_at(0, name='Players:',
-                                                               value=p,
-                                                               inline=False)
-
-                                await message.edit(embed=message.embeds[0])
-                        add.callback = add_callback
 
                         view = View()
                         view.add_item(join)
