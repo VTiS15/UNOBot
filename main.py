@@ -1041,8 +1041,10 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         guild: The Discord guild where the game is happening
     """
 
+    # Get the list of players
     player_ids = list(d['players'].keys())
 
+    # Get the game invitation message and the channel it is in
     m = None
     c = None
     for channel in guild.text_channels:
@@ -1275,10 +1277,15 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     except KeyError:
         pass
 
+    # Automatically start the next match if at least one of the players wants to rematch
     if guild.id in rematching:
         if c:
             games[str(guild.id)]['seconds'] = 40
             games[str(guild.id)]['cards'] = []
+
+            for id in games[str(guild.id)]['players']:
+                if 'left' in games[str(guild.id)]['players'][id]:
+                    del games[str(guild.id)]['players'][id]['left']
 
             if games[str(guild.id)]['settings']['Flip']:
                 message = discord.Embed(title='A game of UNO FLIP is going to start!',
