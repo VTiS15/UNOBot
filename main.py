@@ -315,6 +315,8 @@ start.callback = start_callback
 
 cancel = Button(label='Cancel', style=discord.ButtonStyle.red)
 async def cancel_callback(interaction):
+    await interaction.response.defer()
+
     if interaction.user == interaction.guild.owner or str(interaction.user) == \
             interaction.message.embeds[0].to_dict()['fields'][2][
                 'value']:
@@ -356,11 +358,11 @@ cancel.callback = cancel_callback
 
 add = Button(label='Add bot', emoji='➕')
 async def add_callback(interaction):
+    await interaction.response.defer()
+
     if interaction.user == interaction.guild.owner or str(interaction.user) == \
             interaction.message.embeds[0].to_dict()['fields'][2][
                 'value']:
-        await interaction.response.defer()
-
         message = interaction.message
         field = message.embeds[0].to_dict()['fields'][0]
         bot_lst = [x for x in bot_names if x not in field['value']]
@@ -392,9 +394,9 @@ add.callback = add_callback
 
 rematch = Button(label='Rematch!', style=discord.ButtonStyle.primary, emoji='🔥')
 async def rematch_callback(interaction):
-    if str(interaction.user.id) in games[str(interaction.guild.id)]['players']:
-        await interaction.response.defer()
+    await interaction.response.defer()
 
+    if str(interaction.user.id) in games[str(interaction.guild.id)]['players']:
         await interaction.message.edit(view=None)
         await asyncio.create_task(discord.utils.get(interaction.guild.text_channels, name=sub(r'[^\w -]', '',
                                                                                                  interaction.user.name.lower().replace(
@@ -1373,20 +1375,17 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 m = response.embeds[0]
 
                 if games[str(guild.id)]['seconds'] == 0:
-                    v = View()
-                    v.add_item(spectate)
-                    await response.edit(view=v)
-
                     n = len(games[str(guild.id)]['players'].keys())
+
                     if n > 1:
-                        message_dict = m.to_dict()
-                        message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
+                        m_dict = m.to_dict()
+                        m_dict['title'] = m_dict['title'].replace('is going to start', 'has started')
                         if games[str(guild.id)]['settings']['ONO99']:
-                            message_dict[
+                            m_dict[
                                 'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
                                                  'The current total is **0**.'
                         else:
-                            message_dict[
+                            m_dict[
                                 'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
                         p = ""
@@ -1423,19 +1422,19 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                 else:
                                     p += (':small_blue_diamond:' + f'{key}\n')
 
-                        for field in message_dict['fields']:
-                            if field['name'] == 'Players:':
-                                field['value'] = p
-                                break
+                        m_dict['fields'][0]['value'] = p
 
-                        await response.edit(embed=discord.Embed.from_dict(message_dict))
+                        v = View()
+                        v.add_item(spectate)
+
+                        await response.edit(embed=discord.Embed.from_dict(m_dict), view=v)
 
                         await game_setup(await client.get_context(response), games[str(guild.id)])
 
                     else:
-                        message_dict = m.to_dict()
-                        message_dict['title'] = message_dict['title'].replace('is going to start', 'failed to start')
-                        message_dict[
+                        m_dict = m.to_dict()
+                        m_dict['title'] = m_dict['title'].replace('is going to start', 'failed to start')
+                        m_dict[
                             'description'] = ':x: Not enough players! At least 2 players are needed.'
 
                         p = ""
@@ -1447,9 +1446,9 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                         if not p:
                             p = 'None'
 
-                        message_dict['fields'][0]['value'] = p
+                        m_dict['fields'][0]['value'] = p
 
-                        await response.edit(embed=discord.Embed.from_dict(message_dict), view=None)
+                        await response.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
                         del games[str(guild.id)]
 
@@ -1458,11 +1457,11 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
                     break
 
-                message_dict = m.to_dict()
-                message_dict['description'] = 'Less than ' + str(
+                m_dict = m.to_dict()
+                m_dict['description'] = 'Less than ' + str(
                     games[str(guild.id)]['seconds']) + ' seconds left!'
 
-                await response.edit(embed=discord.Embed.from_dict(message_dict))
+                await response.edit(embed=discord.Embed.from_dict(m_dict))
                 await asyncio.sleep(10)
 
         else:
