@@ -1043,12 +1043,14 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     player_ids = list(d['players'].keys())
 
     m = None
+    c = None
     for channel in guild.text_channels:
         try:
             m = await channel.fetch_message(games[str(guild.id)]['message'])
         except (discord.NotFound, discord.Forbidden):
             continue
         else:
+            c = channel
             break
 
     # If there is a winner
@@ -1266,16 +1268,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
         await channel.delete()
 
     if guild.id in rematching:
-        channel = None
-        for c in guild.text_channels:
-            try:
-                channel = await c.fetch_message(games[str(guild.id)]['message'])
-            except (discord.NotFound, discord.Forbidden):
-                continue
-            else:
-                break
-
-        if channel:
+        if c:
             games[str(guild.id)]['seconds'] = 40
             games[str(guild.id)]['cards'] = []
 
@@ -1323,7 +1316,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             view.add_item(start)
             view.add_item(cancel)
 
-            response = await channel.send(embed=message, view=view)
+            response = await c.send(embed=message, view=view)
             games[str(guild.id)]['message'] = response.id
 
             while True:
