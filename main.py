@@ -4645,7 +4645,7 @@ async def on_message(message):
                             if value in games[str(message.guild.id)]['players'][str(message.author.id)]['cards']:
                                 await play_card(value, message.author, message.guild)
 
-                                if games[str(message.guild.id)]['total'] + int(value) < 99 and sum(
+                                if games[str(message.guild.id)]['total'] + int(value) < 99 or sum(
                                         1 for x in games[str(message.guild.id)]['players'] if
                                         'left' not in games[str(message.guild.id)]['players'][x]) > 1:
                                     games[str(message.guild.id)]['total'] += int(value)
