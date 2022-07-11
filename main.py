@@ -1047,6 +1047,9 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     # Get the list of players
     player_ids = list(d['players'].keys())
+    for id in player_ids:
+        if 'left' in games[str(guild.id)]['players'][id]:
+            del games[str(guild.id)]['players'][id]['left']
 
     # Get the game invitation message and the channel it is in
     m = None
@@ -1062,10 +1065,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     # If there is a winner
     if winner:
-        # Load users' data
-        users_file = s3_resource.Object('unobot-bucket', 'users.json')
-        users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
-
         v = View()
         v.add_item(rematch)
 
@@ -1135,6 +1134,10 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             # Deduct scores from losers
             for key in [x for x in player_ids if x != str(winner.id)]:
                 temp = get_score(key)
+
+                # Load users' data
+                users_file = s3_resource.Object('unobot-bucket', 'users.json')
+                users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
                 if key in users:
                     if users[key][str(guild.id)]['Score'] < temp:
