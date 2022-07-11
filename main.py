@@ -2990,7 +2990,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             games[str(guild.id)]['dark'] = not games[str(guild.id)]['dark']
 
         # Shut down the game where the player wins
-        await game_shutdown(games[str(guild.id)], guild, player)
+        await game_shutdown(guild, player)
 
     # If the player plays an ONO 99 card that makes the total value of the discard pile hit or exceed 99
     if games[str(guild.id)]['settings']['ONO99'] and (str.isdigit(card) and games[str(guild.id)]['total'] + int(card) >= 99):
@@ -3009,7 +3009,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
             ending.append(str(guild.id))
             for id in games[str(guild.id)]['players']:
                 if 'left' not in games[str(guild.id)]['players'][id]:
-                    await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
+                    await game_shutdown(guild, guild.get_member(int(id)))
                     break
 
 
@@ -4247,12 +4247,11 @@ async def on_member_remove(member):
             ending.append(str(member.guild.id))
             if p:
                 if str.isdigit(p[0]):
-                    await game_shutdown(games[str(member.guild.id)], member.guild,
-                                        member.guild.get_member(int(p[0])))
+                    await game_shutdown(member.guild, member.guild.get_member(int(p[0])))
                 else:
-                    await game_shutdown(games[str(member.guild.id)], member.guild, p[0])
+                    await game_shutdown(member.guild, p[0])
             else:
-                await game_shutdown(games[str(member.guild.id)], member.guild)
+                await game_shutdown(member.guild)
 
     if not member.bot:
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
@@ -7184,7 +7183,7 @@ async def endgame(ctx):
                             if str(ctx.guild.id) in rematching:
                                 del rematching[str(ctx.guild.id)]
                             ending.append(str(ctx.guild.id))
-                            await game_shutdown(games[str(ctx.guild.id)], ctx.guild, None)
+                            await game_shutdown(ctx.guild)
                         except:
                             pass
 
@@ -7300,12 +7299,11 @@ async def leavegame(ctx):
                             ending.append(str(ctx.guild.id))
                             if p:
                                 if str.isdigit(p[0]):
-                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild,
-                                                        ctx.guild.get_member(int(p[0])))
+                                    await game_shutdown(ctx.guild, ctx.guild.get_member(int(p[0])))
                                 else:
-                                    await game_shutdown(games[str(ctx.guild.id)], ctx.guild, p[0])
+                                    await game_shutdown(ctx.guild, p[0])
                             else:
-                                await game_shutdown(games[str(ctx.guild.id)], ctx.guild)
+                                await game_shutdown(ctx.guild)
 
                 else:
                     await ctx.respond(
@@ -7424,11 +7422,11 @@ async def kick(ctx, user):
                                  x]]
                         if p:
                             if str.isdigit(p[0]):
-                                await game_shutdown(games[str(ctx.guild.id)], ctx.guild, ctx.guild.get_member(int(p[0])))
+                                await game_shutdown(ctx.guild, ctx.guild.get_member(int(p[0])))
                             else:
-                                await game_shutdown(games[str(ctx.guild.id)], ctx.guild, p[0])
+                                await game_shutdown(ctx.guild, p[0])
                         else:
-                            await game_shutdown(games[str(ctx.guild.id)], ctx.guild)
+                            await game_shutdown(ctx.guild)
 
                     await ctx.respond(embed=discord.Embed(
                         description=':thumbsup: **The player has been kicked.**',
