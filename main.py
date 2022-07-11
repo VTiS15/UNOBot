@@ -1245,15 +1245,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
             if m:
                 m_dict = m.embeds[0].to_dict()
-                for f in m_dict['fields']:
-                    if f['name'] == 'Players:':
-                        if isinstance(winner, Member):
-                            f['value'] = f['value'].replace(f':small_blue_diamond:{winner.name}',
-                                                                    f':crown: **{winner.name}**')
-                        else:
-                            f['value'] = f['value'].replace(f':small_blue_diamond:{winner}',
+                m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{winner}',
                                                             f':crown: **{winner}**')
-                        break
 
                 await m.edit(embed=discord.Embed.from_dict(m_dict))
 
