@@ -1356,6 +1356,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                     break
 
                 m = response.embeds[0]
+                games[str(guild.id)]['seconds'] -= 10
 
                 if games[str(guild.id)]['seconds'] == 0:
                     n = len(games[str(guild.id)]['players'].keys())
@@ -1438,8 +1439,6 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                             '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game failed to start in ' + str(guild) + '.')
 
                     break
-
-                games[str(guild.id)]['seconds'] -= 10
 
                 m_dict = m.to_dict()
                 m_dict['description'] = 'Less than ' + str(
