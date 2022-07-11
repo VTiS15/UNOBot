@@ -7260,7 +7260,7 @@ async def leavegame(ctx):
                                                 color=discord.Color.red()))) for x
                             in ctx.channel.category.text_channels])
 
-                        p = [x for x in games[str(ctx.guild.id)]['players']]
+                        p = list(games[str(ctx.guild.id)]['players'].keys())
 
                         if len([x for x in p if not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                                 games[str(ctx.guild.id)]['players'][x]]) >= 2:
@@ -7381,7 +7381,7 @@ async def kick(ctx, user):
                                             color=discord.Color.red()))) for x in
                         ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
 
-                    p = [x for x in games[str(ctx.guild.id)]['players']]
+                    p = list(games[str(ctx.guild.id)]['players'].keys())
 
                     if len([x for x in p if not str.isdigit(x) or str.isdigit(x) and 'left' not in
                                             games[str(ctx.guild.id)]['players'][x]]) >= 2:
