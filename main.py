@@ -1036,7 +1036,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
         '[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game has started in ' + str(guild) + '.')
 
 
-async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None):
+async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
     """Shuts down a game.
 
     Args:
@@ -1046,10 +1046,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     """
 
     # Get the list of players
-    player_ids = list(d['players'].keys())
-    for id in player_ids:
-        if 'left' in games[str(guild.id)]['players'][id]:
-            del games[str(guild.id)]['players'][id]['left']
+    player_ids = list(games[str(guild.id)]['players'].keys())
 
     # Get the game invitation message and the channel it is in
     m = None
@@ -1065,11 +1062,15 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
 
     # If there is a winner
     if winner:
+        # Load users' data
+        users_file = s3_resource.Object('unobot-bucket', 'users.json')
+        users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
+
         v = View()
         v.add_item(rematch)
 
         # Scores are only calculated when no bot is playing
-        if not [x for x in player_ids if not str.isdigit(x)]:
+        if all(str.isdigit(x) for x in player_ids):
             # Initialize the score the winner gets to 0
             score = 0
             # Calculate winner's score and losers' penalties
@@ -1135,12 +1136,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
             for key in [x for x in player_ids if x != str(winner.id)]:
                 temp = get_score(key)
 
-                # Load users' data
-                users_file = s3_resource.Object('unobot-bucket', 'users.json')
-                users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
-
                 if key in users:
-                    if users[key][str(guild.id)]['Score'] < temp:
+                    if users[key][str(guild.id)]['Score'] <= temp:
                         users[key][str(guild.id)]['Score'] = 0
                     else:
                         users[key][str(guild.id)]['Score'] -= temp
@@ -1223,7 +1220,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                                                                                                  '-')) + '-uno-channel').send(
                 embed=message, view=v)))
 
-            if d['settings']['SpectateGame']:
+            if games[str(guild.id)]['settings']['SpectateGame']:
                 tasks.append(asyncio.create_task(
                     discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
 
