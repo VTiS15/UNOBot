@@ -3005,9 +3005,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         if sum(1 for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]) == 1:
             await draw(player, guild, 1)
 
+            ending.append(str(guild.id))
             for id in games[str(guild.id)]['players']:
                 if 'left' not in games[str(guild.id)]['players'][id]:
-                    ending.append(str(guild.id))
                     await game_shutdown(games[str(guild.id)], guild, guild.get_member(int(id)))
                     break
 
