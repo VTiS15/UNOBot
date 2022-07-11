@@ -1456,6 +1456,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 await response.edit(embed=discord.Embed.from_dict(m_dict))
                 await asyncio.sleep(10)
 
+            del rematching[str(guild.id)]
+
         else:
             del games[str(guild.id)]
     else:
