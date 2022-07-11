@@ -1145,13 +1145,9 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 score += temp
 
             if m:
-                field = None
                 m_dict = m.embeds[0].to_dict()
+                field = m_dict['fields'][0]
                 m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-                for f in m_dict['fields']:
-                    if f['name'] == 'Players:':
-                        field = f
-                        break
 
                 # Craft a message that displays who won, the winner's score, and how many pts every loser lost
                 # Also show losers' scores in the game invitation message
@@ -1273,13 +1269,8 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
     # If there is no winner
     else:
         if m:
-            field = None
             m_dict = m.embeds[0].to_dict()
             m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
-            for f in m_dict['fields']:
-                if f['name'] == 'Players:':
-                    field = f
-                    break
 
             p = ''
             for key in player_ids:
@@ -1287,7 +1278,7 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                     p += f':small_blue_diamond:{guild.get_member(int(key)).name}\n'
                 else:
                     p += f':small_blue_diamond:{key}\n'
-            field['value'] = p
+            m_dict['fields'][0]['value'] = p
 
             await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
 
@@ -1460,6 +1451,14 @@ async def game_shutdown(d: dict, guild: Guild, winner: Union[Member, str] = None
                 m_dict = m.to_dict()
                 m_dict['description'] = 'Less than ' + str(
                     games[str(guild.id)]['seconds']) + ' seconds left!'
+
+                p = ''
+                for id in games[str(guild.id)]['players']:
+                    if str.isdigit(id):
+                        p += f':small_blue_diamond:{guild.get_member(int(id)).name}\n'
+                    else:
+                        p += f':small_blue_diamond:{id}\n'
+                m_dict['fields'][0]['value'] = p
 
                 await response.edit(embed=discord.Embed.from_dict(m_dict))
                 await asyncio.sleep(10)
@@ -4296,14 +4295,12 @@ async def on_user_update(before, after):
                 continue
             else:
                 break
-        m_dict = m.embeds[0].to_dict()
-        for field in m_dict['fields']:
-            if field['name'] == 'Players:':
-                field['value'] = field['value'].replace(f':small_blue_diamond: {before.name}',
-                                                        f':small_blue_diamond: {after.name}')
-                break
 
-        await m.edit(embed=discord.Embed.from_dict(m_dict))
+        if m:
+            m_dict = m.embeds[0].to_dict()
+            m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond: {before.name}', f':small_blue_diamond: {after.name}')
+
+            await m.edit(embed=discord.Embed.from_dict(m_dict))
 
 
 @client.event
@@ -7081,10 +7078,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                             else:
                                                 p += (':small_blue_diamond:' + f'{key}\n')
 
-                                    for field in message_dict['fields']:
-                                        if field['name'] == 'Players:':
-                                            field['value'] = p
-                                            break
+                                    message_dict['fields'][0]['value'] = p
 
                                     await e.edit(embed=discord.Embed.from_dict(message_dict))
 
