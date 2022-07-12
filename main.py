@@ -7202,12 +7202,12 @@ async def endgame(ctx):
                                 del rematching[str(ctx.guild.id)]
                             ending.append(str(ctx.guild.id))
                             await game_shutdown(ctx.guild)
+
+                            await ctx.respond(
+                                embed=discord.Embed(description=':thumbsup: **The game has been shut down.**',
+                                                    color=discord.Color.red()))
                         except:
                             pass
-
-                        await ctx.respond(
-                            embed=discord.Embed(description=':thumbsup: **The game has been shut down.**',
-                                                color=discord.Color.red()))
 
                     else:
                         await ctx.respond(
