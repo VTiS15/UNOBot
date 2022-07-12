@@ -4387,6 +4387,11 @@ async def on_message(message):
                 value = search(r'(?<=[a-z ])(skip|reverse|wild|flip|\d|[+d](raw)* *([c4251]|colou*r)|[srwf]$)', card)
             if value:
                 value = value.group(0)
+            else:
+                await message.channel.send(
+                    embed=discord.Embed(
+                        description=':x: **I don\'t understand your command.**',
+                        color=discord.Color.red()))
 
             if color == 'r':
                 color = 'red'
