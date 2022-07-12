@@ -6928,7 +6928,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 elif a[i] == '7-0' and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['7-0'] = True
 
-                                elif a[i].lower() == 'dum' and not games[str(ctx.guild.id)]['settings']['ONO99']:
+                                elif a[i].lower() in {'dum', 'drawuntilmatch'} and not games[str(ctx.guild.id)]['settings']['ONO99']:
                                     games[str(ctx.guild.id)]['settings']['DrawUntilMatch'] = True
 
                                 elif a[i].lower() == 'stackcards' and not games[str(ctx.guild.id)]['settings']['ONO99']:
