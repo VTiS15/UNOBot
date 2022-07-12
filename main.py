@@ -4378,6 +4378,8 @@ async def on_message(message):
                         embed=discord.Embed(
                             description=':x: **I don\'t understand your command.**',
                             color=discord.Color.red()))
+
+                    return
             else:
                 color = color.group(0)
 
@@ -4392,6 +4394,8 @@ async def on_message(message):
                     embed=discord.Embed(
                         description=':x: **I don\'t understand your command.**',
                         color=discord.Color.red()))
+
+                return
 
             if color == 'r':
                 color = 'red'
@@ -4541,6 +4545,11 @@ async def on_message(message):
                 pass
 
             else:
+                await message.channel.send(
+                    embed=discord.Embed(
+                        description=':x: **I don\'t understand your command.**',
+                        color=discord.Color.red()))
+
                 return
 
             if games[str(message.guild.id)]['player'] == message.author.id and str(
