@@ -4364,13 +4364,16 @@ async def on_message(message):
 
                 return
 
+            cmd = search(r'[cad]|(s|say)(?= )|cards*|alert|draw', card)
+            if cmd:
+                cmd = cmd.group(0)
+
+            color = None
             if not games[str(message.guild.id)]['settings']['ONO99']:
                 if not games[str(message.guild.id)]['settings']['Flip'] or not games[str(message.guild.id)]['dark']:
-                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[rbgy]|red|blue|green|yellow)', card)
+                    color = search(r'^[rbgy]|red|blue|green|yellow', card)
                 else:
-                    color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|[ptoz]|pink|teal|orange|purple)', card)
-            else:
-                color = search(r'^([cad]|(s|say)(?= )|cards*|alert|draw|)', card)
+                    color = search(r'[ptoz]|pink|teal|orange|purple', card)
 
             if not color:
                 if not games[str(message.guild.id)]['settings']['ONO99']:
@@ -4389,32 +4392,8 @@ async def on_message(message):
                 value = search(r'(?<=[a-z ])(skip|reverse|wild|flip|\d|[+d](raw)* *([c4251]|colou*r)|[srwf]$)', card)
             if value:
                 value = value.group(0)
-            else:
-                await message.channel.send(
-                    embed=discord.Embed(
-                        description=':x: **I don\'t understand your command.**',
-                        color=discord.Color.red()))
 
-                return
-
-            if color == 'r':
-                color = 'red'
-            elif color == 'b':
-                color = 'blue'
-            elif color == 'g':
-                color = 'green'
-            elif color == 'y':
-                color = 'yellow'
-            elif color == 'p':
-                color = 'pink'
-            elif color == 't':
-                color = 'teal'
-            elif color == 'o':
-                color = 'orange'
-            elif color == 'z':
-                color = 'purple'
-
-            elif color and any(x in color for x in ('d', 'draw')) and games[str(message.guild.id)][
+            if cmd and any(x in color for x in ('d', 'draw')) and games[str(message.guild.id)][
                 'player'] == message.author.id and not games[str(message.guild.id)][
                 'settings']['ONO99']:
                 overwrite = message.channel.overwrites_for(message.author)
@@ -4441,7 +4420,7 @@ async def on_message(message):
 
                 return
 
-            elif color in ('s', 'say'):
+            elif cmd in ('s', 'say'):
                 say = sub(r'^s(ay)*', '', message.content, flags=I)
 
                 await asyncio.gather(*[asyncio.create_task(
@@ -4453,7 +4432,7 @@ async def on_message(message):
 
                 return
 
-            elif color in ('a', 'alert'):
+            elif cmd in ('a', 'alert'):
                 if 'alert' not in cooldowns[str(message.guild.id)]:
                     current_player = None
                     if isinstance(games[str(message.guild.id)]['player'], int):
@@ -4488,7 +4467,7 @@ async def on_message(message):
 
                 return
 
-            elif color in ('c', 'cards', 'card'):
+            elif cmd in ('c', 'cards', 'card'):
                 m = discord.Embed(title='Your cards:', color=discord.Color.red())
 
                 if not games[str(message.guild.id)]['settings']['Flip']:
@@ -4540,6 +4519,23 @@ async def on_message(message):
                 await message.channel.send(file=file, embed=m)
 
                 return
+
+            elif color == 'r':
+                color = 'red'
+            elif color == 'b':
+                color = 'blue'
+            elif color == 'g':
+                color = 'green'
+            elif color == 'y':
+                color = 'yellow'
+            elif color == 'p':
+                color = 'pink'
+            elif color == 't':
+                color = 'teal'
+            elif color == 'o':
+                color = 'orange'
+            elif color == 'z':
+                color = 'purple'
 
             elif value and games[str(message.guild.id)]['settings']['ONO99']:
                 pass
@@ -7024,6 +7020,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         games[str(ctx.guild.id)]['message'] = e.id
 
                         while True:
+                            games[str(ctx.guild.id)]['seconds'] -= 10
+
                             if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
                                 break
 
@@ -7032,7 +7030,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 break
 
-                            games[str(ctx.guild.id)]['seconds'] -= 10
                             m = (await ctx.fetch_message(e.id)).embeds[0]
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
