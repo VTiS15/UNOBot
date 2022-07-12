@@ -4364,9 +4364,136 @@ async def on_message(message):
 
                 return
 
-            cmd = search(r'[cad]|(s|say)(?= )|cards*|alert|draw', card)
+            cmd = search(r's(ay)*(?= )|c(ard)*s*|a(lert)*|d(raw)*', card)
             if cmd:
                 cmd = cmd.group(0)
+
+                if any(x in cmd for x in ('d', 'draw')) and games[str(message.guild.id)][
+                    'player'] == message.author.id and not games[str(message.guild.id)][
+                    'settings']['ONO99']:
+                    overwrite = message.channel.overwrites_for(message.author)
+                    overwrite.send_messages = False
+                    overwrite.read_messages = True
+                    await message.channel.set_permissions(message.author, overwrite=overwrite)
+
+                    if str(message.guild.id) in stack:
+                        await draw(message.author, message.guild, stack[str(message.guild.id)])
+                        del stack[str(message.guild.id)]
+                        await display_cards(n, message.guild)
+                    elif games[str(message.guild.id)]['settings']['DrawUntilMatch']:
+                        await draw(message.author, message.guild, 1, True)
+                        await display_cards(message.author, message.guild)
+                    else:
+                        await draw(message.author, message.guild, 1)
+                        await display_cards(n, message.guild)
+
+                    overwrite.send_messages = True
+                    try:
+                        await message.channel.set_permissions(message.author, overwrite=overwrite)
+                    except discord.NotFound:
+                        pass
+
+                    return
+
+                elif cmd in ('s', 'say'):
+                    say = sub(r'^s(ay)*', '', message.content, flags=I)
+
+                    await asyncio.gather(*[asyncio.create_task(
+                        x.send(embed=discord.Embed(title=message.author.name + ' says:', description=say,
+                                                   color=discord.Color.red()))) for x in
+                        message.channel.category.text_channels if x != message.channel])
+
+                    await message.add_reaction('\N{THUMBS UP SIGN}')
+
+                    return
+
+                elif cmd in ('a', 'alert'):
+                    if 'alert' not in cooldowns[str(message.guild.id)]:
+                        current_player = None
+                        if isinstance(games[str(message.guild.id)]['player'], int):
+                            current_player = message.guild.get_member(games[str(message.guild.id)]['player'])
+
+                        if message.author != current_player:
+                            await discord.utils.get(message.channel.category.text_channels,
+                                                    name=sub(r'[^\w -]', '',
+                                                             current_player.name.lower().replace(' ',
+                                                                                                 '-')) + '-uno-channel').send(
+                                embed=discord.Embed(
+                                    description=':warning: **' + current_player.mention + '! ' + message.author.name + ' alerted you!**',
+                                    color=discord.Color.red()))
+
+                            await message.add_reaction('\N{THUMBS UP SIGN}')
+
+                            cooldowns[str(message.guild.id)].append('alert')
+                            await asyncio.sleep(30)
+                            cooldowns[str(message.guild.id)].remove('alert')
+
+                        else:
+                            await message.channel.send(
+                                embed=discord.Embed(
+                                    description=':x: **You can\'t alert yourself!**',
+                                    color=discord.Color.red()))
+
+                    else:
+                        await message.channel.send(
+                            embed=discord.Embed(
+                                description=':lock: You can only alert the current player every 30 seconds.',
+                                color=discord.Color.red()))
+
+                    return
+
+                elif cmd in ('c', 'cards', 'card'):
+                    m = discord.Embed(title='Your cards:', color=discord.Color.red())
+
+                    if not games[str(message.guild.id)]['settings']['Flip']:
+                        image = Image.new('RGBA', (
+                            len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
+                                round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
+                            round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
+                                          (255, 0, 0, 0))
+                    else:
+                        image = Image.new('RGBA', (
+                            len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
+                                round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
+                            round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123 * 2)),
+                                          (255, 0, 0, 0))
+
+                    for i in range(len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards'])):
+                        if not games[str(message.guild.id)]['settings']['Flip']:
+                            card = Image.open(
+                                'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
+                                    i] + '.png')
+                            refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                                   round(card.size[1] / 6.0123456790123456790123456790123)),
+                                                  Image.ANTIALIAS)
+                            image.paste(refined, (i * refined.size[0], 0))
+                        else:
+                            card = Image.open(
+                                'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][i][
+                                    0] + '.png')
+                            refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                                   round(card.size[1] / 6.0123456790123456790123456790123)),
+                                                  Image.ANTIALIAS)
+                            image.paste(refined, (i * refined.size[0], 0))
+
+                            card = Image.open(
+                                'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
+                                    i][1] + '.png')
+                            refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
+                                                   round(card.size[1] / 6.0123456790123456790123456790123)),
+                                                  Image.ANTIALIAS)
+                            image.paste(refined, (i * refined.size[0], refined.size[1]))
+
+                    with BytesIO() as image_binary:
+                        image.save(image_binary, format='PNG', quality=100)
+                        image_binary.seek(0)
+                        file = discord.File(fp=image_binary, filename='image.png')
+
+                    m.set_image(url='attachment://image.png')
+
+                    await message.channel.send(file=file, embed=m)
+
+                    return
 
             color = None
             if not games[str(message.guild.id)]['settings']['ONO99']:
@@ -4393,152 +4520,33 @@ async def on_message(message):
             if value:
                 value = value.group(0)
 
-            if cmd and any(x in color for x in ('d', 'draw')) and games[str(message.guild.id)][
-                'player'] == message.author.id and not games[str(message.guild.id)][
-                'settings']['ONO99']:
-                overwrite = message.channel.overwrites_for(message.author)
-                overwrite.send_messages = False
-                overwrite.read_messages = True
-                await message.channel.set_permissions(message.author, overwrite=overwrite)
+                if color == 'r':
+                    color = 'red'
+                elif color == 'b':
+                    color = 'blue'
+                elif color == 'g':
+                    color = 'green'
+                elif color == 'y':
+                    color = 'yellow'
+                elif color == 'p':
+                    color = 'pink'
+                elif color == 't':
+                    color = 'teal'
+                elif color == 'o':
+                    color = 'orange'
+                elif color == 'z':
+                    color = 'purple'
 
-                if str(message.guild.id) in stack:
-                    await draw(message.author, message.guild, stack[str(message.guild.id)])
-                    del stack[str(message.guild.id)]
-                    await display_cards(n, message.guild)
-                elif games[str(message.guild.id)]['settings']['DrawUntilMatch']:
-                    await draw(message.author, message.guild, 1, True)
-                    await display_cards(message.author, message.guild)
-                else:
-                    await draw(message.author, message.guild, 1)
-                    await display_cards(n, message.guild)
-
-                overwrite.send_messages = True
-                try:
-                    await message.channel.set_permissions(message.author, overwrite=overwrite)
-                except discord.NotFound:
+                elif value and games[str(message.guild.id)]['settings']['ONO99']:
                     pass
-
-                return
-
-            elif cmd in ('s', 'say'):
-                say = sub(r'^s(ay)*', '', message.content, flags=I)
-
-                await asyncio.gather(*[asyncio.create_task(
-                    x.send(embed=discord.Embed(title=message.author.name + ' says:', description=say,
-                                               color=discord.Color.red()))) for x in
-                    message.channel.category.text_channels if x != message.channel])
-
-                await message.add_reaction('\N{THUMBS UP SIGN}')
-
-                return
-
-            elif cmd in ('a', 'alert'):
-                if 'alert' not in cooldowns[str(message.guild.id)]:
-                    current_player = None
-                    if isinstance(games[str(message.guild.id)]['player'], int):
-                        current_player = message.guild.get_member(games[str(message.guild.id)]['player'])
-
-                    if message.author != current_player:
-                        await discord.utils.get(message.channel.category.text_channels,
-                                                name=sub(r'[^\w -]', '',
-                                                         current_player.name.lower().replace(' ',
-                                                                                             '-')) + '-uno-channel').send(
-                            embed=discord.Embed(
-                                description=':warning: **' + current_player.mention + '! ' + message.author.name + ' alerted you!**',
-                                color=discord.Color.red()))
-
-                        await message.add_reaction('\N{THUMBS UP SIGN}')
-
-                        cooldowns[str(message.guild.id)].append('alert')
-                        await asyncio.sleep(30)
-                        cooldowns[str(message.guild.id)].remove('alert')
-
-                    else:
-                        await message.channel.send(
-                            embed=discord.Embed(
-                                description=':x: **You can\'t alert yourself!**',
-                                color=discord.Color.red()))
 
                 else:
                     await message.channel.send(
                         embed=discord.Embed(
-                            description=':lock: You can only alert the current player every 30 seconds.',
+                            description=':x: **I don\'t understand your command.**',
                             color=discord.Color.red()))
 
-                return
-
-            elif cmd in ('c', 'cards', 'card'):
-                m = discord.Embed(title='Your cards:', color=discord.Color.red())
-
-                if not games[str(message.guild.id)]['settings']['Flip']:
-                    image = Image.new('RGBA', (
-                        len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
-                            round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
-                        round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123)),
-                                      (255, 0, 0, 0))
-                else:
-                    image = Image.new('RGBA', (
-                        len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards']) * (
-                            round(Image.open('images/empty.png').size[0] / 6.0123456790123456790123456790123)),
-                        round(Image.open('images/empty.png').size[1] / 6.0123456790123456790123456790123 * 2)),
-                                      (255, 0, 0, 0))
-
-                for i in range(len(games[str(message.guild.id)]['players'][str(message.author.id)]['cards'])):
-                    if not games[str(message.guild.id)]['settings']['Flip']:
-                        card = Image.open(
-                            'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
-                                i] + '.png')
-                        refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
-                        image.paste(refined, (i * refined.size[0], 0))
-                    else:
-                        card = Image.open(
-                            'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][i][
-                                0] + '.png')
-                        refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
-                        image.paste(refined, (i * refined.size[0], 0))
-
-                        card = Image.open(
-                            'images/' + games[str(message.guild.id)]['players'][str(message.author.id)]['cards'][
-                                i][1] + '.png')
-                        refined = card.resize((round(card.size[0] / 6.0123456790123456790123456790123),
-                                               round(card.size[1] / 6.0123456790123456790123456790123)),
-                                              Image.ANTIALIAS)
-                        image.paste(refined, (i * refined.size[0], refined.size[1]))
-
-                with BytesIO() as image_binary:
-                    image.save(image_binary, format='PNG', quality=100)
-                    image_binary.seek(0)
-                    file = discord.File(fp=image_binary, filename='image.png')
-
-                m.set_image(url='attachment://image.png')
-
-                await message.channel.send(file=file, embed=m)
-
-                return
-
-            elif color == 'r':
-                color = 'red'
-            elif color == 'b':
-                color = 'blue'
-            elif color == 'g':
-                color = 'green'
-            elif color == 'y':
-                color = 'yellow'
-            elif color == 'p':
-                color = 'pink'
-            elif color == 't':
-                color = 'teal'
-            elif color == 'o':
-                color = 'orange'
-            elif color == 'z':
-                color = 'purple'
-
-            elif value and games[str(message.guild.id)]['settings']['ONO99']:
-                pass
+                    return
 
             else:
                 await message.channel.send(
