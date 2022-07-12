@@ -4363,7 +4363,7 @@ async def on_message(message):
 
                 return
 
-            cmd = search(r's(ay)*(?= )|c(ard)*s*|a(lert)*|d(raw)*', card)
+            cmd = search(r's(ay)*(?= )|^c(ard)*s*|a(lert)*|d(raw)*', card)
             if cmd:
                 cmd = cmd.group(0)
 
