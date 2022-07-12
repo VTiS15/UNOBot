@@ -1356,7 +1356,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                     break
 
                 m = response.embeds[0]
-                games[str(ctx.guild.id)]['seconds'] -= 10
+                games[str(guild.id)]['seconds'] -= 10
 
                 if games[str(guild.id)]['seconds'] == 0:
                     n = len(games[str(guild.id)]['players'].keys())
