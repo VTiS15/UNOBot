@@ -1347,8 +1347,6 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
             games[str(guild.id)]['message'] = response.id
 
             while True:
-                games[str(guild.id)]['seconds'] -= 10
-
                 if str(guild.id) not in games or games[str(guild.id)]['seconds'] == -2:
                     break
 
@@ -1358,6 +1356,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                     break
 
                 m = response.embeds[0]
+                games[str(ctx.guild.id)]['seconds'] -= 10
 
                 if games[str(guild.id)]['seconds'] == 0:
                     n = len(games[str(guild.id)]['players'].keys())
@@ -7028,8 +7027,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         games[str(ctx.guild.id)]['message'] = e.id
 
                         while True:
-                            games[str(ctx.guild.id)]['seconds'] -= 10
-
                             if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
                                 break
 
@@ -7039,6 +7036,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 break
 
                             m = (await ctx.fetch_message(e.id)).embeds[0]
+                            games[str(ctx.guild.id)]['seconds'] -= 10
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 v = View()
