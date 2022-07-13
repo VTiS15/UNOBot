@@ -1149,6 +1149,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
                 # Craft a message that displays who won, the winner's score, and how many pts every loser lost
                 # Also show losers' scores in the game invitation message
+                tasks = []
                 p = ''
                 for key in [x for x in player_ids if x != str(winner.id)]:
                     temp = get_score(key)
@@ -1180,7 +1181,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                                                                                                              ' ',
                                                                                                              '-')) + '-uno-channel')
                         if channel:
-                            await channel.send(embed=message, view=v)
+                            tasks.append(asyncio.create_task(channel.send(embed=message, view=v)))
 
                         if field:
                             name = guild.get_member(int(key)).name
@@ -1188,6 +1189,8 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                                 p += f':small_blue_diamond:{name} -1 pt\n'
                             else:
                                 p += f':small_blue_diamond:{name} -{temp} pts\n'
+
+                await asyncio.gather(*tasks)
 
                 # Show who the winner is and their score in the game invitation message
                 if isinstance(winner, str):
