@@ -302,7 +302,7 @@ async def start_callback(interaction):
                     'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
             try:
-                v = View()
+                v = View(timeout=None)
                 v.add_item(spectate)
                 await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
                                                view=v)
@@ -368,7 +368,7 @@ async def add_callback(interaction):
         bot_lst = [x for x in bot_names if x not in field['value']]
 
         if len(bot_lst) <= 1:
-            v = View()
+            v = View(timeout=None)
             v.add_item(join)
             v.add_item(start)
             v.add_item(cancel)
@@ -1066,7 +1066,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
         users_file = s3_resource.Object('unobot-bucket', 'users.json')
         users = json.loads(users_file.get()['Body'].read().decode('utf-8'))
 
-        v = View()
+        v = View(timeout=None)
         v.add_item(rematch)
 
         # Scores are only calculated when no bot is playing
@@ -1336,7 +1336,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
             message.add_field(name='Game Creator:', value=str(guild.get_member(games[str(guild.id)]['creator'])), inline=False)
 
-            view = View()
+            view = View(timeout=None)
             view.add_item(join)
             if not games[str(guild.id)]['settings']['7-0'] and not games[str(guild.id)]['settings']['ONO99']:
                 view.add_item(add)
@@ -1407,7 +1407,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
                         m_dict['fields'][0]['value'] = p
 
-                        v = View()
+                        v = View(timeout=None)
                         v.add_item(spectate)
 
                         await response.edit(embed=discord.Embed.from_dict(m_dict), view=v)
@@ -4634,7 +4634,7 @@ async def on_message(message):
                                         if l > 0:
                                             if games[str(message.guild.id)]['settings']['7-0']:
                                                 if value == '7':
-                                                    view = View()
+                                                    view = View(timeout=None)
                                                     view.add_item(get_hands(message.guild, message.author, n))
 
                                                     await message.channel.send(embed=discord.Embed(
@@ -4709,7 +4709,7 @@ async def on_message(message):
                                     if l > 0:
                                         if games[str(message.guild.id)]['settings']['7-0']:
                                             if value == '7':
-                                                view = View()
+                                                view = View(timeout=None)
                                                 view.add_item(get_hands(message.guild, message.author, n))
 
                                                 await message.channel.send(
@@ -7015,7 +7015,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                         message.add_field(name='Game Creator:', value=str(ctx.author), inline=False)
 
-                        view = View()
+                        view = View(timeout=None)
                         view.add_item(join)
                         if not games[str(ctx.guild.id)]['settings']['7-0'] and not games[str(ctx.guild.id)]['settings']['ONO99']:
                             view.add_item(add)
@@ -7039,7 +7039,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             games[str(ctx.guild.id)]['seconds'] -= 10
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
-                                v = View()
+                                v = View(timeout=None)
                                 v.add_item(spectate)
                                 await e.edit(view=v)
 
