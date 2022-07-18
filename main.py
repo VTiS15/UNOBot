@@ -630,6 +630,63 @@ def list_duplicates_of(seq: list, item: int) -> list:
     return locs
 
 
+def get_score(player_id: str, guild: Guild) -> int:
+    cards = games[str(guild.id)]['players'][player_id]['cards']
+
+    score = 0
+    for card in cards:
+        if games[str(guild.id)]['settings']['Flip']:
+            if not games[str(guild.id)]['dark']:
+                value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
+
+                if value == '+1':
+                    score += 10
+                elif value in ('reverse', 'flip', 'skip'):
+                    score += 20
+                elif value == 'wild':
+                    score += 40
+                elif value == '+2':
+                    score += 50
+                else:
+                    score += int(value)
+
+            else:
+                value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
+
+                if value in ('+5', 'reverse', 'flip'):
+                    score += 20
+                elif value == 'skip':
+                    score += 30
+                elif value == 'wild':
+                    score += 40
+                elif value == '+c':
+                    score += 60
+                else:
+                    score += int(value)
+
+        elif games[str(guild.id)]['settings']['ONO99']:
+            value = search(r'^-*\d+$|play2|reverse|ono99', card).group(0)
+
+            if value in {'play2', 'reverse', '-10'}:
+                score += 20
+            elif value == 'ono99':
+                score += 99
+            else:
+                score += int(value)
+
+        else:
+            value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
+
+            if value in ('+2', 'skip', 'reverse'):
+                score += 20
+            elif value in ('+4', 'wild'):
+                score += 50
+            else:
+                score += int(value)
+
+    return score
+
+
 async def cmd_info(ctx: ApplicationContext, cmd: str):
     """Sends a Discord embed of the information of a command.
 
@@ -1073,66 +1130,13 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
         if all(str.isdigit(x) for x in player_ids):
             # Initialize the score the winner gets to 0
             score = 0
-            # Calculate winner's score and losers' penalties
-            def get_score(player_id: str) -> int:
-                cards = games[str(guild.id)]['players'][player_id]['cards']
-
-                score = 0
-                for card in cards:
-                    if games[str(guild.id)]['settings']['Flip']:
-                        if not games[str(guild.id)]['dark']:
-                            value = search(r'skip|reverse|wild|flip|\d|\+[21]', card[0]).group(0)
-
-                            if value == '+1':
-                                score += 10
-                            elif value in ('reverse', 'flip', 'skip'):
-                                score += 20
-                            elif value == 'wild':
-                                score += 40
-                            elif value == '+2':
-                                score += 50
-                            else:
-                                score += int(value)
-
-                        else:
-                            value = search(r'skip|reverse|wild|flip|\d|\+[5c]', card[1]).group(0)
-
-                            if value in ('+5', 'reverse', 'flip'):
-                                score += 20
-                            elif value == 'skip':
-                                score += 30
-                            elif value == 'wild':
-                                score += 40
-                            elif value == '+c':
-                                score += 60
-                            else:
-                                score += int(value)
-
-                    elif games[str(guild.id)]['settings']['ONO99']:
-                        value = search(r'^-*\d+$|play2|reverse|ono99', card).group(0)
-
-                        if value in {'play2', 'reverse', '-10'}:
-                            score += 20
-                        elif value == 'ono99':
-                            score += 99
-                        else:
-                            score += int(value)
-
-                    else:
-                        value = search(r'skip|reverse|wild|\d|\+[42]', card).group(0)
-
-                        if value in ('+2', 'skip', 'reverse'):
-                            score += 20
-                        elif value in ('+4', 'wild'):
-                            score += 50
-                        else:
-                            score += int(value)
-
-                return score
 
             # Deduct scores from losers
             for key in [x for x in player_ids if x != str(winner.id)]:
-                temp = get_score(key)
+                if 'left' in games[str(guild.id)]['players'][key]:
+                    temp = games[str(guild.id)]['players'][key]['left']
+                else:
+                    temp = get_score(key, guild)
 
                 if key in users:
                     if users[key][str(guild.id)]['Score'] <= temp:
@@ -1152,7 +1156,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 tasks = []
                 p = ''
                 for key in [x for x in player_ids if x != str(winner.id)]:
-                    temp = get_score(key)
+                    temp = get_score(key, guild)
 
                     if score == 1:
                         if temp == 1:
@@ -2993,7 +2997,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     # If the player plays an ONO 99 card that makes the total value of the discard pile hit or exceed 99
     if games[str(guild.id)]['settings']['ONO99'] and (str.isdigit(card) and games[str(guild.id)]['total'] + int(card) >= 99):
         # Disallow the player to play anymore
-        games[str(guild.id)]['players'][str(player.id)]['left'] = True
+        games[str(guild.id)]['players'][str(player.id)]['left'] = get_score(str(player.id), guild)
 
         # Send a message to every player and spectator to inform them that the player is out
         await asyncio.gather(*[asyncio.create_task(x.send(
@@ -7269,7 +7273,7 @@ async def leavegame(ctx):
                              'Whitelist']) or ctx.author == ctx.guild.owner:
                 if ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
-                        games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = True
+                        games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = get_score(str(ctx.author.id), ctx.guild)
 
                         await asyncio.gather(*[asyncio.create_task(x.send(
                             embed=discord.Embed(description=':warning: **' + ctx.author.name + '** left.',
@@ -7389,7 +7393,7 @@ async def kick(ctx, user):
 
                 if str(ctx.guild.id) in games and str(player.id) in games[str(ctx.guild.id)]['players'] and str(
                         ctx.guild.id) not in ending:
-                    games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = True
+                    games[str(ctx.guild.id)]['players'][str(player.id)]['left'] = get_score(str(player.id), ctx.guild)
 
                     await asyncio.gather(*[asyncio.create_task(x.send(
                         embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.',
