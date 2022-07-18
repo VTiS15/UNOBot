@@ -2996,6 +2996,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
     # If the player plays an ONO 99 card that makes the total value of the discard pile hit or exceed 99
     if games[str(guild.id)]['settings']['ONO99'] and (str.isdigit(card) and games[str(guild.id)]['total'] + int(card) >= 99):
+        # Draw the player
+        await draw(player, guild, 1)
+
         # Disallow the player to play anymore
         games[str(guild.id)]['players'][str(player.id)]['left'] = get_score(str(player.id), guild)
 
@@ -3006,8 +3009,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
 
         # If there is only one man standing, they win
         if sum(1 for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]) == 1:
-            await draw(player, guild, 1)
-
             ending.append(str(guild.id))
             for id in games[str(guild.id)]['players']:
                 if 'left' not in games[str(guild.id)]['players'][id]:
@@ -4687,8 +4688,6 @@ async def on_message(message):
                                         await display_cards(n, message.guild)
 
                                 elif l > 2:
-                                    await draw(message.author, message.guild, 1)
-
                                     if current_value == 'play2' and 'left' not in \
                                             games[str(message.guild.id)]['players'][str(message.author.id)]:
                                         await display_cards(message.author, message.guild)
