@@ -1102,9 +1102,6 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
         guild: The Discord guild where the game is happening
     """
 
-    # Get the list of players
-    player_ids = list(games[str(guild.id)]['players'].keys())
-
     # Get the game invitation message and the channel it is in
     m = None
     c = None
@@ -1132,7 +1129,6 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
             score = 0
 
             # Deduct scores from losers
-            print([x for x in games[str(guild.id)]['players'] if x != str(winner.id)])
             for key in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
                 if 'left' in games[str(guild.id)]['players'][key]:
                     temp = games[str(guild.id)]['players'][key]['left']
@@ -2721,6 +2717,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                         search(r'pink|teal|orange|purple', card[1]).group(0))
 
     elif games[str(guild.id)]['settings']['ONO99']:
+        print(games[str(guild.id)]['players'])
         games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
     else:
