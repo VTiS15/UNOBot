@@ -2717,7 +2717,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                         search(r'pink|teal|orange|purple', card[1]).group(0))
 
     elif games[str(guild.id)]['settings']['ONO99']:
-        print(games[str(guild.id)]['players'])
         games[str(guild.id)]['players'][str(player.id)]['cards'].remove(card)
 
     else:
@@ -4883,9 +4882,10 @@ async def on_message(message):
                         if l > 0:
                             if str(message.guild.id) in games:
                                 d = games[str(message.guild.id)]
-                                player_ids = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
+                                player_ids = list(d['players'].keys())
+                                p = [x for x in player_ids if str.isdigit(x) and 'left' not in d['players'][x] or not str.isdigit(x)]
 
-                                if len(player_ids) > 2:
+                                if len(p) > 2:
                                     player_ids.reverse()
 
                                     ordered_dict = OrderedDict()
@@ -4899,7 +4899,6 @@ async def on_message(message):
                                                             color=discord.Color.red()))) for x in
                                         message.channel.category.text_channels])
 
-                                    p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
                                     m = None
                                     temp = iter(p)
                                     for key in temp:
