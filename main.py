@@ -4881,9 +4881,8 @@ async def on_message(message):
                         if l > 0:
                             if str(message.guild.id) in games:
                                 player_ids = list(games[str(message.guild.id)]['players'].keys())
-                                p = [x for x in player_ids if str.isdigit(x) and 'left' not in games[str(message.guild.id)]['players'][x] or not str.isdigit(x)]
 
-                                if len(p) > 2:
+                                if len([x for x in player_ids if str.isdigit(x) and 'left' not in games[str(message.guild.id)]['players'][x] or not str.isdigit(x)]) > 2:
                                     player_ids.reverse()
 
                                     ordered_dict = OrderedDict()
@@ -4897,11 +4896,12 @@ async def on_message(message):
                                                             color=discord.Color.red()))) for x in
                                         message.channel.category.text_channels])
 
+                                    p = [x for x in player_ids if str.isdigit(x) and 'left' not in games[str(message.guild.id)]['players'][x] or not str.isdigit(x)]
                                     m = None
-                                    temp = iter(player_ids)
+                                    temp = iter(p)
                                     for key in temp:
                                         if key == str(message.author.id):
-                                            m = next(temp, next(iter(player_ids)))
+                                            m = next(temp, next(iter(p)))
                                             if str.isdigit(m):
                                                 m = message.guild.get_member(int(m))
                                             break
