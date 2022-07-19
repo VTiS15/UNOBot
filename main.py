@@ -1125,8 +1125,8 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
         # Scores are only calculated when no bot is playing
         if all(str.isdigit(x) for x in games[str(guild.id)]['players']):
-            # Initialize the score the winner gets to 0
-            score = 0
+            score = 0  # Initialize the score the winner gets to 0
+            tasks = []
 
             # Deduct scores from losers
             for key in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
@@ -1150,7 +1150,6 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
                 # Craft a message that displays who won, the winner's score, and how many pts every loser lost
                 # Also show losers' scores in the game invitation message
-                tasks = []
                 p = ''
                 for key in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
                     temp = get_score(key, guild)
@@ -1191,8 +1190,6 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                             else:
                                 p += f':small_blue_diamond:{name} -{temp} pts\n'
 
-                await asyncio.gather(*tasks)
-
                 # Show who the winner is and their score in the game invitation message
                 if isinstance(winner, str):
                     if score == 1:
@@ -1207,7 +1204,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
                 field['value'] = p
 
-                await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+                tasks.append(asyncio.create_task(m.edit(embed=discord.Embed.from_dict(m_dict), view=None)))
 
             # Craft a message that displays who won
             if score == 1:
@@ -1216,14 +1213,16 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 message = discord.Embed(title=f'{winner.name} Won! 🎉 🥳 +{score} pts', color=discord.Color.red())
             message.set_image(url=winner.display_avatar.url)
 
-            await discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
+            tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name=sub(r'[^\w -]', '',
                                                                                              winner.name.lower().replace(
                                                                                                  ' ',
                                                                                                  '-')) + '-uno-channel').send(
-                embed=message, view=v)
+                embed=message, view=v)))
 
             if games[str(guild.id)]['settings']['SpectateGame']:
-                await discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)
+                tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
+
+            await asyncio.gather(*tasks)
 
             users[str(winner.id)][str(guild.id)]['Score'] += score
 
