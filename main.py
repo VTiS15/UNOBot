@@ -4880,18 +4880,17 @@ async def on_message(message):
 
                         if l > 0:
                             if str(message.guild.id) in games:
-                                d = games[str(message.guild.id)]
-                                player_ids = list(d['players'].keys())
-                                p = [x for x in player_ids if str.isdigit(x) and 'left' not in d['players'][x] or not str.isdigit(x)]
+                                player_ids = list(games[str(message.guild.id)]['players'].keys())
+                                p = [x for x in player_ids if str.isdigit(x) and 'left' not in games[str(message.guild.id)]['players'][x] or not str.isdigit(x)]
 
                                 if len(p) > 2:
                                     player_ids.reverse()
 
                                     ordered_dict = OrderedDict()
                                     for x in player_ids:
-                                        ordered_dict[x] = d['players'][x]
+                                        ordered_dict[x] = games[str(message.guild.id)]['players'][x]
 
-                                    d['players'] = dict(ordered_dict)
+                                    games[str(message.guild.id)]['players'] = dict(ordered_dict)
 
                                     await asyncio.gather(*[asyncio.create_task(x.send(
                                         embed=discord.Embed(description='**The player order is reversed.**',
@@ -4899,10 +4898,10 @@ async def on_message(message):
                                         message.channel.category.text_channels])
 
                                     m = None
-                                    temp = iter(p)
+                                    temp = iter(player_ids)
                                     for key in temp:
                                         if key == str(message.author.id):
-                                            m = next(temp, next(iter(p)))
+                                            m = next(temp, next(iter(player_ids)))
                                             if str.isdigit(m):
                                                 m = message.guild.get_member(int(m))
                                             break
@@ -4914,7 +4913,7 @@ async def on_message(message):
                                     await display_cards(m, message.guild)
 
                                 else:
-                                    if not d['settings']['ONO99']:
+                                    if not games[str(message.guild.id)]['settings']['ONO99']:
                                         m = next(temp, next(iter(p)))
                                         if str.isdigit(m):
                                             m = message.guild.get_member(int(m))
