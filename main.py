@@ -1127,12 +1127,13 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
         v.add_item(rematch)
 
         # Scores are only calculated when no bot is playing
-        if all(str.isdigit(x) for x in player_ids):
+        if all(str.isdigit(x) for x in games[str(guild.id)]['players']):
             # Initialize the score the winner gets to 0
             score = 0
 
             # Deduct scores from losers
-            for key in [x for x in player_ids if x != str(winner.id)]:
+            print([x for x in games[str(guild.id)]['players'] if x != str(winner.id)])
+            for key in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
                 if 'left' in games[str(guild.id)]['players'][key]:
                     temp = games[str(guild.id)]['players'][key]['left']
                 else:
@@ -1155,7 +1156,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 # Also show losers' scores in the game invitation message
                 tasks = []
                 p = ''
-                for key in [x for x in player_ids if x != str(winner.id)]:
+                for key in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
                     temp = get_score(key, guild)
 
                     if score == 1:
@@ -1268,7 +1269,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
             m_dict['description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
 
             p = ''
-            for key in player_ids:
+            for key in games[str(guild.id)]['players']:
                 if str.isdigit(key):
                     p += f':small_blue_diamond:{guild.get_member(int(key)).name}\n'
                 else:
