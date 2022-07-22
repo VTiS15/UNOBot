@@ -4,10 +4,10 @@ import asyncio
 import discord
 import json
 import boto3
+from emoji import UNICODE_EMOJI_ENGLISH
 from typing import Union
 from os import getenv
 from treelib import Tree
-from emoji import UNICODE_EMOJI_ENGLISH
 from math import comb, e, ceil
 from botocore.exceptions import ClientError
 from aiohttp.client_exceptions import ClientOSError
@@ -7019,7 +7019,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         view.add_item(cancel)
 
                         response = await ctx.respond(embed=message, view=view)
-                        games[str(ctx.guild.id)]['message'] = (await response.original_message()).id
 
                         while True:
                             if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
@@ -7034,9 +7033,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             games[str(ctx.guild.id)]['seconds'] -= 10
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
+                                games[str(ctx.guild.id)]['message'] = (await response.original_message()).id
+
                                 v = View(timeout=None)
                                 v.add_item(spectate)
-                                await e.edit(view=v)
+                                await response.edit_original_message(view=v)
 
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
