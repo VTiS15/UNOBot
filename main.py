@@ -7018,7 +7018,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         view.add_item(start)
                         view.add_item(cancel)
 
-                        response = await ctx.respond(embed=message, view=view)
+                        response = await ctx.interaction.response.send_message(embed=message, view=view)
                         e = await response.original_message()
                         games[str(ctx.guild.id)]['message'] = e.id
 
