@@ -24,7 +24,7 @@ from io import BytesIO
 from datetime import datetime
 from random import shuffle, random
 from secrets import choice
-from re import search, sub, I, ASCII
+from re import search, sub, I
 from discord.ext.commands import UserConverter, RoleConverter, BadArgument
 from discord import ApplicationContext, User, Member, Guild, TextChannel
 
