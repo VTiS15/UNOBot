@@ -6896,8 +6896,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                              commands[str(ctx.guild.id)]['startgame'][
                                  'Whitelist']) or ctx.author == ctx.guild.owner:
                     if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == 40:
-                        await ctx.defer()
-
                         dgs = json.loads(
                             s3_resource.Object('unobot-bucket', 'dgs.json').get()['Body'].read().decode('utf-8'))
 
@@ -7020,7 +7018,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         view.add_item(start)
                         view.add_item(cancel)
 
-                        response = await ctx.respond(embed=message, view=view)
+                        response = await ctx.send_response(embed=message, view=view)
                         e = await response.original_message()
                         games[str(ctx.guild.id)]['message'] = e.id
 
