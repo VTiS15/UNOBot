@@ -4,7 +4,7 @@ import asyncio
 import discord
 import json
 import boto3
-from emoji import UNICODE_EMOJI_ENGLISH
+from emoji import EMOJI_DATA
 from typing import Union
 from os import getenv
 from treelib import Tree
@@ -204,7 +204,7 @@ async def join_callback(interaction):
     guild = interaction.guild
     user = interaction.user
 
-    if not all(x in UNICODE_EMOJI_ENGLISH for x in user.name):
+    if not all(x in EMOJI_DATA for x in user.name):
         if str(user.id) not in games[str(guild.id)]['players']:
             for g in client.guilds:
                 user_options[str(user.id)].pop(str(g.id), None)
