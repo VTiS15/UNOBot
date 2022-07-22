@@ -5,5 +5,5 @@ botocore~=1.26.3
 scipy~=1.8.1
 Pillow~=9.1.1
 DateTime~=4.4
-py-cord~=2.0.0rc1
+py-cord~=2.0.0
 emoji~=1.7.0
