@@ -7031,7 +7031,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 break
 
-                            m = e.embeds[0]
+                            m = (await ctx.fetch_message(e.id)).embeds[0]
                             games[str(ctx.guild.id)]['seconds'] -= 10
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
