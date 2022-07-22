@@ -7018,9 +7018,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         view.add_item(start)
                         view.add_item(cancel)
 
-                        response = await ctx.interaction.response.send_message(embed=message, view=view)
-                        e = await response.original_message()
-                        games[str(ctx.guild.id)]['message'] = e.id
+                        response = await ctx.respond(embed=message, view=view)
 
                         while True:
                             if str(ctx.guild.id) not in games or games[str(ctx.guild.id)]['seconds'] == -2:
@@ -7031,10 +7029,12 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 break
 
-                            m = (await ctx.fetch_message(e.id)).embeds[0]
+                            m = (await response.original_message()).embeds[0]
                             games[str(ctx.guild.id)]['seconds'] -= 10
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
+                                games[str(ctx.guild.id)]['message'] = (await response.original_message()).id
+
                                 v = View(timeout=None)
                                 v.add_item(spectate)
                                 await response.edit_original_message(view=v)
