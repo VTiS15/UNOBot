@@ -6914,8 +6914,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             for i in range(len(a)):
                                 if a[0].lower() == 'help':
                                     message = discord.Embed(title='Game Settings', color=discord.Color.red(),
-                                    description='User options only affect the user\'s experience, not the entire server\'s.\n' + chr(
-                                        173))
+                                    description='Here are all the game settings that can be applied to customize a game.'
                                     message.add_field(name='Flip',
                                                       value='Turns on the UNO FLIP game mode.', inline=False)
                                     message.add_field(name='ONO 99',
@@ -7067,7 +7066,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 v = View(timeout=None)
                                 v.add_item(spectate)
-                                await response.edit_original_message(view=v)
+                                await response.edit_original_message(view=v, file=PNG)
 
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
@@ -7117,7 +7116,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
 
                                     await game_setup(ctx, games[str(ctx.guild.id)])
 
@@ -7138,7 +7137,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), view=None)
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), view=None, file=PNG)
 
                                     del games[str(ctx.guild.id)]
 
@@ -7152,7 +7151,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message_dict['description'] = 'Less than ' + str(
                                 games[str(ctx.guild.id)]['seconds']) + ' seconds left!'
 
-                            await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
+                            await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
                             await asyncio.sleep(10)
 
                         if commands[str(ctx.guild.id)]['startgame']['Cooldown'] > 0:
