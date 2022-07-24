@@ -335,6 +335,14 @@ async def cancel_callback(interaction):
                 'value']:
         games[str(interaction.guild.id)]['seconds'] = -1
 
+        if games[str(interaction.guild.id)]['settings']['Flip']:
+            PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+        elif games[str(interaction.guild.id)]['settings']['ONO99']:
+            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+        else:
+            PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+        interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
+
         message_dict = interaction.message.embeds[0].to_dict()
         message_dict['title'] = message_dict['title'].replace('is going to start', 'was cancelled')
 
@@ -354,14 +362,6 @@ async def cancel_callback(interaction):
             p = 'None'
 
         message_dict['fields'][0]['value'] = p
-
-        if games[str(interaction.guild.id)]['settings']['Flip']:
-            PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
-        elif games[str(interaction.guild.id)]['settings']['ONO99']:
-            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
-        else:
-            PNG = discord.File('images/uno!.png', filename='thumbnail.png')
-        interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
 
         await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), file=PNG, view=None)
 
