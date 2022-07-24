@@ -333,8 +333,6 @@ async def cancel_callback(interaction):
     if interaction.user == interaction.guild.owner or str(interaction.user) == \
             interaction.message.embeds[0].to_dict()['fields'][2][
                 'value']:
-        await interaction.message.edit(view=None)
-
         games[str(interaction.guild.id)]['seconds'] = -1
 
         message_dict = interaction.message.embeds[0].to_dict()
@@ -365,7 +363,7 @@ async def cancel_callback(interaction):
             PNG = discord.File('images/uno!.png', filename='thumbnail.png')
         interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
 
-        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), file=PNG)
+        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), file=PNG, view=None)
 
         try:
             del games[str(interaction.guild.id)]
