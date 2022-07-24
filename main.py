@@ -7010,18 +7010,14 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message = discord.Embed(title='A game of UNO FLIP is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.from_rgb(102, 51, 153))
-                            PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
                         elif games[str(ctx.guild.id)]['settings']['ONO99']:
                             message = discord.Embed(title='A game of ONO 99 is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.yellow())
-                            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
                         else:
                             message = discord.Embed(title='A game of UNO is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.red())
-                            PNG = discord.File('images/uno!.png', filename='thumbnail.png')
-                        message.set_thumbnail(url='attachment://thumbnail.png')
 
                         message.add_field(name='Players:', value='None', inline=False)
 
@@ -7063,18 +7059,24 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 break
 
                             m = (await ctx.fetch_message(e.id)).embeds[0]
+                            message_dict = m.to_dict()
                             games[str(ctx.guild.id)]['seconds'] -= 10
-
-                            print(m.to_dict())
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 v = View(timeout=None)
                                 v.add_item(spectate)
                                 await response.edit_original_message(view=v)
 
+                                if games[str(ctx.guild.id)]['settings']['Flip']:
+                                    PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+                                elif games[str(ctx.guild.id)]['settings']['ONO99']:
+                                    PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+                                else:
+                                    PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+                                message.set_thumbnail(url='attachment://thumbnail.png')
+
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
-                                    message_dict = m.to_dict()
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
                                     if games[str(ctx.guild.id)]['settings']['ONO99']:
                                         message_dict[
@@ -7120,14 +7122,11 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
-
-                                    print(message_dict)
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
 
                                     await game_setup(ctx, games[str(ctx.guild.id)])
 
                                 else:
-                                    message_dict = m.to_dict()
                                     message_dict['title'] = message_dict['title'].replace('is going to start', 'failed to start')
                                     message_dict[
                                         'description'] = ':x: Not enough players! At least 2 players are needed.'
@@ -7143,7 +7142,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), view=None)
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), view=None, file=PNG)
 
                                     del games[str(ctx.guild.id)]
 
@@ -7153,11 +7152,10 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 break
 
-                            message_dict = m.to_dict()
                             message_dict['description'] = 'Less than ' + str(
                                 games[str(ctx.guild.id)]['seconds']) + ' seconds left!'
 
-                            await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
+                            await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
                             await asyncio.sleep(10)
 
                         if commands[str(ctx.guild.id)]['startgame']['Cooldown'] > 0:
