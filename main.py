@@ -1277,9 +1277,15 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 pass
 
             if m:
+                p = f':crown: **{winner.name}**\n'
+                for id in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
+                    if str.isdigit(id):
+                        p += f':small_blue_diamond:{guild.get_member(int(id)).name}\n'
+                    else:
+                        p += f':small_blue_diamond:{id}\n'
+
                 m_dict = m.embeds[0].to_dict()
-                m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{winner} - UNO!',
-                                                            f':crown: **{winner}**')
+                m_dict['fields'][0]['value'] = p
 
                 await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG, view=None)
 
