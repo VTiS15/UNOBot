@@ -2960,7 +2960,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                                                                               str(total))
 
         PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
-        m.set_thumbnail(url='attachment://thumbnail.png')
+        m.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
 
