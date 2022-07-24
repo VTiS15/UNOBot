@@ -4026,8 +4026,9 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
-            self.playables = [x for x in self.playables if
-                              self.__get_score(self.__get_value(x), self.__get_color(x)) > 0 or self.__get_value(x) == '0']
+            if not (len(self.cards) == len(self.playables) == 1):
+                self.playables = [x for x in self.playables if
+                                  self.__get_score(self.__get_value(x), self.__get_color(x)) > 0 or self.__get_value(x) == '0']
 
             n = None
             p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
