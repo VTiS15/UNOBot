@@ -1980,56 +1980,60 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
             else:
                 break
         if m:
-            m_dict = m.embeds[0].to_dict()
-            for f in m_dict['fields']:
-                if f['name'] == 'Players:':
-                    l = max(len(max(
-                        [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
-                        key=len, default=[])), len(max(
-                        [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
-                         str.isdigit(x)], key=len, default=[])))
-                    if isinstance(player, str):
-                        if len(player) == l:
-                            if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
-                                f['value'] = f['value'].replace(
-                                    f'{player} - UNO!',
-                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))} cards')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
-                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
-                        else:
-                            if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
-                                f['value'] = f['value'].replace(
-                                    f'{player} '.ljust(l + 3, '-') + ' UNO!',
-                                    f'{player} '.ljust(l + 3,
-                                                       '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))} cards')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
-                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
-                    else:
-                        if len(player.name) == l:
-                            if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} - UNO!',
-                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
-                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
-                        else:
-                            if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} '.ljust(l + 3, '-') + ' UNO!',
-                                    f'{player.name} '.ljust(l + 3,
-                                                            '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
-                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+            if games[str(guild.id)]['settings']['Flip']:
+                PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+            elif games[str(guild.id)]['settings']['ONO99']:
+                PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+            else:
+                PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+            m.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
 
-                    break
+            m_dict = m.embeds[0].to_dict()
+            l = max(len(max(
+                [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
+                key=len, default=[])), len(max(
+                [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
+                 str.isdigit(x)], key=len, default=[])))
+            if isinstance(player, str):
+                if len(player) == l:
+                    if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} - UNO!',
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))} cards')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
+                else:
+                    if len(games[str(guild.id)]["players"][player].cards) - len(draw) == 1:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} '.ljust(l + 3, '-') + ' UNO!',
+                            f'{player} '.ljust(l + 3,
+                                               '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))} cards')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) - len(draw))}',
+                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+            else:
+                if len(player.name) == l:
+                    if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} - UNO!',
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                else:
+                    if len(games[str(guild.id)]["players"][str(player.id)]['cards']) - len(draw) == 1:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} '.ljust(l + 3, '-') + ' UNO!',
+                            f'{player.name} '.ljust(l + 3,
+                                                    '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))} cards')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) - len(draw))}',
+                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
             await m.edit(embed=discord.Embed.from_dict(m_dict))
 
