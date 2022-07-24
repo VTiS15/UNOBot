@@ -4198,7 +4198,23 @@ class Bot:
                     await self.__execute_card(self.__get_value(best))
 
             else:
-                await play_card(self.playables[0], self.name, self.guild)
+                if not games[str(self.guild.id)]['settings']['Flip']:
+                    if self.playables[0] in {'wild', '+4'}:
+                        best = 'blue' + self.playables[0]
+                    else:
+                        best = self.playables[0]
+                elif not games[str(self.guild.id)]['dark']:
+                    if self.playables[0][0] in {'wild', '+2'}:
+                        best = ('blue' + self.playables[0][0], self.playables[0][1])
+                    else:
+                        best = self.playables[0]
+                else:
+                    if self.playables[0][1] == '+color':
+                        best = (self.playables[0][0], 'teal+color')
+                    else:
+                        best = self.playables[0]
+
+                await play_card(best, self.name, self.guild)
                 await self.__execute_card(self.__get_value(self.playables[0]))
 
 
