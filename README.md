@@ -126,7 +126,7 @@ Simply ignore the stupid bot and try again.
 ### I only want people to use UNOBot's commands in a specific text channel.
 Deny UNOBot the permission to read other channels. **NEVER** restrict UNOBot's command usage in your Discord server's Integrations settings page, otherwise people cannot use UNOBot's commands in their UNO channels (because a player's UNO channel only exists during a game).
 
-### UNOBot is stuck and unresponsive!!! What do I do???
+### UNOBot is stuck!!! What do I do???
 * Forcefully end the ongoing game (if there is one) using `/u-eg`; or
 * Manually delete the UNO channels (and perhaps category)
 
