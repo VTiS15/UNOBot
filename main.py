@@ -7059,7 +7059,17 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 break
 
                             m = (await ctx.fetch_message(e.id)).embeds[0]
+
+                            if games[str(ctx.guild.id)]['settings']['Flip']:
+                                PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+                            elif games[str(ctx.guild.id)]['settings']['ONO99']:
+                                PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+                            else:
+                                PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+                            m.set_thumbnail(url='attachment://thumbnail.png')
+
                             message_dict = m.to_dict()
+
                             games[str(ctx.guild.id)]['seconds'] -= 10
 
                             if games[str(ctx.guild.id)]['seconds'] == 0:
@@ -7067,13 +7077,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                 v.add_item(spectate)
                                 await response.edit_original_message(view=v)
 
-                                if games[str(ctx.guild.id)]['settings']['Flip']:
-                                    PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
-                                elif games[str(ctx.guild.id)]['settings']['ONO99']:
-                                    PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
-                                else:
-                                    PNG = discord.File('images/uno!.png', filename='thumbnail.png')
-                                message.set_thumbnail(url='attachment://thumbnail.png')
 
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
