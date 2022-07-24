@@ -2899,6 +2899,9 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     for channel in guild.text_channels:
         try:
             m = await channel.fetch_message(games[str(guild.id)]['message'])
+
+            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+            m.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
         except (discord.NotFound, discord.Forbidden):
             continue
         else:
@@ -2966,9 +2969,6 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                     else:
                         m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']),
                                                                               str(total))
-
-        PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
-        m.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
 
         await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
 
