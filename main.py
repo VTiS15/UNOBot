@@ -226,7 +226,15 @@ async def join_callback(interaction):
 
         message.embeds[0].set_field_at(0, name='Players:', value=p, inline=False)
 
-        await message.edit(embed=message.embeds[0])
+        if games[str(guild.id)]['settings']['Flip']:
+            PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+        elif games[str(guild.id)]['settings']['ONO99']:
+            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+        else:
+            PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+        message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
+
+        await message.edit(embed=message.embeds[0], file=PNG)
 join.callback = join_callback
 
 spectate = Button(label='Spectate', style=discord.ButtonStyle.blurple, emoji='👀')
@@ -254,7 +262,26 @@ async def start_callback(interaction):
 
             games[str(interaction.guild.id)]['seconds'] = -2
 
-            p = ""
+            if games[str(interaction.guild.id)]['settings']['Flip']:
+                PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+            elif games[str(interaction.guild.id)]['settings']['ONO99']:
+                PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+            else:
+                PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+            interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
+
+            message_dict = interaction.message.embeds[0].to_dict()
+
+            message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
+            if games[str(interaction.guild.id)]['settings']['ONO99']:
+                message_dict[
+                    'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
+                                     'The current total is **0**.'
+            else:
+                message_dict[
+                    'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+
+            p = ''
             if not games[str(interaction.guild.id)]['settings']['ONO99']:
                 l = max(len(max(
                     [x for x in games[str(interaction.guild.id)]['players'] if not str.isdigit(x)],
@@ -268,44 +295,30 @@ async def start_callback(interaction):
                                 int(key)).name + f" - {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
                         else:
                             p += (
-                                        ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
-                                    l + 3,
-                                    '-') + f" {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+                                    ':small_blue_diamond:' + f'{client.get_user(int(key)).name} '.ljust(
+                                l + 3,
+                                '-') + f" {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
                     else:
                         if len(key) == l:
                             p += (
-                                        ':small_blue_diamond:' + key + f" - {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+                                    ':small_blue_diamond:' + key + f" - {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
                         else:
                             p += (
-                            ':small_blue_diamond:' + f'{key} '.ljust(l + 3, '-') + f" {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
+                                    ':small_blue_diamond:' + f'{key} '.ljust(l + 3,
+                                                                             '-') + f" {games[str(interaction.guild.id)]['settings']['StartingCards']} cards\n")
             else:
                 for key in games[str(interaction.guild.id)]['players']:
                     if str.isdigit(key):
                         p += (':small_blue_diamond:' + client.get_user(int(key)).name + "\n")
                     else:
                         p += (':small_blue_diamond:' + f'{key}\n')
-
-            interaction.message.embeds[0].set_field_at(0, name='Players:', value=p,
-                                                       inline=False)
-
-            await interaction.message.edit(embed=interaction.message.embeds[0])
-
-            message_dict = interaction.message.embeds[0].to_dict()
-
-            message_dict['title'] = message_dict['title'].replace('is going to start', 'has started')
-            if games[str(interaction.guild.id)]['settings']['ONO99']:
-                message_dict[
-                    'description'] = ':white_check_mark: Go to your UNO channel titled with your username.\n\n' \
-                                     'The current total is **0**.'
-            else:
-                message_dict[
-                    'description'] = ':white_check_mark: Go to your UNO channel titled with your username.'
+            message_dict['fields'][0]['value'] = p
 
             try:
                 v = View(timeout=None)
                 v.add_item(spectate)
                 await interaction.message.edit(embed=discord.Embed.from_dict(message_dict),
-                                               view=v)
+                                               view=v, file=PNG)
 
                 await game_setup(await client.get_context(interaction.message),
                                  games[str(interaction.guild.id)])
@@ -349,7 +362,15 @@ async def cancel_callback(interaction):
 
         message_dict['fields'][0]['value'] = p
 
-        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict))
+        if games[str(interaction.guild.id)]['settings']['Flip']:
+            PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+        elif games[str(interaction.guild.id)]['settings']['ONO99']:
+            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+        else:
+            PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+        interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
+
+        await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), file=PNG)
 
         print('[' + datetime.now().strftime(
             '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
@@ -389,7 +410,15 @@ async def add_callback(interaction):
                                        value=p,
                                        inline=False)
 
-        await message.edit(embed=message.embeds[0])
+        if games[str(interaction.guild.id)]['settings']['Flip']:
+            PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+        elif games[str(interaction.guild.id)]['settings']['ONO99']:
+            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+        else:
+            PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+        interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
+
+        await message.edit(embed=message.embeds[0], file=PNG)
 add.callback = add_callback
 
 rematch = Button(label='Rematch!', style=discord.ButtonStyle.primary, emoji='🔥')
@@ -1354,6 +1383,15 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                     break
 
                 m = response.embeds[0]
+
+                if games[str(guild.id)]['settings']['Flip']:
+                    PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+                elif games[str(guild.id)]['settings']['ONO99']:
+                    PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+                else:
+                    PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+                m.set_thumbnail(url='attachment://thumbnail.png')
+
                 games[str(guild.id)]['seconds'] -= 10
 
                 if games[str(guild.id)]['seconds'] == 0:
@@ -1408,7 +1446,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                         v = View(timeout=None)
                         v.add_item(spectate)
 
-                        await response.edit(embed=discord.Embed.from_dict(m_dict), view=v)
+                        await response.edit(embed=discord.Embed.from_dict(m_dict), view=v, file=PNG)
 
                         await game_setup(await client.get_context(response), games[str(guild.id)])
 
@@ -1429,7 +1467,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
                         m_dict['fields'][0]['value'] = p
 
-                        await response.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+                        await response.edit(embed=discord.Embed.from_dict(m_dict), view=None, file=PNG)
 
                         del games[str(guild.id)]
 
@@ -1450,7 +1488,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                         p += f':small_blue_diamond:{id}\n'
                 m_dict['fields'][0]['value'] = p
 
-                await response.edit(embed=discord.Embed.from_dict(m_dict))
+                await response.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
                 await asyncio.sleep(10)
 
             del rematching[str(guild.id)]
@@ -7075,8 +7113,6 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 v = View(timeout=None)
                                 v.add_item(spectate)
-                                await response.edit_original_message(view=v)
-
 
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
@@ -7125,7 +7161,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG, view=v)
 
                                     await game_setup(ctx, games[str(ctx.guild.id)])
 
