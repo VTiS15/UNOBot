@@ -4026,175 +4026,180 @@ class Bot:
                     self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
                 else:
                     self.playables = tuple(x for x in self.cards if self.__get_value(x) == '+5')
+
             if not (len(self.cards) == len(self.playables) == 1):
                 self.playables = [x for x in self.playables if
                                   self.__get_score(self.__get_value(x), self.__get_color(x)) > 0 or self.__get_value(x) == '0']
 
-            n = None
-            p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
+                n = None
+                p = [x for x in d['players'] if not str.isdigit(x) or str.isdigit(x) and 'left' not in d['players'][x]]
 
-            temp = iter(p)
-            for key in temp:
-                if key == self.name:
-                    n = next(temp, next(iter(p)))
-                    if str.isdigit(n):
-                        n = self.guild.get_member(int(n))
-                    break
+                temp = iter(p)
+                for key in temp:
+                    if key == self.name:
+                        n = next(temp, next(iter(p)))
+                        if str.isdigit(n):
+                            n = self.guild.get_member(int(n))
+                        break
 
-            if not self.playables:
-                if str(self.guild.id) in stack:
-                    await draw(self.name, self.guild, stack[str(self.guild.id)])
-                    del stack[str(self.guild.id)]
-                    await display_cards(n, self.guild)
-                elif self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
-                    await draw(self.name, self.guild, 1, True)
-                    await display_cards(self.name, self.guild)
-                else:
-                    self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
-                    if self.playables:
-                        random_card = choice(self.playables)
-                        await play_card(random_card, self.name, self.guild)
-                        await self.__execute_card(self.__get_value(random_card))
-                    else:
-                        await draw(self.name, self.guild, 1)
+                if not self.playables:
+                    if str(self.guild.id) in stack:
+                        await draw(self.name, self.guild, stack[str(self.guild.id)])
+                        del stack[str(self.guild.id)]
                         await display_cards(n, self.guild)
-
-            else:
-                if not d['settings']['Flip']:
-                    if not all(t == '+4' for t in self.playables):
-                        self.playables = [x for x in self.playables if x != '+4']
-                    if not all(t == 'wild' for t in self.playables):
-                        self.playables = [x for x in self.playables if x != 'wild']
-
-                    if len(self.cards) == 1:
-                        if self.playables[0] in {'wild', '+4'}:
-                            best = 'blue' + self.playables[0]
-                        else:
-                            best = self.playables[0]
+                    elif self.games[str(self.guild.id)]['settings']['DrawUntilMatch']:
+                        await draw(self.name, self.guild, 1, True)
+                        await display_cards(self.name, self.guild)
                     else:
-                        color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
-                        optimals = []
-
-                        for card in self.playables:
-                            self.reccount = 0
-
-                            tree = Tree()
-                            tree.create_node(identifier=card, data=self.__get_score(self.__get_value(card), self.__get_color(card)))
-                            self.__build_tree(tree, card)
-
-                            paths = tree.paths_to_leaves()
-
-                            score = [sum(map(lambda x: tree.get_node(x).data * e ** (-path.index(x)), path)) for path in
-                                     paths]
-                            for c in paths[score.index(max(score))]:
-                                if self.__get_color(c):
-                                    color_change = self.__get_color(c)
-                                    break
-
-                            optimals.append(max(score))
-
-                        best = self.playables[optimals.index(max(optimals))]
-                        if not self.__get_color(best):
-                            best = color_change + best
-
-                elif not d['dark']:
-                    if all(x in self.losing_colors for x in {'red', 'blue', 'green', 'yellow'}):
-                        self.losing_colors = []
-
-                    if not all(t[0] == '+2' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[0] != '+2']
-                    if not all(t[0] == 'flip' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[0] != 'flip']
-                    if not all(t[0] == 'wild' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[0] != 'wild']
-
-                    if len(self.cards) == 1:
-                        if self.playables[0][0] in {'wild', '+2'}:
-                            best = ('blue' + self.playables[0][0], self.playables[0][1])
+                        self.playables = tuple(x for x in self.cards if self.__is_similar(x, d['current']))
+                        if self.playables:
+                            random_card = choice(self.playables)
+                            await play_card(random_card, self.name, self.guild)
+                            await self.__execute_card(self.__get_value(random_card))
                         else:
-                            best = self.playables[0]
-                    else:
-                        color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
-                        optimals = []
-
-                        for card in self.playables:
-                            self.reccount = 0
-
-                            tree = Tree()
-                            tree.create_node(identifier=card[0] + '|' + card[1],
-                                             data=self.__get_score(self.__get_value(card), self.__get_color(card)))
-                            self.__build_tree(tree, card[0] + '|' + card[1])
-
-                            paths = tree.paths_to_leaves()
-
-                            score = [sum(map(lambda x: tree.get_node(x).data * e ** (-path.index(x)), path)) for path in
-                                     paths]
-                            for c in paths[score.index(max(score))]:
-                                if self.__get_color(tuple(c.split('|'))):
-                                    color_change = self.__get_color(tuple(c.split('|')))
-                                    break
-
-                            optimals.append(max(score))
-
-                        best = self.playables[optimals.index(max(optimals))]
-                        if not self.__get_color(best):
-                            best = (color_change + best[0], best[1])
+                            await draw(self.name, self.guild, 1)
+                            await display_cards(n, self.guild)
 
                 else:
-                    if all(x in self.losing_colors for x in {'pink', 'teal', 'orange', 'purple'}):
-                        self.losing_colors = []
+                    if not d['settings']['Flip']:
+                        if not all(t == '+4' for t in self.playables):
+                            self.playables = [x for x in self.playables if x != '+4']
+                        if not all(t == 'wild' for t in self.playables):
+                            self.playables = [x for x in self.playables if x != 'wild']
 
-                    if not all(t[1] == '+color' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[1] != '+color']
-                    if not all(t[1] == 'flip' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[1] != 'flip']
-                    if not all(t[1] == 'darkwild' for t in self.playables):
-                        self.playables = [x for x in self.playables if x[1] != 'darkwild']
-
-                    if len(self.cards) == 1:
-                        if self.playables[0][1] == '+color':
-                            best = (self.playables[0][0], 'teal+color')
-                        elif self.playables[0][1] == 'darkwild':
-                            best = (self.playables[0][0], 'tealwild')
+                        if len(self.cards) == 1:
+                            if self.playables[0] in {'wild', '+4'}:
+                                best = 'blue' + self.playables[0]
+                            else:
+                                best = self.playables[0]
                         else:
-                            best = self.playables[0]
-                    else:
-                        color_change = choice([x for x in {'pink', 'teal', 'orange', 'purple'} if x not in self.losing_colors])
-                        optimals = []
+                            color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
+                            optimals = []
 
-                        for card in self.playables:
-                            self.reccount = 0
+                            for card in self.playables:
+                                self.reccount = 0
 
-                            tree = Tree()
-                            if card[1] != 'darkwild':
+                                tree = Tree()
+                                tree.create_node(identifier=card, data=self.__get_score(self.__get_value(card), self.__get_color(card)))
+                                self.__build_tree(tree, card)
+
+                                paths = tree.paths_to_leaves()
+
+                                score = [sum(map(lambda x: tree.get_node(x).data * e ** (-path.index(x)), path)) for path in
+                                         paths]
+                                for c in paths[score.index(max(score))]:
+                                    if self.__get_color(c):
+                                        color_change = self.__get_color(c)
+                                        break
+
+                                optimals.append(max(score))
+
+                            best = self.playables[optimals.index(max(optimals))]
+                            if not self.__get_color(best):
+                                best = color_change + best
+
+                    elif not d['dark']:
+                        if all(x in self.losing_colors for x in {'red', 'blue', 'green', 'yellow'}):
+                            self.losing_colors = []
+
+                        if not all(t[0] == '+2' for t in self.playables):
+                            self.playables = [x for x in self.playables if x[0] != '+2']
+                        if not all(t[0] == 'flip' for t in self.playables):
+                            self.playables = [x for x in self.playables if x[0] != 'flip']
+                        if not all(t[0] == 'wild' for t in self.playables):
+                            self.playables = [x for x in self.playables if x[0] != 'wild']
+
+                        if len(self.cards) == 1:
+                            if self.playables[0][0] in {'wild', '+2'}:
+                                best = ('blue' + self.playables[0][0], self.playables[0][1])
+                            else:
+                                best = self.playables[0]
+                        else:
+                            color_change = choice([x for x in {'red', 'blue', 'green', 'yellow'} if x not in self.losing_colors])
+                            optimals = []
+
+                            for card in self.playables:
+                                self.reccount = 0
+
+                                tree = Tree()
                                 tree.create_node(identifier=card[0] + '|' + card[1],
                                                  data=self.__get_score(self.__get_value(card), self.__get_color(card)))
                                 self.__build_tree(tree, card[0] + '|' + card[1])
+
+                                paths = tree.paths_to_leaves()
+
+                                score = [sum(map(lambda x: tree.get_node(x).data * e ** (-path.index(x)), path)) for path in
+                                         paths]
+                                for c in paths[score.index(max(score))]:
+                                    if self.__get_color(tuple(c.split('|'))):
+                                        color_change = self.__get_color(tuple(c.split('|')))
+                                        break
+
+                                optimals.append(max(score))
+
+                            best = self.playables[optimals.index(max(optimals))]
+                            if not self.__get_color(best):
+                                best = (color_change + best[0], best[1])
+
+                    else:
+                        if all(x in self.losing_colors for x in {'pink', 'teal', 'orange', 'purple'}):
+                            self.losing_colors = []
+
+                        if not all(t[1] == '+color' for t in self.playables):
+                            self.playables = [x for x in self.playables if x[1] != '+color']
+                        if not all(t[1] == 'flip' for t in self.playables):
+                            self.playables = [x for x in self.playables if x[1] != 'flip']
+                        if not all(t[1] == 'darkwild' for t in self.playables):
+                            self.playables = [x for x in self.playables if x[1] != 'darkwild']
+
+                        if len(self.cards) == 1:
+                            if self.playables[0][1] == '+color':
+                                best = (self.playables[0][0], 'teal+color')
+                            elif self.playables[0][1] == 'darkwild':
+                                best = (self.playables[0][0], 'tealwild')
                             else:
-                                tree.create_node(identifier=card[0] + '|wild',
-                                                 data=self.__get_score(self.__get_value(card), self.__get_color(card)))
-                                self.__build_tree(tree, card[0] + '|wild')
+                                best = self.playables[0]
+                        else:
+                            color_change = choice([x for x in {'pink', 'teal', 'orange', 'purple'} if x not in self.losing_colors])
+                            optimals = []
 
-                            paths = tree.paths_to_leaves()
+                            for card in self.playables:
+                                self.reccount = 0
 
-                            score = [sum(map(lambda x: tree.get_node(x).data * e ** (-path.index(x)), path)) for path in
-                                     paths]
-                            for c in paths[score.index(max(score))]:
-                                if self.__get_color(tuple(c.split('|'))):
-                                    color_change = self.__get_color(tuple(c.split('|')))
-                                    break
+                                tree = Tree()
+                                if card[1] != 'darkwild':
+                                    tree.create_node(identifier=card[0] + '|' + card[1],
+                                                     data=self.__get_score(self.__get_value(card), self.__get_color(card)))
+                                    self.__build_tree(tree, card[0] + '|' + card[1])
+                                else:
+                                    tree.create_node(identifier=card[0] + '|wild',
+                                                     data=self.__get_score(self.__get_value(card), self.__get_color(card)))
+                                    self.__build_tree(tree, card[0] + '|wild')
 
-                            optimals.append(max(score))
+                                paths = tree.paths_to_leaves()
 
-                        best = self.playables[optimals.index(max(optimals))]
-                        if not self.__get_color(best):
-                            if best[1] == 'darkwild':
-                                best = (best[0], color_change + 'wild')
-                            else:
-                                best = (best[0], color_change + best[1])
+                                score = [sum(map(lambda x: tree.get_node(x).data * e ** (-path.index(x)), path)) for path in
+                                         paths]
+                                for c in paths[score.index(max(score))]:
+                                    if self.__get_color(tuple(c.split('|'))):
+                                        color_change = self.__get_color(tuple(c.split('|')))
+                                        break
 
-                await play_card(best, self.name, self.guild)
-                await self.__execute_card(self.__get_value(best))
+                                optimals.append(max(score))
+
+                            best = self.playables[optimals.index(max(optimals))]
+                            if not self.__get_color(best):
+                                if best[1] == 'darkwild':
+                                    best = (best[0], color_change + 'wild')
+                                else:
+                                    best = (best[0], color_change + best[1])
+
+                    await play_card(best, self.name, self.guild)
+                    await self.__execute_card(self.__get_value(best))
+
+            else:
+                await play_card(self.playables[0], self.name, self.guild)
+                await self.__execute_card(self.__get_value(self.playables[0]))
 
 
 # Events
