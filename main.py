@@ -7021,15 +7021,15 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         if games[str(ctx.guild.id)]['settings']['Flip']:
                             FlipPNG = discord.File('images/uno-flip!.png', filename='flip.png')
                             message.set_thumbnail(url='attachment://bot.png')
-                            response = await ctx.respond(embed=message, view=view, file=FlipPNG)
+                            response = await ctx.respond(file=FlipPNG, embed=message, view=view)
                         elif games[str(ctx.guild.id)]['settings']['ONO99']:
                             ONO99PNG = discord.File('images/ono-99.png', filename='ono.png')
                             message.set_thumbnail(url='attachment://ono.png')
-                            response = await ctx.respond(embed=message, view=view, file=ONO99PNG)
+                            response = await ctx.respond(file=ONO99PNG, embed=message, view=view)
                         else:
                             UNOPNG = discord.File('images/uno!.png', filename='uno.png')
                             message.set_thumbnail(url='attachment://uno.png')
-                            response = await ctx.respond(embed=message, view=view, file=UNOPNG)
+                            response = await ctx.respond(file=UNOPNG, embed=message, view=view)
                         e = await response.original_message()
                         games[str(ctx.guild.id)]['message'] = e.id
 
