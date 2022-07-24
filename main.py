@@ -7068,7 +7068,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 v = View(timeout=None)
                                 v.add_item(spectate)
-                                await response.edit_original_message(view=v, file=PNG)
+                                await response.edit_original_message(view=v)
 
                                 n = len(games[str(ctx.guild.id)]['players'].keys())
                                 if n > 1:
@@ -7118,7 +7118,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
 
                                     await game_setup(ctx, games[str(ctx.guild.id)])
 
@@ -7139,7 +7139,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     message_dict['fields'][0]['value'] = p
 
-                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), view=None, file=PNG)
+                                    await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), view=None)
 
                                     del games[str(ctx.guild.id)]
 
@@ -7153,7 +7153,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message_dict['description'] = 'Less than ' + str(
                                 games[str(ctx.guild.id)]['seconds']) + ' seconds left!'
 
-                            await response.edit_original_message(embed=discord.Embed.from_dict(message_dict), file=PNG)
+                            await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
                             await asyncio.sleep(10)
 
                         if commands[str(ctx.guild.id)]['startgame']['Cooldown'] > 0:
