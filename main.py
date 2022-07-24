@@ -6932,6 +6932,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     await ctx.respond(embed=message)
 
+                                    return
+
                                 elif a[i].lower() == 'spectategame':
                                     games[str(ctx.guild.id)]['settings']['SpectateGame'] = True
 
