@@ -2898,53 +2898,50 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     if m:
         m_dict = m.embeds[0].to_dict()
         if not games[str(guild.id)]['settings']['ONO99']:
-            for f in m_dict['fields']:
-                if f['name'] == 'Players:':
-                    l = max(len(max(
-                        [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
-                        key=len, default=[])), len(max(
-                        [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
-                         str.isdigit(x)], key=len, default=[])))
-                    if isinstance(player, str):
-                        if len(games[str(guild.id)]["players"][player].cards) == 1:
-                            if len(player) == l:
-                                f['value'] = f['value'].replace(
-                                    f'{player} - 2 cards',
-                                    f'{player} - UNO!')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player} '.ljust(l + 3, '-') + ' 2 cards',
-                                    f'{player} '.ljust(l + 3, '-') + ' UNO!')
-                        else:
-                            if len(player) == l:
-                                f['value'] = f['value'].replace(
-                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
-                                    f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
-                                    f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+            l = max(len(max(
+                [x for x in games[str(guild.id)]['players'] if not str.isdigit(x)],
+                key=len, default=[])), len(max(
+                [client.get_user(int(x)).name for x in games[str(guild.id)]['players'] if
+                 str.isdigit(x)], key=len, default=[])))
+            if isinstance(player, str):
+                if len(games[str(guild.id)]["players"][player].cards) == 1:
+                    if len(player) == l:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} - 2 cards',
+                            f'{player} - UNO!')
                     else:
-                        if len(games[str(guild.id)]["players"][str(player.id)]['cards']) == 1:
-                            if len(player.name) == l:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} - 2 cards',
-                                    f'{player.name} - UNO!')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} '.ljust(l + 3, '-') + ' 2 cards',
-                                    f'{player.name} '.ljust(l + 3, '-') + ' UNO!')
-                        else:
-                            if len(player.name) == l:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
-                                    f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
-                            else:
-                                f['value'] = f['value'].replace(
-                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
-                                    f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} '.ljust(l + 3, '-') + ' 2 cards',
+                            f'{player} '.ljust(l + 3, '-') + ' UNO!')
+                else:
+                    if len(player) == l:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                            f'{player} - {str(len(games[str(guild.id)]["players"][player].cards))}')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards) + 1)}',
+                            f'{player} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][player].cards))}')
+            else:
+                if len(games[str(guild.id)]["players"][str(player.id)]['cards']) == 1:
+                    if len(player.name) == l:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} - 2 cards',
+                            f'{player.name} - UNO!')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} '.ljust(l + 3, '-') + ' 2 cards',
+                            f'{player.name} '.ljust(l + 3, '-') + ' UNO!')
+                else:
+                    if len(player.name) == l:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                            f'{player.name} - {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
+                    else:
+                        m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(
+                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]) + 1)}',
+                            f'{player.name} '.ljust(l + 3, '-') + f' {str(len(games[str(guild.id)]["players"][str(player.id)]["cards"]))}')
 
-                    break
         else:
             if str.isdigit(card) or card == '-10':
                 total = games[str(guild.id)]["total"] + int(card)
@@ -2962,7 +2959,10 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
                         m_dict['description'] = m_dict['description'].replace(str(games[str(guild.id)]['total']),
                                                                               str(total))
 
-        await m.edit(embed=discord.Embed.from_dict(m_dict))
+        PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+        m.set_thumbnail(url='attachment://thumbnail.png')
+
+        await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
 
     # Get the next player
     n = None
