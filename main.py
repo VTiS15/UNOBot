@@ -6916,17 +6916,17 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message = discord.Embed(title='Game Settings', color=discord.Color.red(),
                                     description='Here are all the game settings that can be applied to customize a game.')
                                     message.add_field(name='Flip',
-                                                      value='Turns on the UNO FLIP game mode.', inline=False)
+                                                      value='Turns on the UNO FLIP game mode.')
                                     message.add_field(name='ONO 99',
-                                                      value='Turns on the ONO 99 game mode.', inline=False)
+                                                      value='Turns on the ONO 99 game mode.')
                                     message.add_field(name='SpectateGame',
-                                                      value='Allows the game to be spectated.', inline=False)
+                                                      value='Allows the game to be spectated.')
                                     message.add_field(name='DrawUntilMatch',
-                                                      value='Makes a player draw until they get a card that can be played (cannot be used in ONO 99).', inline=False)
+                                                      value='Makes a player draw until they get a card that can be played (cannot be used in ONO 99).')
                                     message.add_field(name='7-0',
-                                                      value='Gives the 7 and 0 cards abilities to switch hands (cannot be used in ONO 99).', inline=False)
+                                                      value='Gives the 7 and 0 cards abilities to switch hands (cannot be used in ONO 99).')
                                     message.add_field(name='StackCards',
-                                                      value='Allows stacking of Draw cards (cannot be used in ONO 99).', inline=False)
+                                                      value='Allows stacking of Draw cards (cannot be used in ONO 99).')
                                     message.add_field(name='StartingCards',
                                                       value='Changes the number of cards that every player gets at the beginning of a game.')
 
@@ -7122,7 +7122,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
 
-                                    print(messsage_dict)
+                                    print(message_dict)
 
                                     await game_setup(ctx, games[str(ctx.guild.id)])
 
