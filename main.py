@@ -5900,9 +5900,9 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
         if area == 'start':
             message = discord.Embed(title='How to Start a Game', color=discord.Color.red())
             message.add_field(name='Creating a game:',
-                              value='• Start a game using `u!startgame`. (Use `u!startgame help` for more command info.)\n'
+                              value=f'• Start a game using `{prefix}sg`.\n'
                                     '• Add game settings by typing a list of game settings separated by spaces. (A list of game settings can be found with `u!gamesettings list`.)\n'
-                                    '• Your command might look like this: `u!startgame StackCards, DisableJoin`.\n'
+                                    f'• Your command might look like this: `{prefix}sg StackCards DisableJoin`.\n'
                                     '• A startgame message will be sent which allows you to join, start, and end the game using the reactions, :hand_splayed:, :arrow_forward:, and :x: respectively.\n'
                                     '• After 30 seconds or a force start, your game will start.\n' + chr(173),
                               inline=False)
@@ -5916,19 +5916,19 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
         elif area == 'play':
             message = discord.Embed(title='How to Play Your Cards', color=discord.Color.red())
             message.add_field(name='Reading Embeds:',
-                              value='• Open the uno-channel with your username after you have started a game (using `u!startgame`).\n'
+                              value=f'• Open the uno-channel with your username after you have started a game (using `{prefix}startgame`).\n'
                                     '• The pinned message will show some basic commands to play, the options you have enabled, and the game settings that are enabled.\n'
                                     '• A message will be sent, telling you the current player and the current card.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Playing a card:',
-                              value='• Use the `u!play` command to play your card. (Use `u!play help` for more command info.)\n'
-                                    '• The play command requires a color and a number/type of card.\n'
-                                    '• Use `u!cards` for the names of your cards.\n'
-                                    '• Your command should look something like this: `u!play red 5`.\n'
-                                    '• If you are playing a wild card, make sure to add the color you want. `u!play blue wild`\n' + chr(
+                              value=f'• Enter the `<card color><card value>` to play your card.\n'
+                                    '• If colors are unimportant (in the case of ONO 99), you can simply enter the value of the card.\n'
+                                    '• Use `cards` to look at your cards.\n'
+                                    '• Your command should look something like this: `red5`.\n'
+                                    '• If you are playing a wild card, make sure to add the color you want. `bluewild`\n' + chr(
                                   173), inline=False)
             message.add_field(name='Drawing a card:',
-                              value='• If you don\'t have a card to play, use `u!draw` to draw a card from the deck.\n'
+                              value='• If you don\'t have a card to play, use `draw` to draw a card from the deck.\n'
                                     '• After drawing your turn will be over, unless the game setting DrawUntilMatch is on.')
 
             await ctx.respond(embed=message)
@@ -5936,38 +5936,38 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
         elif area == 'commands':
             message = discord.Embed(title='How to Change the Server\'s command settings', color=discord.Color.red())
             message.add_field(name='Turn commands on/off:',
-                              value='• Use `u!settings commands <command> <on|off>` to toggle the command.\n'
+                              value=f'• Use `{prefix}settings commands <command> <on|off>` to toggle the command.\n'
                                     '• Replace "<command>" with the name of the command, excluding the prefix.\n'
                                     '• Replace "<on|off>", with on or off.\n' + chr(173), inline=False)
             message.add_field(name='Change command cooldowns:',
-                              value='• Use `u!settings commands <command> cooldown set <time>` to set a cooldown for the command.\n'
+                              value=f'• Use `{prefix}settings commands <command> cooldown set <time>` to set a cooldown for the command.\n'
                                     '• Replace "<time>" with how long (in seconds) you would like the cooldown to last.'
-                                    '• You can view the command\'s current cooldown by using `u!settings commands <command> cooldown view`.\n' + chr(
+                                    f'• You can view the command\'s current cooldown by using `{prefix}settings commands <command> cooldown view`.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Whitelist or blacklist commands:',
-                              value='• Use `u!settings commands <command> <whitelist|blacklist> <on|off>` to turn the whitelist/blacklist on or off.\n'
-                                    '• Use `u!settings commands <command> <whitelist|blacklist> <add|remove> <user|role>` to add or remove a user or role to the whitelist/blacklist.\n'
+                              value=f'• Use `{prefix}settings commands <command> <whitelist|blacklist> <on|off>` to turn the whitelist/blacklist on or off.\n'
+                                    f'• Use `{prefix}settings commands <command> <whitelist|blacklist> <add|remove> <user|role>` to add or remove a user or role to the whitelist/blacklist.\n'
                                     '• A whitelist only allows the people on the list to use the command.\n'
                                     '• A blacklist stops only the people on the list from using the command.\n'
                                     '• Disabling both will allow anyone to use the command.\n' + chr(173), inline=False)
             message.add_field(name='View command settings:',
-                              value='• Use `u!settings commands <command> view` to see command info like the state, whitelist, and blacklist.')
+                              value='• Use f`{prefix}settings commands <command> view` to see command info like the state, whitelist, and blacklist.')
 
             await ctx.respond(embed=message)
 
         elif area == 'settings':
             message = discord.Embed(title='How to Change the Server\'s Settings', color=discord.Color.red())
             message.add_field(name='Changing the prefix:',
-                              value='• Use `u!settings prefix <new prefix>` to change the prefix.'
+                              value=f'• Use `{prefix}settings prefix <new prefix>` to change the prefix.'
                                     '• Replace "<new prefix>" with your new prefix.\n' + chr(173), inline=False)
             message.add_field(name='Add or remove default game settings:',
                               value='• Default game settings (DGS) are game settings that will be applied to every game with no game settings automatically.\n'
                                     '• Changing DGS require you to vote, which may take a few minutes to update.\n'
-                                    '• Use `u!settings dgs <game setting> <on|off|view>` to turn DGS on or off.\n'
-                                    '• Replace "<game setting>" with a game setting from `u!gamesettings list`.\n'
+                                    f'• Use `{prefix}settings dgs <game setting> <on|off|view>` to turn DGS on or off.\n'
+                                    f'• Replace "<game setting>" with a game setting from `{prefix}sg help`.\n'
                                     '• Replace "<on|off>" with on or off, depending on if you want to turn the DGS on or off.\n' + chr(
                                   173), inline=False)
-            message.add_field(name='Reset UNOBot:', value='• Use `u!settings reset` to reset UnoBot.\n'
+            message.add_field(name='Reset UNOBot:', value=f'• Use `{prefix}settings reset` to reset UnoBot.\n'
                                                           '• This will reset all of the data UnoBot has on your server.\n'
                                                           '• When prompted, respond only with "CONFIRM" in all caps to confirm the reset.')
 
@@ -5978,12 +5978,12 @@ async def guide(ctx, area: Option(str, 'The area you want a guide on', required=
                                     description='User options only affect the user\'s experience, not the entire server\'s.\n' + chr(
                                         173))
             message.add_field(name='Enabling and disabling options:',
-                              value='• Use `u!options <option name> <on|off>` to turn an option on or off.\n'
-                                    '• Replace "<option name>" with the name of the option, a list can be found using `u!options list`.\n'
+                              value=f'• Use `{prefix}options <option name> <on|off>` to turn an option on or off.\n'
+                                    f'• Replace "<option name>" with the name of the option, a list can be found using `{prefix}options list`.\n'
                                     '• Replace "<on|off>", with on or off, depending on which you would like.\n' + chr(
                                   173), inline=False)
             message.add_field(name='Navigating to your channel:',
-                              value='• Use `u!options view` to view your enabled options.')
+                              value=f'• Use `{prefix}options view` to view your enabled options.')
 
             await ctx.respond(embed=message)
 
@@ -6847,6 +6847,11 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
                     await ctx.respond(embed=discord.Embed(description=':ok_hand: **OK, UNOBot will not reset.**',
                                                           color=discord.Color.red()))
 
+            else:
+                await ctx.respond(embed=discord.Embed(
+                    description=':x: I don\'t understand your command, use `' + prefix + 'settings`',
+                    color=discord.Color.red()))
+
             if commands[str(ctx.guild.id)]['settings']['Cooldown'] > 0:
                 cooldowns[str(ctx.guild.id)].append('settings')
 
@@ -6907,7 +6912,28 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         if args:
                             a = args.split()
                             for i in range(len(a)):
-                                if a[i].lower() == 'spectategame':
+                                if a[0].lower() == 'help':
+                                    message = discord.Embed(title='Game Settings', color=discord.Color.red(),
+                                    description='User options only affect the user\'s experience, not the entire server\'s.\n' + chr(
+                                        173))
+                                    message.add_field(name='Flip',
+                                                      value='Turns on the UNO FLIP game mode.', inline=False)
+                                    message.add_field(name='ONO 99',
+                                                      value='Turns on the ONO 99 game mode.', inline=False)
+                                    message.add_field(name='SpectateGame',
+                                                      value='Allows the game to be spectated.', inline=False)
+                                    message.add_field(name='DrawUntilMatch',
+                                                      value='Makes a player draw until they get a card that can be played (cannot be used in ONO 99).', inline=False)
+                                    message.add_field(name='7-0',
+                                                      value='Gives the 7 and 0 cards abilities to switch hands (cannot be used in ONO 99).', inline=False)
+                                    message.add_field(name='StackCards',
+                                                      value='Allows stacking of Draw cards (cannot be used in ONO 99).', inline=False)
+                                    message.add_field(name='StartingCards',
+                                                      value='Changes the number of cards that every player gets at the beginning of a game.')
+
+                                    await ctx.respond(embed=message)
+
+                                elif a[i].lower() == 'spectategame':
                                     games[str(ctx.guild.id)]['settings']['SpectateGame'] = True
 
                                 elif a[i].lower() in {'ono99', 'ono', '99', 'on', 'on99', 'on9'}:
@@ -6963,7 +6989,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                     else:
                                         await ctx.respond(embed=discord.Embed(
-                                            description=':x: I don\'t understand your command, use `' + prefix + 'commands startgame`',
+                                            description=':x: I don\'t understand your command, use `' + prefix + 'cmds sg`',
                                             color=discord.Color.red()))
 
                                         del games[str(ctx.guild.id)]
@@ -6972,7 +6998,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 
                                 else:
                                     await ctx.respond(embed=discord.Embed(
-                                        description=':x: I don\'t understand your command, use `' + prefix + 'commands startgame`',
+                                        description=':x: I don\'t understand your command, use `' + prefix + 'cmds sg`',
                                         color=discord.Color.red()))
 
                                     del games[str(ctx.guild.id)]
