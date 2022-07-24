@@ -7065,6 +7065,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             m = (await ctx.fetch_message(e.id)).embeds[0]
                             games[str(ctx.guild.id)]['seconds'] -= 10
 
+                            print(m.to_dict())
+
                             if games[str(ctx.guild.id)]['seconds'] == 0:
                                 v = View(timeout=None)
                                 v.add_item(spectate)
@@ -7119,6 +7121,8 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                                     message_dict['fields'][0]['value'] = p
 
                                     await response.edit_original_message(embed=discord.Embed.from_dict(message_dict))
+
+                                    print(messsage_dict)
 
                                     await game_setup(ctx, games[str(ctx.guild.id)])
 
