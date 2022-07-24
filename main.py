@@ -1137,6 +1137,14 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
     for channel in guild.text_channels:
         try:
             m = await channel.fetch_message(games[str(guild.id)]['message'])
+
+            if games[str(guild.id)]['settings']['Flip']:
+                PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+            elif games[str(guild.id)]['settings']['ONO99']:
+                PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+            else:
+                PNG = discord.File('images/uno!.png', filename='thumbnail.png')
+            m.set_thumbnail(url='attachment://thumbnail.png')
         except (discord.NotFound, discord.Forbidden):
             continue
         else:
@@ -1246,7 +1254,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                                                                                              winner.name.lower().replace(
                                                                                                  ' ',
                                                                                                  '-')) + '-uno-channel').send(
-                embed=message, view=v)))
+                embed=message, view=v, file=PNG)))
 
             if games[str(guild.id)]['settings']['SpectateGame']:
                 tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
@@ -1275,7 +1283,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{winner}',
                                                             f':crown: **{winner}**')
 
-                await m.edit(embed=discord.Embed.from_dict(m_dict))
+                await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
 
         # Increment winner's Win count and every player's Played count
         if isinstance(winner, Member):
@@ -1300,7 +1308,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                     p += f':small_blue_diamond:{key}\n'
             m_dict['fields'][0]['value'] = p
 
-            await m.edit(embed=discord.Embed.from_dict(m_dict), view=None)
+            await m.edit(embed=discord.Embed.from_dict(m_dict), view=None, file=PNG)
 
     # Delete the UNO channels and category
     for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
