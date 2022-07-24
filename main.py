@@ -1239,7 +1239,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
                 field['value'] = p
 
-                tasks.append(asyncio.create_task(m.edit(embed=discord.Embed.from_dict(m_dict), view=None)))
+                tasks.append(asyncio.create_task(m.edit(embed=discord.Embed.from_dict(m_dict), view=None, file=PNG)))
 
             # Craft a message that displays who won
             if score == 1:
@@ -1252,7 +1252,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                                                                                              winner.name.lower().replace(
                                                                                                  ' ',
                                                                                                  '-')) + '-uno-channel').send(
-                embed=message, view=v, file=PNG)))
+                embed=message, view=v)))
 
             if games[str(guild.id)]['settings']['SpectateGame']:
                 tasks.append(asyncio.create_task(discord.utils.get(guild.text_channels, name='spectator-uno-channel').send(embed=message)))
@@ -1278,7 +1278,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
 
             if m:
                 m_dict = m.embeds[0].to_dict()
-                m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{winner}',
+                m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{winner} - UNO!',
                                                             f':crown: **{winner}**')
 
                 await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
