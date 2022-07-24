@@ -355,11 +355,6 @@ async def cancel_callback(interaction):
         if not p:
             p = 'None'
 
-        try:
-            del games[str(interaction.guild.id)]
-        except ValueError:
-            pass
-
         message_dict['fields'][0]['value'] = p
 
         if games[str(interaction.guild.id)]['settings']['Flip']:
@@ -371,6 +366,11 @@ async def cancel_callback(interaction):
         interaction.message.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
 
         await interaction.message.edit(embed=discord.Embed.from_dict(message_dict), file=PNG)
+
+        try:
+            del games[str(interaction.guild.id)]
+        except ValueError:
+            pass
 
         print('[' + datetime.now().strftime(
             '%Y-%m-%d %H:%M:%S') + ' | UNOBot] A game is cancelled in ' + str(
