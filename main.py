@@ -1144,7 +1144,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
             else:
                 PNG = discord.File('images/uno!.png', filename='thumbnail.png')
-            m.set_thumbnail(url='attachment://thumbnail.png')
+            m.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
         except (discord.NotFound, discord.Forbidden):
             continue
         else:
