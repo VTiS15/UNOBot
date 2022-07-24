@@ -2898,7 +2898,12 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         try:
             m = await channel.fetch_message(games[str(guild.id)]['message'])
 
-            PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+            if games[str(guild.id)]['settings']['Flip']:
+                PNG = discord.File('images/uno-flip!.png', filename='thumbnail.png')
+            elif games[str(guild.id)]['settings']['ONO99']:
+                PNG = discord.File('images/ono-99.png', filename='thumbnail.png')
+            else:
+                PNG = discord.File('images/uno!.png', filename='thumbnail.png')
             m.embeds[0].set_thumbnail(url='attachment://thumbnail.png')
         except (discord.NotFound, discord.Forbidden):
             continue
