@@ -1281,7 +1281,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 m_dict['fields'][0]['value'] = m_dict['fields'][0]['value'].replace(f':small_blue_diamond:{winner} - UNO!',
                                                             f':crown: **{winner}**')
 
-                await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG)
+                await m.edit(embed=discord.Embed.from_dict(m_dict), file=PNG, view=None)
 
         # Increment winner's Win count and every player's Played count
         if isinstance(winner, Member):
