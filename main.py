@@ -6983,14 +6983,20 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             message = discord.Embed(title='A game of UNO FLIP is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.from_rgb(102, 51, 153))
+                            PNG = discord.File('images/uno-flip!.png', filename='flip.png')
+                            message.set_thumbnail(url="attachment://flip.png")
                         elif games[str(ctx.guild.id)]['settings']['ONO99']:
                             message = discord.Embed(title='A game of ONO 99 is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.yellow())
+                            PNG = discord.File('images/ono-99.png', filename='ono.png')
+                            message.set_thumbnail(url='attachment://ono.png')
                         else:
                             message = discord.Embed(title='A game of UNO is going to start!',
                                                     description='Less than 30 seconds left!',
                                                     color=discord.Color.red())
+                            PNG = discord.File('images/uno!.png', filename='uno.png')
+                            message.set_thumbnail(url='attachment://uno.png')
 
                         message.add_field(name='Players:', value='None', inline=False)
 
@@ -7018,18 +7024,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                         view.add_item(start)
                         view.add_item(cancel)
 
-                        if games[str(ctx.guild.id)]['settings']['Flip']:
-                            FlipPNG = discord.File('images/uno-flip!.png', filename='flip.png')
-                            message.set_thumbnail(url='attachment://bot.png')
-                            response = await ctx.respond(file=FlipPNG, embed=message, view=view)
-                        elif games[str(ctx.guild.id)]['settings']['ONO99']:
-                            ONO99PNG = discord.File('images/ono-99.png', filename='ono.png')
-                            message.set_thumbnail(url='attachment://ono.png')
-                            response = await ctx.respond(file=ONO99PNG, embed=message, view=view)
-                        else:
-                            UNOPNG = discord.File('images/uno!.png', filename='uno.png')
-                            message.set_thumbnail(url='attachment://uno.png')
-                            response = await ctx.respond(file=UNOPNG, embed=message, view=view)
+                        response = await ctx.respond(file=PNG, embed=message, view=view)
                         e = await response.original_message()
                         games[str(ctx.guild.id)]['message'] = e.id
 
