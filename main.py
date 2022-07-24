@@ -6914,7 +6914,7 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
                             for i in range(len(a)):
                                 if a[0].lower() == 'help':
                                     message = discord.Embed(title='Game Settings', color=discord.Color.red(),
-                                    description='Here are all the game settings that can be applied to customize a game.'
+                                    description='Here are all the game settings that can be applied to customize a game.')
                                     message.add_field(name='Flip',
                                                       value='Turns on the UNO FLIP game mode.', inline=False)
                                     message.add_field(name='ONO 99',
