@@ -1277,7 +1277,10 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
                 pass
 
             if m:
-                p = f':crown: **{winner.name}**\n'
+                if isinstance(winner, Member):
+                    p = f':crown: **{winner.name}**\n'
+                else:
+                    p = f':crown: **{winner}**\n'
                 for id in [x for x in games[str(guild.id)]['players'] if x != str(winner.id)]:
                     if str.isdigit(id):
                         p += f':small_blue_diamond:{guild.get_member(int(id)).name}\n'
