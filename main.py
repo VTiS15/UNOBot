@@ -582,13 +582,13 @@ def rank(user: User = None, guild: Guild = None) -> Union[tuple, list]:
 
     # Calculate and append the scores into the scores list
     if guild:
-        for id in [x for x in list(users.keys()) if guild.get_member(int(x))]:
+        for id in [x for x in users if guild.get_member(int(x)) and not guild.get_member(int(x)).bot]:
             scores.append(users[id][str(guild.id)]['Score'])
 
     else:
         for id in users:
             s = 0
-            for g in [x for x in client.guilds if x.get_member(int(id))]:
+            for g in [x for x in client.guilds if x.get_member(int(id)) and not x.get_member(int(id)).bot]:
                 s += users[id][str(g.id)]['Score']
             scores.append(s)
 
@@ -598,7 +598,7 @@ def rank(user: User = None, guild: Guild = None) -> Union[tuple, list]:
     if user:
         if guild:
             return round(
-                leaderboard[[x for x in list(users.keys()) if guild.get_member(int(x))].index(str(user.id))]), len(
+                leaderboard[[x for x in users if guild.get_member(int(x))].index(str(user.id))]), len(
                 leaderboard)
         else:
             return round(leaderboard[list(users.keys()).index(str(user.id))]), len(leaderboard)
