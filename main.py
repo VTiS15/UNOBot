@@ -628,7 +628,7 @@ def no_guild(user: User):
         user: A Discord user
     """
 
-    return any(guild.get_member(user.id) for guild in client.guilds)
+    return not any(guild.get_member(user.id) for guild in client.guilds)
 
 
 def list_duplicates_of(seq: list, item: int) -> list:
