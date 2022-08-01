@@ -7294,79 +7294,83 @@ async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply',
 async def endgame(ctx):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
-    if 'endgame' not in cooldowns[str(ctx.guild.id)]:
-        if commands[str(ctx.guild.id)]['endgame']['Enabled']:
-            if ((not commands[str(ctx.guild.id)]['endgame']['BlacklistEnabled'] or not
-            commands[str(ctx.guild.id)]['endgame']['Blacklist'])
-                or ctx.author.id not in commands[str(ctx.guild.id)]['endgame']['Blacklist']) \
-                    and (not commands[str(ctx.guild.id)]['endgame']['WhitelistEnabled'] or
-                         commands[str(ctx.guild.id)]['endgame']['Whitelist'] and ctx.author.id in
-                         commands[str(ctx.guild.id)]['endgame'][
-                             'Whitelist']) or ctx.author == ctx.guild.owner or ctx.author == ctx.guild.get_member(
-                games[str(ctx.guild.id)]['creator']):
-                if ctx.channel.category.name != 'UNO-GAME':
-                    if str(ctx.guild.id) in games and str(ctx.guild.id) not in ending:
-                        await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
-                            description=':warning: **' + ctx.author.name + ' is ending the game!**',
-                            color=discord.Color.red()))) for x in ctx.guild.text_channels if
-                            x.category.name == 'UNO-GAME'])
+    try:
+        if 'endgame' not in cooldowns[str(ctx.guild.id)]:
+            if commands[str(ctx.guild.id)]['endgame']['Enabled']:
+                if ((not commands[str(ctx.guild.id)]['endgame']['BlacklistEnabled'] or not
+                commands[str(ctx.guild.id)]['endgame']['Blacklist'])
+                    or ctx.author.id not in commands[str(ctx.guild.id)]['endgame']['Blacklist']) \
+                        and (not commands[str(ctx.guild.id)]['endgame']['WhitelistEnabled'] or
+                             commands[str(ctx.guild.id)]['endgame']['Whitelist'] and ctx.author.id in
+                             commands[str(ctx.guild.id)]['endgame'][
+                                 'Whitelist']) or ctx.author == ctx.guild.owner or ctx.author == ctx.guild.get_member(
+                    games[str(ctx.guild.id)]['creator']):
+                    if ctx.channel.category.name != 'UNO-GAME':
+                        if str(ctx.guild.id) in games and str(ctx.guild.id) not in ending:
+                            await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
+                                description=':warning: **' + ctx.author.name + ' is ending the game!**',
+                                color=discord.Color.red()))) for x in ctx.guild.text_channels if
+                                x.category.name == 'UNO-GAME'])
 
-                        try:
-                            if str(ctx.guild.id) in rematching:
-                                del rematching[str(ctx.guild.id)]
-                            ending.append(str(ctx.guild.id))
-                            await game_shutdown(ctx.guild)
+                            try:
+                                if str(ctx.guild.id) in rematching:
+                                    del rematching[str(ctx.guild.id)]
+                                ending.append(str(ctx.guild.id))
+                                await game_shutdown(ctx.guild)
 
+                                await ctx.respond(
+                                    embed=discord.Embed(description=':thumbsup: **The game has been shut down.**',
+                                                        color=discord.Color.red()))
+                            except:
+                                pass
+
+                        else:
                             await ctx.respond(
-                                embed=discord.Embed(description=':thumbsup: **The game has been shut down.**',
+                                embed=discord.Embed(description=':x: **The game doesn\'t exist.**',
                                                     color=discord.Color.red()))
-                        except:
-                            pass
 
                     else:
                         await ctx.respond(
-                            embed=discord.Embed(description=':x: **The game doesn\'t exist.**',
+                            embed=discord.Embed(description=':x: **You can\'t use this command here!**',
                                                 color=discord.Color.red()))
+
+                    if commands[str(ctx.guild.id)]['endgame']['Cooldown'] > 0:
+                        cooldowns[str(ctx.guild.id)].append('endgame')
+
+                        def check(message):
+                            return len(message.content.split()) == 6 \
+                                   and message.content.split()[0] in (
+                                       prefix + 'settings', prefix + 'set', prefix + 'sett', prefix + 'stngs',
+                                       prefix + 'setting', prefix + 'stng') \
+                                   and message.content.split()[1].lower() == 'commands' \
+                                   and message.content.split()[2].lower() == 'endgame' \
+                                   and message.content.split()[3].lower() == 'cooldown' \
+                                   and message.content.split()[4].lower() == 'set'
+
+                        try:
+                            m = await client.wait_for('message', check=check,
+                                                      timeout=float(commands[str(ctx.guild.id)]['engame']['Cooldown']))
+                            await client.process_commands(m)
+                            cooldowns[str(ctx.guild.id)].remove('endgame')
+
+                        except asyncio.TimeoutError:
+                            cooldowns[str(ctx.guild.id)].remove('endgame')
 
                 else:
                     await ctx.respond(
-                        embed=discord.Embed(description=':x: **You can\'t use this command here!**',
+                        embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
                                             color=discord.Color.red()))
-
-                if commands[str(ctx.guild.id)]['endgame']['Cooldown'] > 0:
-                    cooldowns[str(ctx.guild.id)].append('endgame')
-
-                    def check(message):
-                        return len(message.content.split()) == 6 \
-                               and message.content.split()[0] in (
-                                   prefix + 'settings', prefix + 'set', prefix + 'sett', prefix + 'stngs',
-                                   prefix + 'setting', prefix + 'stng') \
-                               and message.content.split()[1].lower() == 'commands' \
-                               and message.content.split()[2].lower() == 'endgame' \
-                               and message.content.split()[3].lower() == 'cooldown' \
-                               and message.content.split()[4].lower() == 'set'
-
-                    try:
-                        m = await client.wait_for('message', check=check,
-                                                  timeout=float(commands[str(ctx.guild.id)]['engame']['Cooldown']))
-                        await client.process_commands(m)
-                        cooldowns[str(ctx.guild.id)].remove('endgame')
-
-                    except asyncio.TimeoutError:
-                        cooldowns[str(ctx.guild.id)].remove('endgame')
 
             else:
                 await ctx.respond(
-                    embed=discord.Embed(description=':lock: **You do not have permission to use this command.**',
-                                        color=discord.Color.red()))
+                    embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
 
         else:
-            await ctx.respond(
-                embed=discord.Embed(description=':x: **The command is disabled.**', color=discord.Color.red()))
+            await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
+                commands[str(ctx.guild.id)]['endgame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
 
-    else:
-        await ctx.respond(embed=discord.Embed(description=':stopwatch: **You can only use this command every ' + str(
-            commands[str(ctx.guild.id)]['endgame']['Cooldown']) + ' seconds.**', color=discord.Color.red()))
+    except KeyError:
+        pass
 
 
 @client.slash_command(name='u-leave', description='Gets you out of an ongoing game of UNO')
