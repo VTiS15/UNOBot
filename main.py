@@ -1956,7 +1956,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     *[asyncio.create_task(x.send(
                         embed=discord.Embed(description='**' + player.name + '** drew **' + str(len(draw)) + '** cards.',
                                             color=discord.Color.red()))) for x in guild.text_channels if
-                        x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
+                        x.category and x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
                                                                         player.name.lower().replace(' ',
                                                                                                     '-')) + '-uno-channel']
                 )
