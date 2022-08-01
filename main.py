@@ -1272,7 +1272,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
             try:
                 await asyncio.gather(
                     *[asyncio.create_task(x.send(embed=message, view=v)) for x in guild.text_channels if
-                      x.category.name == 'UNO-GAME'])
+                      x.category and x.category.name == 'UNO-GAME'])
             except ClientOSError:
                 pass
 
@@ -1318,7 +1318,7 @@ async def game_shutdown(guild: Guild, winner: Union[Member, str] = None):
             await m.edit(embed=discord.Embed.from_dict(m_dict), view=None, file=PNG)
 
     # Delete the UNO channels and category
-    for channel in [x for x in guild.text_channels if x.category.name == 'UNO-GAME']:
+    for channel in [x for x in guild.text_channels if x.category and x.category.name == 'UNO-GAME']:
         await channel.delete()
 
     # Remove the game's data from memory
@@ -1924,7 +1924,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     *[asyncio.create_task(x.send(
                         embed=discord.Embed(description='**' + player.name + '** drew a card.',
                                             color=discord.Color.red()))) for x in guild.text_channels if
-                        x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
+                        x.category and x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
                                                                         player.name.lower().replace(' ',
                                                                                                     '-')) + '-uno-channel']
                 )
@@ -1939,7 +1939,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     *[asyncio.create_task(x.send(
                         embed=discord.Embed(description=f'**{bot.name}** drew a card.',
                                             color=discord.Color.red()))) for x in guild.text_channels if
-                        x.category.name == 'UNO-GAME'])
+                        x.category and x.category.name == 'UNO-GAME'])
             else:
                 await discord.utils.get(guild.channels,
                                         name=sub(r'[^\w -]', '',
@@ -1971,7 +1971,7 @@ async def draw(player: Union[Member, str], guild: Guild, number: int, DUM: bool 
                     *[asyncio.create_task(x.send(
                         embed=discord.Embed(description=f'**{bot.name}** drew **' + str(len(draw)) + '** cards.',
                                             color=discord.Color.red()))) for x in guild.text_channels if
-                        x.category.name == 'UNO-GAME'])
+                        x.category and x.category.name == 'UNO-GAME'])
             else:
                 await discord.utils.get(guild.channels,
                                         name=sub(r'[^\w -]', '',
@@ -2494,7 +2494,7 @@ async def display_cards(player: Union[Member, str], guild: Guild):
 
         # Send the current player's hand to every UNO channel
         await asyncio.gather(
-            *[asyncio.create_task(send_cards(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+            *[asyncio.create_task(send_cards(x)) for x in guild.text_channels if x.category and x.category.name == 'UNO-GAME'])
 
         # Change the current player of the game
         if isinstance(player, Member):
@@ -2901,7 +2901,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
     # Send the played card to all UNO channels
     try:
         await asyncio.gather(
-            *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+            *[asyncio.create_task(send_card(x)) for x in guild.text_channels if x.category and x.category.name == 'UNO-GAME'])
     except discord.NotFound:
         pass
 
@@ -3063,7 +3063,7 @@ async def play_card(card: Union[str, tuple], player: Union[Member, str], guild: 
         # Send a message to every player and spectator to inform them that the player is out
         await asyncio.gather(*[asyncio.create_task(x.send(
             embed=discord.Embed(description=':bangbang: **' + player.name + '** is **OUT!**',
-                                color=discord.Color.yellow()))) for x in guild.text_channels if x.category.name == 'UNO-GAME'])
+                                color=discord.Color.yellow()))) for x in guild.text_channels if x.category and x.category.name == 'UNO-GAME'])
 
         # If there is only one man standing, they win
         if sum(1 for x in games[str(guild.id)]['players'] if 'left' not in games[str(guild.id)]['players'][x]) == 1:
@@ -4291,7 +4291,7 @@ async def on_member_remove(member):
         await asyncio.gather(*[asyncio.create_task(x.send(
             embed=discord.Embed(description=':warning: **' + member.name + '** left.',
                                 color=discord.Color.red()))) for x
-            in member.guild.text_channels if x.category.name == 'UNO-GAME'])
+            in member.guild.text_channels if x.category and x.category.name == 'UNO-GAME'])
 
         p = [x for x in games[str(member.guild.id)]['players']]
 
@@ -4321,7 +4321,7 @@ async def on_member_remove(member):
             await asyncio.gather(*[asyncio.create_task(x.send(
                 embed=discord.Embed(
                     description=':x: **Since not enough players are left, ending game...**',
-                    color=discord.Color.red()))) for x in member.guild.text_channels if x.category.name == 'UNO-GAME'])
+                    color=discord.Color.red()))) for x in member.guild.text_channels if x.category and x.category.name == 'UNO-GAME'])
 
             p = [x for x in games[str(member.guild.id)]['players'] if
                  not str.isdigit(x) or str.isdigit(x) and 'left' not in
@@ -5768,7 +5768,7 @@ async def on_message(message):
                                 m.set_image(url='attachment://image.png')
 
                                 tasks = [asyncio.create_task(message.channel.send(file=file, embed=m))]
-                                for channel in [x for x in message.guild.text_channels if
+                                for channel in [x for x in message.guild.text_channels if x.category and
                                                 x.category.name == 'UNO-GAME' and x.name != sub(r'[^\w -]', '',
                                                                                                 message.author.name.lower().replace(
                                                                                                     ' ',
@@ -6974,8 +6974,8 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
 async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
-    if ctx.channel.category and ctx.channel.category.name != 'UNO-GAME':
-        if 'startgame' not in cooldowns[str(ctx.guild.id)] and ctx.channel.category.name != 'UNO-GAME':
+    if ctx.channel.category and ctx.channel.category.name != 'UNO-GAME' or not ctx.channel.category:
+        if 'startgame' not in cooldowns[str(ctx.guild.id)]:
             if commands[str(ctx.guild.id)]['startgame']['Enabled']:
                 if ((not commands[str(ctx.guild.id)]['startgame']['BlacklistEnabled'] or not
                 commands[str(ctx.guild.id)]['startgame']['Blacklist'])
@@ -7305,12 +7305,12 @@ async def endgame(ctx):
                              commands[str(ctx.guild.id)]['endgame'][
                                  'Whitelist']) or ctx.author == ctx.guild.owner or ctx.author == ctx.guild.get_member(
                     games[str(ctx.guild.id)]['creator']):
-                    if ctx.channel.category.name != 'UNO-GAME':
+                    if ctx.channel.category and ctx.channel.category.name != 'UNO-GAME':
                         if str(ctx.guild.id) in games and str(ctx.guild.id) not in ending:
                             await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                 description=':warning: **' + ctx.author.name + ' is ending the game!**',
                                 color=discord.Color.red()))) for x in ctx.guild.text_channels if
-                                x.category.name == 'UNO-GAME'])
+                                x.category and x.category.name == 'UNO-GAME'])
 
                             try:
                                 if str(ctx.guild.id) in rematching:
@@ -7387,7 +7387,7 @@ async def leavegame(ctx):
                          commands[str(ctx.guild.id)]['leavegame']['Whitelist'] and ctx.author.id in
                          commands[str(ctx.guild.id)]['leavegame'][
                              'Whitelist']) or ctx.author == ctx.guild.owner:
-                if ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
+                if ctx.channel.category and ctx.channel.category.name == 'UNO-GAME' and ctx.channel.name != 'spectator-uno-channel':
                     if str(ctx.guild.id) in games and str(ctx.author.id) in games[str(ctx.guild.id)]['players']:
                         games[str(ctx.guild.id)]['players'][str(ctx.author.id)]['left'] = get_score(str(ctx.author.id), ctx.guild)
 
@@ -7514,7 +7514,7 @@ async def kick(ctx, user):
                     await asyncio.gather(*[asyncio.create_task(x.send(
                         embed=discord.Embed(description=':warning: **' + player.name + '** was kicked.',
                                             color=discord.Color.red()))) for x in
-                        ctx.guild.text_channels if x.category.name == 'UNO-GAME'])
+                        ctx.guild.text_channels if x.category and x.category.name == 'UNO-GAME'])
 
                     p = list(games[str(ctx.guild.id)]['players'].keys())
 
@@ -7544,7 +7544,7 @@ async def kick(ctx, user):
                             await display_cards(n, ctx.guild)
 
                     else:
-                        for channel in [x for x in ctx.guild.text_channels if x.category.name == 'UNO-GAME']:
+                        for channel in [x for x in ctx.guild.text_channels if x.category and x.category.name == 'UNO-GAME']:
                             await channel.send(
                                 embed=discord.Embed(description=':x: Since not enough players are left, ending game...',
                                                     color=discord.Color.red()))
