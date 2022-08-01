@@ -7305,7 +7305,7 @@ async def endgame(ctx):
                              commands[str(ctx.guild.id)]['endgame'][
                                  'Whitelist']) or ctx.author == ctx.guild.owner or ctx.author == ctx.guild.get_member(
                     games[str(ctx.guild.id)]['creator']):
-                    if ctx.channel.category and ctx.channel.category.name != 'UNO-GAME':
+                    if ctx.channel.category and ctx.channel.category.name != 'UNO-GAME' or not ctx.channel.category:
                         if str(ctx.guild.id) in games and str(ctx.guild.id) not in ending:
                             await asyncio.gather(*[asyncio.create_task(x.send(embed=discord.Embed(
                                 description=':warning: **' + ctx.author.name + ' is ending the game!**',
