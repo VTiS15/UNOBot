@@ -871,7 +871,7 @@ async def game_setup(ctx: ApplicationContext, d: dict):
 
     # Let the bot(s) know which channels to send messages to if they are playing
     for bot in [x for x in player_ids if not str.isdigit(x)]:
-        d['players'][bot].channels = [x for x in guild.text_channels if x.category.name == 'UNO-GAME']
+        d['players'][bot].channels = [x for x in guild.text_channels if x.category and x.category.name == 'UNO-GAME']
 
     for id in [x for x in player_ids if str.isdigit(x)]:
         # Assign more cards to the deck while the deck is not enough
@@ -4423,7 +4423,7 @@ async def on_message(message):
                     embed=discord.Embed(description=':lock: **You do not have permission to confirm the reset.**',
                                         color=discord.Color.red()))
 
-    elif message.channel.category.name == 'UNO-GAME' and message.author != client.user and str(
+    elif message.channel.category and message.channel.category.name == 'UNO-GAME' and message.author != client.user and str(
             message.guild.id) not in ending and message.channel.name != 'spectator-uno-channel':
 
         try:
@@ -6974,7 +6974,7 @@ async def settings(ctx, setting: Option(str, 'The setting you wish to change'), 
 async def startgame(ctx, *, args: Option(str, 'Game settings you wish to apply', required=False, default='')):
     commands = json.loads(s3_resource.Object('unobot-bucket', 'commands.json').get()['Body'].read().decode('utf-8'))
 
-    if ctx.channel.category.name != 'UNO-GAME':
+    if ctx.channel.category and ctx.channel.category.name != 'UNO-GAME':
         if 'startgame' not in cooldowns[str(ctx.guild.id)] and ctx.channel.category.name != 'UNO-GAME':
             if commands[str(ctx.guild.id)]['startgame']['Enabled']:
                 if ((not commands[str(ctx.guild.id)]['startgame']['BlacklistEnabled'] or not
