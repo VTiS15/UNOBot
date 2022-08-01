@@ -6105,8 +6105,13 @@ async def stats(ctx,
                                             color=discord.Color.red())
                     message.set_thumbnail(url=user.display_avatar.url)
                     ranking = rank(user, ctx.guild)
-                    message.add_field(name='Rank', value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
-                                      inline=False)
+                    if ranking[0] == 1:
+                        message.add_field(name='Rank',
+                                          value=':crown: Rank **1** out of ' + str(ranking[1]),
+                                          inline=False)
+                    else:
+                        message.add_field(name='Rank', value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
+                                          inline=False)
                     dict = users[str(user.id)][str(ctx.guild.id)]
                     if dict['Score'] == 1:
                         message.add_field(name='Score', value='**1** pt')
@@ -6199,8 +6204,14 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
                     message = discord.Embed(title=user.name + '\'s Global Stats', color=discord.Color.red())
                     message.set_thumbnail(url=user.display_avatar.url)
                     ranking = rank(user)
-                    message.add_field(name='Rank', value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
-                                      inline=False)
+                    if ranking[0] == 1:
+                        message.add_field(name='Rank',
+                                          value=':crown: Rank **1** out of ' + str(ranking[1]),
+                                          inline=False)
+                    else:
+                        message.add_field(name='Rank',
+                                          value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
+                                          inline=False)
 
                     p = 0
                     w = 0
@@ -6296,8 +6307,12 @@ async def leaderboard(ctx):
                             int([x for x in list(users.keys()) if ctx.guild.get_member(int(x))][index]))
 
                         if users[str(user.id)][str(ctx.guild.id)]['Played'] > 0:
-                            message.add_field(name='Rank ' + str(i), value='**' + str(user) + '**\n' + str(
-                                users[str(user.id)][str(ctx.guild.id)]['Score']) + ' pts', inline=False)
+                            if i == 1:
+                                message.add_field(name=':crown: Rank 1', value='**' + str(user) + '**\n' + str(
+                                    users[str(user.id)][str(ctx.guild.id)]['Score']) + ' pts', inline=False)
+                            else:
+                                message.add_field(name='Rank ' + str(i), value='**' + str(user) + '**\n' + str(
+                                    users[str(user.id)][str(ctx.guild.id)]['Score']) + ' pts', inline=False)
 
                             count += 1
 
@@ -6391,8 +6406,12 @@ async def globalleaderboard(ctx):
                             for g in [x for x in client.guilds if x.get_member(user.id)]:
                                 s += users[str(user.id)][str(g.id)]['Score']
 
-                            message.add_field(name='Rank ' + str(i),
-                                              value='**' + str(user) + '**\n' + str(s) + ' pts', inline=False)
+                            if i == 1:
+                                message.add_field(name=':crown: Rank 1',
+                                                  value='**' + str(user) + '**\n' + str(s) + ' pts', inline=False)
+                            else:
+                                message.add_field(name='Rank ' + str(i),
+                                                  value='**' + str(user) + '**\n' + str(s) + ' pts', inline=False)
 
                             count += 1
 
