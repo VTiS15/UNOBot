@@ -6107,7 +6107,15 @@ async def stats(ctx,
                     ranking = rank(user, ctx.guild)
                     if ranking[0] == 1:
                         message.add_field(name='Rank',
-                                          value=':crown: Rank **1** out of ' + str(ranking[1]),
+                                          value=':first_place: Rank **1** out of ' + str(ranking[1]),
+                                          inline=False)
+                    elif ranking[0] == 2:
+                        message.add_field(name='Rank',
+                                          value=':second_place: Rank **2** out of ' + str(ranking[1]),
+                                          inline=False)
+                    elif ranking[0] == 3:
+                        message.add_field(name='Rank',
+                                          value=':third_place: Rank **3** out of ' + str(ranking[1]),
                                           inline=False)
                     else:
                         message.add_field(name='Rank', value='Rank **' + str(ranking[0]) + '** out of ' + str(ranking[1]),
@@ -6206,7 +6214,15 @@ async def globalstats(ctx, user: Option(discord.User, 'The user whose global sta
                     ranking = rank(user)
                     if ranking[0] == 1:
                         message.add_field(name='Rank',
-                                          value=':crown: Rank **1** out of ' + str(ranking[1]),
+                                          value=':first_place: Rank **1** out of ' + str(ranking[1]),
+                                          inline=False)
+                    elif ranking[0] == 2:
+                        message.add_field(name='Rank',
+                                          value=':second_place: Rank **2** out of ' + str(ranking[1]),
+                                          inline=False)
+                    elif ranking[0] == 3:
+                        message.add_field(name='Rank',
+                                          value=':third_place: Rank **3** out of ' + str(ranking[1]),
                                           inline=False)
                     else:
                         message.add_field(name='Rank',
@@ -6308,7 +6324,13 @@ async def leaderboard(ctx):
 
                         if users[str(user.id)][str(ctx.guild.id)]['Played'] > 0:
                             if i == 1:
-                                message.add_field(name=':crown: Rank 1', value='**' + str(user) + '**\n' + str(
+                                message.add_field(name=':first_place: Rank 1', value='**' + str(user) + '**\n' + str(
+                                    users[str(user.id)][str(ctx.guild.id)]['Score']) + ' pts', inline=False)
+                            elif i == 2:
+                                message.add_field(name=':second_place: Rank 2', value='**' + str(user) + '**\n' + str(
+                                    users[str(user.id)][str(ctx.guild.id)]['Score']) + ' pts', inline=False)
+                            elif i == 3:
+                                message.add_field(name=':third_place: Rank 3', value='**' + str(user) + '**\n' + str(
                                     users[str(user.id)][str(ctx.guild.id)]['Score']) + ' pts', inline=False)
                             else:
                                 message.add_field(name='Rank ' + str(i), value='**' + str(user) + '**\n' + str(
@@ -6407,7 +6429,13 @@ async def globalleaderboard(ctx):
                                 s += users[str(user.id)][str(g.id)]['Score']
 
                             if i == 1:
-                                message.add_field(name=':crown: Rank 1',
+                                message.add_field(name=':first_place: Rank 1',
+                                                  value='**' + str(user) + '**\n' + str(s) + ' pts', inline=False)
+                            elif i == 2:
+                                message.add_field(name=':second_place: Rank 2',
+                                                  value='**' + str(user) + '**\n' + str(s) + ' pts', inline=False)
+                            elif i == 3:
+                                message.add_field(name=':third_place: Rank 3',
                                                   value='**' + str(user) + '**\n' + str(s) + ' pts', inline=False)
                             else:
                                 message.add_field(name='Rank ' + str(i),
